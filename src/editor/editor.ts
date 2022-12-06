@@ -1,3 +1,4 @@
+import { Line } from '../document';
 import Document from '../document/document';
 import { Selection } from '../selection';
 import { Tokenizer } from '../tokenizer';
@@ -49,6 +50,28 @@ class Editor {
 
 	public getText(): string {
 		return this._document?.getText() ?? '';
+	}
+
+	/**
+	 * Combines text data with tokenization result.
+	 * @param firstLine number of first line
+	 * @param count count of lines to read
+	 * @returns list of lines with tokenization data
+	 */
+	public getLines(firstLine: number, count: number): Line[] {
+		if (this._document === null) {
+			return [];
+		}
+		const rawLines = this._document.getLineNodes(firstLine, count);
+		const lines: Line[] = [];
+		for (const line of rawLines) {
+			lines.push({
+				rawText: line.text,
+				tokens: this._tokenizer.getTokensForLine(line),
+				lineBreaks: [],
+			});
+		}
+		return lines;
 	}
 
 	public tokenize(): void {
