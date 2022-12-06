@@ -38,6 +38,10 @@ export default class Tokenizer {
 		}
 	}
 
+	public setDocument(document: Document): void {
+		this._doc = document;
+	}
+
 	public makeTokens(): void {
 		if (this._doc === null) {
 			return;
