@@ -66,6 +66,10 @@ class Editor extends EventEmitter<EditorEvents> {
 		return this._document?.getText() ?? '';
 	}
 
+	public getTotalLinesCount(): number {
+		return this._document?.linesCount ?? 0;
+	}
+
 	/**
 	 * Combines text data with tokenization result.
 	 * @param firstLine number of first line
