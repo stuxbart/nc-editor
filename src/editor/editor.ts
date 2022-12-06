@@ -3,6 +3,8 @@ import Document from '../document/document';
 import { EventEmitter } from '../events';
 import { Selection } from '../selection';
 import { Tokenizer } from '../tokenizer';
+import { EditorView } from '../ui';
+import { EvView } from '../ui/events';
 import { EditorEvents, EvDocument, EvSelection, EvTokenizer } from './events';
 
 /**
@@ -16,6 +18,8 @@ class Editor extends EventEmitter<EditorEvents> {
 
 	private _shouldEmitEditEvent: boolean = true;
 	private _shouldEmitLinesCountChangeEvent: boolean = true;
+
+	private _views: EditorView[] = [];
 
 	constructor() {
 		super();
@@ -92,6 +96,31 @@ class Editor extends EventEmitter<EditorEvents> {
 		return lines;
 	}
 
+	public getFirstLine(): Line | null {
+		if (this._document === null) {
+			return null;
+		}
+		const firstLine = this._document.getFirstLineNode();
+		if (firstLine === null) {
+			return null;
+		}
+		const line = new Line(firstLine.text, this._tokenizer.getTokensForLine(firstLine), []);
+		return line;
+	}
+
+	public getLastLine(): Line | null {
+		if (this._document === null) {
+			return null;
+		}
+		const lastLine = this._document.getLastLineNode();
+		if (lastLine === null) {
+			return null;
+		}
+
+		const line = new Line(lastLine.text, this._tokenizer.getTokensForLine(lastLine), []);
+		return line;
+	}
+
 	public tokenize(): void {
 		if (this._document === null) {
 			return;
@@ -113,6 +142,13 @@ class Editor extends EventEmitter<EditorEvents> {
 	public addSelection(selection: Selection): void {
 		this._selections.push(selection);
 		this._emitSelectionChangedEvent();
+	}
+
+	public addView(view: EditorView): void {
+		this._views.push(view);
+		view.on(EvView.Initialized, () => {
+			this._emitInitEvents();
+		});
 	}
 
 	private _updateSelctions(
@@ -169,6 +205,15 @@ class Editor extends EventEmitter<EditorEvents> {
 
 	private _emitSelectionChangedEvent(): void {
 		this.emit(EvSelection.Changed, undefined);
+	}
+
+	private _emitInitEvents(): void {
+		this.emit(EvSelection.Changed, undefined);
+		this.emit(EvDocument.Set, undefined);
+		this.emit(EvDocument.LinesCount, {
+			linesCount: this._document?.linesCount ?? 0,
+		});
+		this.emit(EvTokenizer.Finished, undefined);
 	}
 }
 
