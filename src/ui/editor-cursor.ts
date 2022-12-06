@@ -12,6 +12,10 @@ export default class EditorCursor {
 		this._createDOMElement();
 	}
 
+	public getDOMElment(): HTMLDivElement | null {
+		return this._cursorElement;
+	}
+
 	private _createDOMElement(): void {
 		this._cursorElement = createDiv(
 			EDITOR_CURSOR_CSS_CLASS + ' ' + EDITOR_CURSOR_ANIMATED_CSS_CLASS,
