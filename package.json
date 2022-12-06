@@ -1,0 +1,26 @@
+{
+  "name": "nc-editor",
+  "version": "0.0.1",
+  "description": "Code editor written in TypeScript.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stuxbart/nc-editor.git"
+  },
+  "keywords": [
+    "nc-editor",
+    "typescript",
+    "code",
+    "editor"
+  ],
+  "author": "Bartłomiej Jarczak",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/stuxbart/nc-editor/issues"
+  },
+  "homepage": "https://github.com/stuxbart/nc-editor#readme"
+}
