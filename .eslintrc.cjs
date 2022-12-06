@@ -14,7 +14,15 @@ module.exports = {
 	rules: {
 		semi: ['error', 'always'],
 		'@typescript-eslint/explicit-function-return-type': 'warn',
-		'@typescript-eslint/explicit-member-accessibility': 'warn',
+		'@typescript-eslint/explicit-member-accessibility': [
+			'warn',
+			{
+				accessibility: 'explicit',
+				overrides: {
+					constructors: 'no-public',
+				},
+			},
+		],
 		'@typescript-eslint/naming-convention': [
 			'error',
 			{
