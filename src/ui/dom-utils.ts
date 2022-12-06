@@ -19,7 +19,7 @@ export const createNodeFromTemplate = (text: string): ChildNode | null => {
 	return template.content.firstChild;
 };
 
-export const isChildOf = (parent: Node, element: Node): boolean => {
+export const isChildOf = (parent: Node | null, element: Node): boolean => {
 	let currentNode: Node | null = element;
 	while (currentNode) {
 		if (currentNode === parent) {
@@ -29,3 +29,5 @@ export const isChildOf = (parent: Node, element: Node): boolean => {
 	}
 	return false;
 };
+
+export const px = (val: number): string => `${val}px`;
