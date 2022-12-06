@@ -60,7 +60,7 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 		this._input = new EditorInput(editor, this);
 		this._scrollBarInitialConfig();
 		this._initEventListeners();
-
+		this._createInputElement();
 		this._scrollToLine(0, this._emitterName);
 		this.setTheme(Theme.Default);
 		this._textLayer.measureLetterWidth();
