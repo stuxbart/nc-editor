@@ -15,8 +15,9 @@ module.exports = {
 		extensions: ['.tsx', '.ts', '.js'],
 	},
 	output: {
-		filename: 'index.js',
+		filename: 'nc-editor.js',
 		path: path.resolve(__dirname, 'dist'),
+		library: 'nc',
 	},
 	mode: 'development',
 };
