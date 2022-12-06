@@ -3,7 +3,7 @@ import Document from '../document/document';
 import { EventEmitter } from '../events';
 import { Selection } from '../selection';
 import { Tokenizer } from '../tokenizer';
-import { EditorEvents, EvDocument, EvTokenizer } from './events';
+import { EditorEvents, EvDocument, EvSelection, EvTokenizer } from './events';
 
 /**
  * Editor class manages state of editor.
@@ -31,6 +31,7 @@ class Editor extends EventEmitter<EditorEvents> {
 		}
 		const insertedLines = this._document.insert(str, line, offset);
 		this._updateLinesTokens(line, insertedLines[0] + 1);
+		this._updateSelctions(line, offset, insertedLines[0], insertedLines[1]);
 		this._emitEditEvent();
 		this._emitLinesCountChanged(insertedLines[0]);
 	}
@@ -49,6 +50,7 @@ class Editor extends EventEmitter<EditorEvents> {
 		}
 		this._document.remove(sel);
 		this._updateLinesTokens(sel.start.line, 2);
+		this._updateSelctions(sel.start.line, sel.start.offset + 1, 0, -1);
 		this._emitEditEvent();
 		this._emitLinesCountChanged(sel.end.line - sel.start.line);
 	}
@@ -95,6 +97,52 @@ class Editor extends EventEmitter<EditorEvents> {
 		this.emit(EvTokenizer.Finished, undefined);
 	}
 
+	public getSelctions(): Selection[] {
+		return this._selections;
+	}
+
+	public setSelection(selection: Selection): void {
+		this._selections = [selection];
+		this._emitSelectionChangedEvent();
+	}
+
+	public addSelection(selection: Selection): void {
+		this._selections.push(selection);
+		this._emitSelectionChangedEvent();
+	}
+
+	private _updateSelctions(
+		line: number,
+		offset: number,
+		lineDiff: number,
+		offsetDiff: number,
+	): void {
+		for (const selection of this._selections) {
+			if (selection.start.line === line && selection.start.offset >= offset) {
+				if (lineDiff > 0) {
+					selection.start.line += lineDiff;
+					selection.start.offset = selection.start.offset - offset + offsetDiff;
+				} else {
+					selection.start.offset += offsetDiff;
+				}
+			} else if (selection.start.line > line) {
+				selection.start.line += lineDiff;
+			}
+
+			if (selection.end.line === line && selection.end.offset >= offset) {
+				if (lineDiff > 0) {
+					selection.end.line += lineDiff;
+					selection.end.offset = selection.end.offset - offset + offsetDiff;
+				} else {
+					selection.end.offset += offsetDiff;
+				}
+			} else if (selection.end.line > line) {
+				selection.end.line += lineDiff;
+			}
+		}
+		this._emitSelectionChangedEvent();
+	}
+
 	private _updateLinesTokens(firstLine: number, linesCount: number): void {
 		if (this._tokenizeAfterEdit) {
 			this._tokenizer.updateLinesTokens(firstLine, linesCount);
@@ -113,6 +161,10 @@ class Editor extends EventEmitter<EditorEvents> {
 				linesCount: this._document?.linesCount ?? 0,
 			});
 		}
+	}
+
+	private _emitSelectionChangedEvent(): void {
+		this.emit(EvSelection.Changed, undefined);
 	}
 }
 
