@@ -132,6 +132,10 @@ export default class Document {
 		return nodes;
 	}
 
+	public getLineNode(lineNumber: number): DocumentNode | null {
+		return this._getNodeByLineNumber(this._rootNode, lineNumber);
+	}
+
 	public getLine(lineNumber: number): string {
 		return this._getNodeByLineNumber(this._rootNode, lineNumber)?.text ?? '';
 	}
