@@ -7,7 +7,7 @@ export enum EvView {
 	Initialized = 'view.Initialized',
 }
 export interface IViewInitializedEvent {
-	[EvView.Initialized]: () => void;
+	[EvView.Initialized]: undefined;
 }
 /*
  * Scroll events
@@ -16,13 +16,10 @@ export enum EvScroll {
 	Changed = 'scroll.Changed',
 }
 export interface IScrollEvent {
-	[EvScroll.Changed]: ({
-		firstVisibleLine,
-		emitterName,
-	}: {
+	[EvScroll.Changed]: {
 		firstVisibleLine: number;
 		emitterName: string;
-	}) => void;
+	};
 }
 /*
  * Focus events
@@ -31,7 +28,7 @@ export enum EvFocus {
 	Changed = 'focus.Changed',
 }
 export interface IFocusEvent {
-	[EvFocus.Changed]: ({ focused }: { focused: boolean }) => void;
+	[EvFocus.Changed]: { focused: boolean };
 }
 
 /*
@@ -41,7 +38,7 @@ export enum EvTheme {
 	Changed = 'theme.Changed',
 }
 export interface IThemeEvent {
-	[EvTheme.Changed]: ({ theme }: { theme: Theme }) => void;
+	[EvTheme.Changed]: { theme: Theme };
 }
 /*
  * Font events
@@ -50,7 +47,7 @@ export enum EvFont {
 	LetterWidth = 'font.LetterWidthChange',
 }
 export interface ILetterWidthEvent {
-	[EvFont.LetterWidth]: ({ width }: { width: number }) => void;
+	[EvFont.LetterWidth]: { width: number };
 }
 /*
  * Gutter events
@@ -59,5 +56,5 @@ export enum EvGutter {
 	Width = 'gutter.WidthChanged',
 }
 export interface IGutterWidthEvent {
-	[EvGutter.Width]: ({ width }: { width: number }) => void;
+	[EvGutter.Width]: { width: number };
 }
