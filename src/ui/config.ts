@@ -8,3 +8,5 @@ export const EDITOR_MULTI_LINE_CSS_CLASS = 'nc-text__multi-line';
 export const EDITOR_MULTI_LINE_ACTIVE_CSS_CLASS = 'nc-text__multi-line--active';
 export const EDITOR_MULTI_LINE_HOVERED_CSS_CLASS = 'nc-text__multi-line--hovered';
 export const EDITOR_MULTI_LINE_CONTENT_CSS_CLASS = 'nc-text__multi-line_content';
+
+export const MAX_LINES_COUNT_ON_DEFAULT_SCROLL_SCALE = 500000;

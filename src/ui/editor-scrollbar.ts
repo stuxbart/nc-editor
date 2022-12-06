@@ -4,6 +4,7 @@ import { EventEmitter } from '../events';
 import EdiotrView from './editor-view';
 import { EvScroll, ScrollBarEvents } from './events';
 import { EvDocument } from '../editor/events';
+import { MAX_LINES_COUNT_ON_DEFAULT_SCROLL_SCALE } from './config';
 
 export default class ScrollBar extends EventEmitter<ScrollBarEvents> {
 	private _editor: Editor | null = null;
@@ -111,6 +112,10 @@ export default class ScrollBar extends EventEmitter<ScrollBarEvents> {
 	}
 
 	private _updateScale(): void {
-		this._scale = 0.1;
+		if (this._totalLinesCount > MAX_LINES_COUNT_ON_DEFAULT_SCROLL_SCALE) {
+			this._scale = 1;
+		} else {
+			this._scale = 20;
+		}
 	}
 }
