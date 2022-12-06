@@ -13,7 +13,7 @@ import { EditorEvents, EvDocument, EvSelection, EvTokenizer } from './events';
 class Editor extends EventEmitter<EditorEvents> {
 	private _selections: Selection[] = [];
 	private _document: Document | null = null;
-	private _tokenizeAfterEdit: boolean = false;
+	private _tokenizeAfterEdit: boolean = true;
 	private _tokenizer: Tokenizer;
 
 	private _shouldEmitEditEvent: boolean = true;
