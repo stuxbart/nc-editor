@@ -1,0 +1,6 @@
+# Build
+public/bundle.js
+dist
+
+# Dependency directory
+node_modules
