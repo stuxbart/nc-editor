@@ -1,18 +1,24 @@
 import { Line } from '../document';
 import Document from '../document/document';
+import { EventEmitter } from '../events';
 import { Selection } from '../selection';
 import { Tokenizer } from '../tokenizer';
+import { EditorEvents, EvDocument, EvTokenizer } from './events';
 
 /**
  * Editor class manages state of editor.
  */
-class Editor {
+class Editor extends EventEmitter<EditorEvents> {
 	private _selections: Selection[] = [];
 	private _document: Document | null = null;
 	private _tokenizeAfterEdit: boolean = false;
 	private _tokenizer: Tokenizer;
 
+	private _shouldEmitEditEvent: boolean = true;
+	private _shouldEmitLinesCountChangeEvent: boolean = true;
+
 	constructor() {
+		super();
 		const newDoc = new Document('');
 		this._document = newDoc;
 		this._selections = [new Selection(0, 0, 0, 0)];
@@ -25,6 +31,8 @@ class Editor {
 		}
 		const insertedLines = this._document.insert(str, line, offset);
 		this._updateLinesTokens(line, insertedLines[0] + 1);
+		this._emitEditEvent();
+		this._emitLinesCountChanged(insertedLines[0]);
 	}
 
 	public remove(type: number = 0): void {
@@ -39,13 +47,17 @@ class Editor {
 				sel.start.offset = sel.start.offset - 1;
 			}
 		}
-		this._updateLinesTokens(sel.start.line, 2);
 		this._document.remove(sel);
+		this._updateLinesTokens(sel.start.line, 2);
+		this._emitEditEvent();
+		this._emitLinesCountChanged(sel.end.line - sel.start.line);
 	}
 
 	public setDocument(document: Document): void {
 		this._document = document;
 		this.tokenize();
+		this.emit(EvDocument.Set, undefined);
+		this._emitLinesCountChanged(Infinity);
 	}
 
 	public getText(): string {
@@ -80,11 +92,26 @@ class Editor {
 		}
 		this._tokenizer.setDocument(this._document);
 		this._tokenizer.makeTokens();
+		this.emit(EvTokenizer.Finished, undefined);
 	}
 
 	private _updateLinesTokens(firstLine: number, linesCount: number): void {
 		if (this._tokenizeAfterEdit) {
 			this._tokenizer.updateLinesTokens(firstLine, linesCount);
+		}
+	}
+
+	private _emitEditEvent(): void {
+		if (this._shouldEmitEditEvent) {
+			this.emit(EvDocument.Edited, undefined);
+		}
+	}
+
+	private _emitLinesCountChanged(lineDiff: number): void {
+		if (this._shouldEmitLinesCountChangeEvent && lineDiff !== 0) {
+			this.emit(EvDocument.LinesCount, {
+				linesCount: this._document?.linesCount ?? 0,
+			});
 		}
 	}
 }
