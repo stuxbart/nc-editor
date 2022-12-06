@@ -1,0 +1,197 @@
+* {
+	margin: 0;
+	padding: 0;
+	box-sizing: border-box;
+}
+
+@keyframes cursor-anim {
+	0% {
+		opacity: 0.7;
+	}
+	100% {
+		opacity: 0;
+	}
+}
+.nc- {
+	&editor {
+		position: relative;
+		display: grid;
+		height: 100%;
+		max-height: 100%;
+		width: 100%;
+		max-width: 100%;
+
+		&__text {
+			position: relative;
+			width: 100%;
+			height: 100%;
+			overflow: hidden;
+			background-color: rgb(36, 36, 36);
+		}
+
+		&__gutter {
+			height: 100%;
+			width: 100%;
+			border-right: 1px solid rgb(148, 148, 148);
+			background-color: rgb(36, 36, 36);
+			color: rgb(167, 167, 167);
+			max-height: 100%;
+			overflow: hidden;
+		}
+
+		&__scroll-bar {
+			overflow-y: scroll;
+			overflow-x: hidden;
+			background-color: rgb(36, 36, 36);
+		}
+
+		&__selection {
+			overflow: hidden;
+			cursor: text;
+		}
+
+		&text__wrapper {
+			position: relative;
+			width: 100%;
+		}
+
+		&__input {
+			position: absolute;
+			height: 0px;
+			width: 0px;
+			opacity: 0;
+			user-select: none;
+			max-height: 0px;
+		}
+	}
+	&scroll__scrollable {
+		width: 10px;
+		content: 'x';
+	}
+
+	&selection__cursor {
+		position: absolute;
+		padding: 0;
+		margin: 2px 0px;
+		width: 2px;
+		height: 18px;
+		z-index: 1;
+		left: 0;
+		top: 1px;
+		opacity: 1;
+		background-color: white;
+
+		pointer-events: none;
+		user-select: none;
+
+		&--animated {
+			animation-name: cursor-anim;
+			animation-duration: 1.2s;
+			animation-iteration-count: infinite;
+			animation-timing-function: steps(2, jump-none);
+		}
+	}
+
+	&text__multi-line {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: flex-start;
+		padding: 0em 0em 0em 1em;
+		margin: 0;
+		max-width: 100%;
+		background-color: rgb(36, 36, 36);
+		cursor: text;
+		color: white;
+		white-space: pre;
+	}
+
+	&gutter__number {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+}
+
+// .nc-text__wrapper {
+// 	position: relative;
+// 	width: 100%;
+// }
+// .nc-text {
+// 	position: absolute;
+// 	width: 100%;
+// }
+
+.nc-text__multi-line--hover {
+	background-color: rgb(43, 43, 43);
+}
+
+.nc-text__multi-line--active {
+	background-color: rgb(49, 49, 49);
+}
+
+// .nc-text__line {
+// 	white-space: pre;
+// }
+
+.nc-format__word,
+.nc-format__bracket,
+.nc-format__square-bracket,
+.nc-format__brace,
+.nc-format__comment,
+.nc-format__keyword,
+.nc-format__space,
+.nc-format__string,
+.nc-format__semicolon,
+.nc-format__colon,
+.nc-format__comma,
+.nc-format__dot,
+.nc-format__number,
+.nc-format__declartion,
+.nc-format__type {
+	white-space: pre;
+}
+
+.nc-format__word {
+	color: rgb(136, 196, 253);
+}
+
+.nc-format__bracket {
+	color: rgb(7, 76, 204);
+}
+.nc-format__square-bracket {
+	color: rgb(197, 39, 202);
+}
+.nc-format__brace {
+	color: rgb(188, 6, 243);
+}
+.nc-format__comment {
+	color: rgb(0, 139, 7);
+}
+.nc-format__keyword {
+	color: rgb(172, 49, 209);
+}
+.nc-format__string {
+	color: rgb(202, 74, 24);
+}
+.nc-format__semicolon,
+.nc-format__colon {
+	color: rgb(240, 240, 240);
+}
+.nc-format__operator {
+	color: rgb(240, 240, 240);
+}
+.nc-format__comma,
+.nc-format__dot {
+	color: rgb(240, 240, 240);
+}
+.nc-format__number {
+	color: rgb(58, 189, 127);
+}
+.nc-format__declaration {
+	color: rgb(57, 108, 202);
+}
+.nc-format__type {
+	color: rgb(34, 173, 120);
+}
