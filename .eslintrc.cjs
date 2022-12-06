@@ -13,6 +13,7 @@ module.exports = {
 	},
 	rules: {
 		semi: ['error', 'always'],
+		curly: 'error',
 		'@typescript-eslint/explicit-function-return-type': 'warn',
 		'@typescript-eslint/explicit-member-accessibility': [
 			'warn',
