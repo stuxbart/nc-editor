@@ -58,3 +58,13 @@ export enum EvGutter {
 export interface IGutterWidthEvent {
 	[EvGutter.Width]: { width: number };
 }
+
+export interface EditorGutterEvents extends IGutterWidthEvent {}
+export interface ScrollBarEvents extends IScrollEvent {}
+export interface TextLayerEvents extends ILetterWidthEvent {}
+export interface EditorViewEvents
+	extends IScrollEvent,
+		IFocusEvent,
+		IThemeEvent,
+		ILetterWidthEvent,
+		IViewInitializedEvent {}
