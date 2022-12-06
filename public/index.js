@@ -1,2 +1,2 @@
 const root = document.getElementById('root');
-const editor = nc.default(root);
+const editor = new nc.default(root);
