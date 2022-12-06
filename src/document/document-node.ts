@@ -3,9 +3,9 @@
  * One Node represent one line of text in document.
  */
 export default class DocumentNode {
-	public left: Node | null = null;
-	public right: Node | null = null;
-	public parent: Node | null = null;
+	public left: DocumentNode | null = null;
+	public right: DocumentNode | null = null;
+	public parent: DocumentNode | null = null;
 	public text: string = '';
 	public leftSubTreeSize: number = 0;
 	public height: number = 1;
