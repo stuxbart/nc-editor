@@ -1,0 +1,8 @@
+.eslintrc.cjs
+webpack.config.js
+tsconfig.json
+example
+node_modules
+dist
+.vscode
+public
