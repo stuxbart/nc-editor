@@ -472,11 +472,11 @@ const editorView = new nc.EditorView(editor, 'editor');
 const doc = new nc.Document(textCode);
 editor.setDocument(doc);
 editor.setSelection(new nc.Selection(0, 0, 0, 0));
-editor.on('editor.Document.LinesCount', ({ linesCount }) => {
-	editorView.scrollToLine(linesCount - 20);
-});
 
 function makeDocument(linesCount) {
+	editor.on('editor.Document.LinesCount', ({ linesCount }) => {
+		editorView.scrollToLine(linesCount - 20);
+	});
 	const doc = new nc.Document('');
 	editor.setDocument(doc);
 	editor.setSelection(new nc.Selection(0, 0, 0, 0));
@@ -514,5 +514,8 @@ function makeDocument(linesCount) {
 		editor.setSelection(new nc.Selection(linesCount, 0, linesCount, 0));
 		editor.remove();
 		editor.enableTokenization();
+		editor.off('editor.Document.LinesCount', ({ linesCount }) => {
+			editorView.scrollToLine(linesCount - 20);
+		});
 	}, 1);
 }
