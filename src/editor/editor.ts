@@ -3,6 +3,7 @@ import Document from '../document/document';
 import { EventEmitter } from '../events';
 import { Point, Selection } from '../selection';
 import { pointCompare } from '../selection/utils';
+import { getWordBefore } from '../text-utils';
 import { Tokenizer } from '../tokenizer';
 import { EditorView } from '../ui';
 import { EvView } from '../ui/events';
@@ -104,6 +105,20 @@ class Editor extends EventEmitter<EditorEvents> {
 			);
 		}
 		this._emitEditEvent();
+	}
+
+	public removeWordBefore(): void {
+		if (this._selections.length !== 1 || this._document === null) {
+			return;
+		}
+		const sel = this._selections[0];
+		if (!sel.isCollapsed) {
+			return this.remove();
+		}
+		const line = this._document.getLine(sel.start.line);
+		const word = getWordBefore(line, sel.start.offset);
+		sel.start.offset -= word.length;
+		return this.remove();
 	}
 
 	public setDocument(document: Document): void {

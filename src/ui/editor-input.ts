@@ -2,7 +2,7 @@ import { Editor } from '../editor';
 import { EDITOR_INPUT_CLASS, EDITOR_INPUT_ID } from './config';
 import { createTextArea } from './dom-utils';
 import EdiotrView from './editor-view';
-import { EvFocus } from './events';
+import { EvFocus, EvKey } from './events';
 
 export default class EditorInput {
 	private _domElement: HTMLTextAreaElement | null = null;
@@ -11,6 +11,7 @@ export default class EditorInput {
 
 	private _insertLine: number = 0;
 	private _insertOffset: number = 0;
+	private _isCtrlHold: boolean = false;
 
 	constructor(editor: Editor, view: EdiotrView) {
 		this._editor = editor;
@@ -47,6 +48,12 @@ export default class EditorInput {
 					this.focus();
 				}
 			});
+			this._view.on(EvKey.CtrlDown, () => {
+				this._isCtrlHold = true;
+			});
+			this._view.on(EvKey.CtrlUp, () => {
+				this._isCtrlHold = false;
+			});
 		}
 	}
 
@@ -68,9 +75,11 @@ export default class EditorInput {
 		}
 		switch (e.key) {
 			case 'Backspace':
-				this._editor.remove();
-				e.preventDefault();
-				e.stopPropagation();
+				if (!this._isCtrlHold) {
+					this._editor.remove();
+				}
+				// e.preventDefault();
+				// e.stopPropagation();
 				break;
 			case 'Delete':
 				this._editor.remove(1);

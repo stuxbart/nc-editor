@@ -268,7 +268,6 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 	}
 
 	private _onKeyDown(e: KeyboardEvent): void {
-		console.log(e.code);
 		switch (e.code) {
 			case 'ControlLeft': {
 				this._isCtrlHold = true;
@@ -317,6 +316,12 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 			case 'ArrowRight': {
 				if (this._editor) {
 					this._editor.collapseSelectionToRight();
+				}
+				break;
+			}
+			case 'Backspace': {
+				if (this._editor && this._isCtrlHold) {
+					this._editor.removeWordBefore();
 				}
 				break;
 			}
