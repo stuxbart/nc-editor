@@ -1,7 +1,7 @@
 import { Line } from '../document';
 import Document from '../document/document';
 import { EventEmitter } from '../events';
-import { Selection } from '../selection';
+import { Point, Selection } from '../selection';
 import { Tokenizer } from '../tokenizer';
 import { EditorView } from '../ui';
 import { EvView } from '../ui/events';
@@ -52,11 +52,17 @@ class Editor extends EventEmitter<EditorEvents> {
 				sel.start.offset = sel.start.offset - 1;
 			}
 		}
-		this._document.remove(sel);
+		const removedText = this._document.remove(sel);
+		const removedLines = removedText.split('\n').length;
 		this._updateLinesTokens(sel.start.line, 2);
-		this._updateSelctions(sel.start.line, sel.start.offset + 1, 0, -1);
-		this._emitEditEvent();
 		this._emitLinesCountChanged(sel.end.line - sel.start.line);
+		this._updateSelctions(
+			sel.start.line,
+			sel.start.offset + 1,
+			-removedLines + 1,
+			-(sel.end.offset - sel.start.offset),
+		);
+		this._emitEditEvent();
 	}
 
 	public setDocument(document: Document): void {
@@ -144,6 +150,15 @@ class Editor extends EventEmitter<EditorEvents> {
 		this._emitSelectionChangedEvent();
 	}
 
+	public extendLastSelection(point: Point): void {
+		if (this._selections.length === 0) {
+			return;
+		}
+		const lastSelection = this._selections[this._selections.length - 1];
+		lastSelection.updateSelection(point);
+		this._emitSelectionChangedEvent();
+	}
+
 	public addView(view: EditorView): void {
 		this._views.push(view);
 		view.on(EvView.Initialized, () => {
@@ -178,6 +193,7 @@ class Editor extends EventEmitter<EditorEvents> {
 				}
 			} else if (selection.end.line > line) {
 				selection.end.line += lineDiff;
+				selection.end.offset += offsetDiff;
 			}
 		}
 		this._emitSelectionChangedEvent();
