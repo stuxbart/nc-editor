@@ -67,11 +67,26 @@ class Editor extends EventEmitter<EditorEvents> {
 		}
 		for (const sel of this._selections) {
 			if (sel.isCollapsed) {
-				if (sel.start.offset === 0) {
-					continue;
+				if (sel.start.offset === 0 && type === 0) {
+					if (sel.start.line !== 0) {
+						sel.start.line -= 1;
+						const line = this._document.getLine(sel.start.line);
+						sel.start.offset = line.length + 1;
+					} else {
+						continue;
+					}
 				}
 				if (type === 1) {
-					sel.end.offset = sel.end.offset + 1;
+					const line = this._document.getLine(sel.start.line);
+					if (
+						sel.end.offset === line.length &&
+						sel.end.line + 1 !== this._document.linesCount
+					) {
+						sel.end.offset = 0;
+						sel.end.line += 1;
+					} else {
+						sel.end.offset = sel.end.offset + 1;
+					}
 				} else {
 					sel.start.offset = sel.start.offset - 1;
 				}
