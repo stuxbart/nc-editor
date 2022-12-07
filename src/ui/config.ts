@@ -11,4 +11,4 @@ export const EDITOR_MULTI_LINE_CONTENT_CSS_CLASS = 'nc-text__multi-line_content'
 export const EDITOR_SELECTION_RANGE_CSS_CLASS = 'nc-selection__range';
 export const EDITOR_SELECTION_CSS_CLASS = 'nc-editor__selection';
 
-export const MAX_LINES_COUNT_ON_DEFAULT_SCROLL_SCALE = 500000;
+export const MAX_LINES_COUNT_ON_DEFAULT_SCROLL_SCALE = 1000000;
