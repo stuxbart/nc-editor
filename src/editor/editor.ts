@@ -2,6 +2,7 @@ import { Line } from '../document';
 import Document from '../document/document';
 import { EventEmitter } from '../events';
 import { Point, Selection } from '../selection';
+import { pointCompare } from '../selection/utils';
 import { Tokenizer } from '../tokenizer';
 import { EditorView } from '../ui';
 import { EvView } from '../ui/events';
@@ -29,15 +30,35 @@ class Editor extends EventEmitter<EditorEvents> {
 		this._tokenizer = new Tokenizer(this._document, false);
 	}
 
-	public insert(str: string, line: number, offset: number): void {
+	public insert(str: string): void {
 		if (this._document === null) {
 			return;
 		}
-		const insertedLines = this._document.insert(str, line, offset);
-		this._updateLinesTokens(line, insertedLines[0] + 1);
-		this._updateSelctions(line, offset, insertedLines[0], insertedLines[1]);
+		for (const sel of this._selections) {
+			if (sel.isCollapsed) {
+				continue;
+			}
+			const removedText = this._document.remove(sel);
+			const removedLines = removedText.split('\n');
+			this._updateLinesTokens(sel.start.line, 2);
+			this._emitLinesCountChanged(sel.end.line - sel.start.line);
+			this._updateSelctions(
+				sel.start.line,
+				sel.start.offset,
+				-removedLines.length + 1,
+				-(sel.end.offset - sel.start.offset),
+			);
+		}
+
+		for (const sel of this._selections) {
+			const line = sel.start.line;
+			const offset = sel.start.offset;
+			const insertedLines = this._document.insert(str, line, offset);
+			this._updateLinesTokens(line, insertedLines[0] + 1);
+			this._updateSelctions(line, offset, insertedLines[0], insertedLines[1]);
+		}
+		this._emitLinesCountChanged(1);
 		this._emitEditEvent();
-		this._emitLinesCountChanged(insertedLines[0]);
 	}
 
 	public remove(type: number = 0): void {
@@ -46,6 +67,9 @@ class Editor extends EventEmitter<EditorEvents> {
 		}
 		for (const sel of this._selections) {
 			if (sel.isCollapsed) {
+				if (sel.start.offset === 0) {
+					continue;
+				}
 				if (type === 1) {
 					sel.end.offset = sel.end.offset + 1;
 				} else {
@@ -53,13 +77,13 @@ class Editor extends EventEmitter<EditorEvents> {
 				}
 			}
 			const removedText = this._document.remove(sel);
-			const removedLines = removedText.split('\n').length;
+			const removedLines = removedText.split('\n');
 			this._updateLinesTokens(sel.start.line, 2);
 			this._emitLinesCountChanged(sel.end.line - sel.start.line);
 			this._updateSelctions(
 				sel.start.line,
-				sel.start.offset + 1,
-				-removedLines + 1,
+				sel.start.offset,
+				-removedLines.length + 1,
 				-(sel.end.offset - sel.start.offset),
 			);
 		}
@@ -173,32 +197,50 @@ class Editor extends EventEmitter<EditorEvents> {
 		lineDiff: number,
 		offsetDiff: number,
 	): void {
-		for (const selection of this._selections) {
-			if (selection.start.line === line && selection.start.offset >= offset) {
-				if (lineDiff > 0) {
-					selection.start.line += lineDiff;
-					selection.start.offset = selection.start.offset - offset + offsetDiff;
-				} else {
-					selection.start.offset += offsetDiff;
-				}
-			} else if (selection.start.line > line) {
-				selection.start.line += lineDiff;
-			}
-
-			if (selection.end.line === line && selection.end.offset >= offset) {
-				if (lineDiff > 0) {
-					selection.end.line += lineDiff;
-					selection.end.offset = selection.end.offset - offset + offsetDiff;
-				} else {
-					selection.end.offset += offsetDiff;
-				}
-			} else if (selection.end.line === line - lineDiff) {
-				selection.end.line += lineDiff;
-				selection.end.offset += offsetDiff;
+		let op = 0;
+		if (lineDiff < 0) {
+			op = 0;
+		} else {
+			if (offsetDiff < 0) {
+				op = 0;
 			} else {
-				selection.end.line += lineDiff;
+				op = 1;
 			}
 		}
+		const start = new Point(line, offset);
+		const end = new Point(line - lineDiff, offset - offsetDiff);
+
+		for (const selection of this._selections) {
+			for (const point of [selection.start, selection.end]) {
+				if (op) {
+					if (pointCompare(point, start) !== 2) {
+						if (point.line === line) {
+							if (lineDiff) {
+								point.offset = point.offset - start.offset + offsetDiff;
+							} else {
+								point.offset += offsetDiff;
+							}
+						}
+						point.line += lineDiff;
+					}
+				} else {
+					if (
+						point.line >= start.line &&
+						point.line <= end.line &&
+						point.offset >= end.offset - 1
+					) {
+						if (pointCompare(point, end) !== 1) {
+							point.offset = start.offset;
+							point.line = start.line;
+						} else {
+							point.line = start.line;
+							point.offset = start.offset + point.offset - end.offset;
+						}
+					}
+				}
+			}
+		}
+
 		this._emitSelectionChangedEvent();
 	}
 

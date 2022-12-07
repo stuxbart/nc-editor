@@ -58,7 +58,7 @@ export default class EditorInput {
 		) {
 			return;
 		}
-		this._editor.insert(this._domElement.value, this._insertLine, this._insertOffset);
+		this._editor.insert(this._domElement.value);
 		this._domElement.value = '';
 	}
 
@@ -78,7 +78,7 @@ export default class EditorInput {
 				e.stopPropagation();
 				break;
 			case 'Tab':
-				this._editor.insert('\t', this._insertLine, this._insertOffset);
+				this._editor.insert('\t');
 				e.preventDefault();
 				e.stopPropagation();
 				break;
