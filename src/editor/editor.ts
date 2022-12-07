@@ -19,6 +19,7 @@ class Editor extends EventEmitter<EditorEvents> {
 
 	private _shouldEmitEditEvent: boolean = true;
 	private _shouldEmitLinesCountChangeEvent: boolean = true;
+	private _shouldUpdateSelections: boolean = true;
 
 	private _views: EditorView[] = [];
 
@@ -107,7 +108,9 @@ class Editor extends EventEmitter<EditorEvents> {
 
 	public setDocument(document: Document): void {
 		this._document = document;
-		this.tokenize();
+		if (this._tokenizeAfterEdit) {
+			this.tokenize();
+		}
 		this.emit(EvDocument.Set, undefined);
 		this._emitLinesCountChanged(Infinity);
 	}
@@ -206,12 +209,47 @@ class Editor extends EventEmitter<EditorEvents> {
 		});
 	}
 
+	public enableTokenization(): void {
+		this._tokenizeAfterEdit = true;
+	}
+
+	public disableTokenization(): void {
+		this._tokenizeAfterEdit = false;
+	}
+
+	public enableEditEvent(): void {
+		this._shouldEmitEditEvent = true;
+	}
+
+	public disableEditEvent(): void {
+		this._shouldEmitEditEvent = false;
+	}
+
+	public enableLinesChangedEvent(): void {
+		this._shouldEmitLinesCountChangeEvent = true;
+	}
+
+	public disableLinesChangedEvent(): void {
+		this._shouldEmitLinesCountChangeEvent = false;
+	}
+
+	public enableSelectionsUpdates(): void {
+		this._shouldUpdateSelections = true;
+	}
+
+	public disableSelectionsUpdates(): void {
+		this._shouldUpdateSelections = false;
+	}
+
 	private _updateSelctions(
 		line: number,
 		offset: number,
 		lineDiff: number,
 		offsetDiff: number,
 	): void {
+		if (!this._shouldUpdateSelections) {
+			return;
+		}
 		let op = 0;
 		if (lineDiff < 0) {
 			op = 0;
