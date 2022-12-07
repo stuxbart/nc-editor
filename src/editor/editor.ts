@@ -44,24 +44,25 @@ class Editor extends EventEmitter<EditorEvents> {
 		if (this._document === null) {
 			return;
 		}
-		const sel = this._selections[0];
-		if (sel.isCollapsed) {
-			if (type === 1) {
-				sel.end.offset = sel.end.offset + 1;
-			} else {
-				sel.start.offset = sel.start.offset - 1;
+		for (const sel of this._selections) {
+			if (sel.isCollapsed) {
+				if (type === 1) {
+					sel.end.offset = sel.end.offset + 1;
+				} else {
+					sel.start.offset = sel.start.offset - 1;
+				}
 			}
+			const removedText = this._document.remove(sel);
+			const removedLines = removedText.split('\n').length;
+			this._updateLinesTokens(sel.start.line, 2);
+			this._emitLinesCountChanged(sel.end.line - sel.start.line);
+			this._updateSelctions(
+				sel.start.line,
+				sel.start.offset + 1,
+				-removedLines + 1,
+				-(sel.end.offset - sel.start.offset),
+			);
 		}
-		const removedText = this._document.remove(sel);
-		const removedLines = removedText.split('\n').length;
-		this._updateLinesTokens(sel.start.line, 2);
-		this._emitLinesCountChanged(sel.end.line - sel.start.line);
-		this._updateSelctions(
-			sel.start.line,
-			sel.start.offset + 1,
-			-removedLines + 1,
-			-(sel.end.offset - sel.start.offset),
-		);
 		this._emitEditEvent();
 	}
 
@@ -191,9 +192,11 @@ class Editor extends EventEmitter<EditorEvents> {
 				} else {
 					selection.end.offset += offsetDiff;
 				}
-			} else if (selection.end.line > line) {
+			} else if (selection.end.line === line - lineDiff) {
 				selection.end.line += lineDiff;
 				selection.end.offset += offsetDiff;
+			} else {
+				selection.end.line += lineDiff;
 			}
 		}
 		this._emitSelectionChangedEvent();
