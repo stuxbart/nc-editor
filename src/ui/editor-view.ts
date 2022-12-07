@@ -7,7 +7,16 @@ import SelectionLayer from './editor-selection';
 import EditorInput from './editor-input';
 import { createDiv, isChildOf, px } from './dom-utils';
 import { BASE_THEME_CLASS, DEFAULT_THEME, Theme, VALID_THEMES } from './themes';
-import { EvScroll, EvFocus, EvTheme, EvFont, EvGutter, EvView, EditorViewEvents } from './events';
+import {
+	EvScroll,
+	EvFocus,
+	EvTheme,
+	EvFont,
+	EvGutter,
+	EvView,
+	EditorViewEvents,
+	EvKey,
+} from './events';
 import { EvDocument, EvTokenizer } from '../editor/events';
 import { EDITOR_FONT_FAMILY } from './config';
 
@@ -184,6 +193,9 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 		if (this._scrollBar) {
 			this._scrollBar.setVisibleLinesCount(this._visibleLinesCount);
 		}
+		if (this._selectionLayer) {
+			this._selectionLayer.setVisibleLinesCount(this._visibleLinesCount);
+		}
 	}
 
 	private _initEventListeners(): void {
@@ -195,6 +207,8 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 			);
 			this._editorContainer.addEventListener('click', () => this._onMouseDown());
 			this._editorContainer.addEventListener('blur', () => this._onBlur());
+			this._editorContainer.addEventListener('keydown', (e) => this._onKeyDown(e));
+			this._editorContainer.addEventListener('keyup', (e) => this._onKeyUp(e));
 		}
 		if (this._editor) {
 			this._editor.on(EvDocument.Edited, () => {
@@ -246,6 +260,32 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 	private _onBlur(): void {
 		this._setFocus(false);
 		this.update();
+	}
+
+	private _onKeyDown(e: KeyboardEvent): void {
+		switch (e.code) {
+			case 'ControlLeft':
+				this.emit(EvKey.CtrlDown, undefined);
+				break;
+			case 'ShiftLeft':
+				this.emit(EvKey.ShiftDown, undefined);
+				break;
+			default:
+				break;
+		}
+	}
+
+	private _onKeyUp(e: KeyboardEvent): void {
+		switch (e.code) {
+			case 'ControlLeft':
+				this.emit(EvKey.CtrlUp, undefined);
+				break;
+			case 'ShiftLeft':
+				this.emit(EvKey.ShiftUp, undefined);
+				break;
+			default:
+				break;
+		}
 	}
 
 	private _onDocumentClick(e: Event): void {
