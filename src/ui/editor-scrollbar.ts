@@ -36,7 +36,10 @@ export default class ScrollBar extends EventEmitter<ScrollBarEvents> {
 		this._totalLinesCount = linesCount;
 		this._updateScale();
 		if (this._scrollableDiv) {
-			const height = (linesCount + this._maxLinesPadding) * this._scale;
+			let height = (linesCount + this._maxLinesPadding) * this._scale;
+			if (this._totalLinesCount > MAX_LINES_COUNT_ON_DEFAULT_SCROLL_SCALE) {
+				height *= 1.01;
+			}
 			this._scrollableDiv.style.height = px(height);
 		}
 	}
@@ -113,7 +116,7 @@ export default class ScrollBar extends EventEmitter<ScrollBarEvents> {
 
 	private _updateScale(): void {
 		if (this._totalLinesCount > MAX_LINES_COUNT_ON_DEFAULT_SCROLL_SCALE) {
-			this._scale = 1;
+			this._scale = 0.1;
 		} else {
 			this._scale = 20;
 		}
