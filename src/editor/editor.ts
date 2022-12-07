@@ -202,6 +202,122 @@ class Editor extends EventEmitter<EditorEvents> {
 		this._emitSelectionChangedEvent();
 	}
 
+	public selectAll(): void {
+		const selection = new Selection(0, 0, 0, 0);
+		if (this._document) {
+			const linesCount = this._document.linesCount;
+			const lastLine = this._document.getLastLine();
+			selection.end.line = linesCount - 1;
+			selection.end.offset = lastLine.length;
+		}
+		this._selections = [selection];
+		this._emitSelectionChangedEvent();
+	}
+
+	public collapseSelectionToLeft(): void {
+		if (this._selections.length < 1 || this._document === null) {
+			return;
+		}
+
+		for (const sel of this._selections) {
+			if (sel.isCollapsed) {
+				if (sel.start.line === 0 && sel.start.offset === 0) {
+					continue;
+				}
+				sel.start.offset -= 1;
+				sel.end.offset -= 1;
+				if (sel.start.offset < 0) {
+					const newLine = sel.start.line - 1;
+					const prevLineLength = this._document.getLine(newLine).length;
+					sel.start.line = newLine;
+					sel.end.line = newLine;
+					sel.start.offset = prevLineLength;
+					sel.end.offset = prevLineLength;
+				}
+			} else {
+				sel.end.line = sel.start.line;
+				sel.end.offset = sel.start.offset;
+			}
+		}
+		this._emitSelectionChangedEvent();
+	}
+
+	public collapseSelectionToRight(): void {
+		if (this._selections.length < 1 || this._document === null) {
+			return;
+		}
+		const lastLineNumber = this._document.linesCount - 1;
+		const lastLineLength = this._document.getLine(lastLineNumber).length;
+		for (const sel of this._selections) {
+			if (sel.isCollapsed) {
+				if (sel.start.line === lastLineNumber && sel.start.offset === lastLineLength) {
+					continue;
+				}
+				sel.start.offset += 1;
+				sel.end.offset += 1;
+				const lineLength = this._document.getLine(sel.start.line).length;
+				if (sel.start.offset > lineLength) {
+					const newLine = sel.start.line + 1;
+					sel.start.line = newLine;
+					sel.end.line = newLine;
+					sel.start.offset = 0;
+					sel.end.offset = 0;
+				}
+			} else {
+				sel.start.line = sel.end.line;
+				sel.start.offset = sel.end.offset;
+			}
+		}
+		this._emitSelectionChangedEvent();
+	}
+
+	public collapseSelectionToTop(): void {
+		if (this._selections.length < 1 || this._document === null) {
+			return;
+		}
+
+		for (const sel of this._selections) {
+			if (sel.start.line === 0) {
+				sel.start.offset = 0;
+				sel.end.offset = 0;
+				sel.end.line = 0;
+				continue;
+			}
+			const newLine = sel.start.line - 1;
+			const lineLength = this._document.getLine(newLine).length;
+			const newOffset = lineLength < sel.start.offset ? lineLength : sel.start.offset;
+			sel.start.offset = newOffset;
+			sel.end.offset = newOffset;
+			sel.start.line = newLine;
+			sel.end.line = newLine;
+		}
+		this._emitSelectionChangedEvent();
+	}
+
+	public collapseSelectionToBottom(): void {
+		if (this._selections.length < 1 || this._document === null) {
+			return;
+		}
+		const lastLineNumber = this._document.linesCount - 1;
+		const lastLineLength = this._document.getLine(lastLineNumber).length;
+		for (const sel of this._selections) {
+			if (sel.end.line === lastLineNumber) {
+				sel.start.offset = lastLineLength;
+				sel.end.offset = lastLineLength;
+				sel.start.line = lastLineNumber;
+				continue;
+			}
+			const newLine = sel.start.line + 1;
+			const lineLength = this._document.getLine(newLine).length;
+			const newOffset = lineLength < sel.end.offset ? lineLength : sel.end.offset;
+			sel.start.offset = newOffset;
+			sel.end.offset = newOffset;
+			sel.start.line = newLine;
+			sel.end.line = newLine;
+		}
+		this._emitSelectionChangedEvent();
+	}
+
 	public addView(view: EditorView): void {
 		this._views.push(view);
 		view.on(EvView.Initialized, () => {

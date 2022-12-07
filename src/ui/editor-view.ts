@@ -54,6 +54,11 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 	private _hoverLineNumber: number = -1;
 	private _activeLineNumber: number = -1;
 
+	private _isCtrlHold: boolean = false;
+	private _isShitHold: boolean = false;
+	private _isLeftAltHold: boolean = false;
+	private _isRightAltHold: boolean = false;
+
 	private _theme: Theme = Theme.Default;
 
 	constructor(editor: Editor, mountPoint: HTMLElement | string) {
@@ -263,13 +268,58 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 	}
 
 	private _onKeyDown(e: KeyboardEvent): void {
+		console.log(e.code);
 		switch (e.code) {
-			case 'ControlLeft':
+			case 'ControlLeft': {
+				this._isCtrlHold = true;
 				this.emit(EvKey.CtrlDown, undefined);
 				break;
-			case 'ShiftLeft':
+			}
+			case 'ShiftLeft': {
+				this._isShitHold = true;
 				this.emit(EvKey.ShiftDown, undefined);
 				break;
+			}
+			case 'AltLeft': {
+				this._isLeftAltHold = true;
+				this.emit(EvKey.AltDown, undefined);
+				break;
+			}
+			case 'AltRight': {
+				this._isRightAltHold = true;
+				// this.emit(EvKey.AltDown, undefined);
+				break;
+			}
+			case 'KeyA': {
+				if (this._editor && this._isCtrlHold && !this._isRightAltHold) {
+					this._editor.selectAll();
+				}
+				break;
+			}
+			case 'ArrowUp': {
+				if (this._editor) {
+					this._editor.collapseSelectionToTop();
+				}
+				break;
+			}
+			case 'ArrowDown': {
+				if (this._editor) {
+					this._editor.collapseSelectionToBottom();
+				}
+				break;
+			}
+			case 'ArrowLeft': {
+				if (this._editor) {
+					this._editor.collapseSelectionToLeft();
+				}
+				break;
+			}
+			case 'ArrowRight': {
+				if (this._editor) {
+					this._editor.collapseSelectionToRight();
+				}
+				break;
+			}
 			default:
 				break;
 		}
@@ -277,12 +327,26 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 
 	private _onKeyUp(e: KeyboardEvent): void {
 		switch (e.code) {
-			case 'ControlLeft':
+			case 'ControlLeft': {
+				this._isCtrlHold = false;
 				this.emit(EvKey.CtrlUp, undefined);
 				break;
-			case 'ShiftLeft':
+			}
+			case 'ShiftLeft': {
+				this._isShitHold = false;
 				this.emit(EvKey.ShiftUp, undefined);
 				break;
+			}
+			case 'AltLeft': {
+				this._isLeftAltHold = false;
+				this.emit(EvKey.AltUp, undefined);
+				break;
+			}
+			case 'AltRight': {
+				this._isRightAltHold = false;
+				// this.emit(EvKey.AltUp, undefined);
+				break;
+			}
 			default:
 				break;
 		}
