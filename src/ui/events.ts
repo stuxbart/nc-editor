@@ -58,7 +58,27 @@ export enum EvGutter {
 export interface IGutterWidthEvent {
 	[EvGutter.Width]: { width: number };
 }
+/*
+ * Key events
+ */
+export enum EvKey {
+	CtrlDown = 'key.Ctrl.down',
+	CtrlUp = 'key.Ctrl.up',
+	ShiftDown = 'key.Shift.down',
+	ShiftUp = 'key.Shift.up',
+	AltDown = 'key.Alt.down',
+	AltUp = 'key.Alt.up',
+}
+export interface IKeyEvnets {
+	[EvKey.CtrlDown]: undefined;
+	[EvKey.CtrlUp]: undefined;
 
+	[EvKey.ShiftDown]: undefined;
+	[EvKey.ShiftUp]: undefined;
+
+	[EvKey.AltDown]: undefined;
+	[EvKey.AltUp]: undefined;
+}
 export interface EditorGutterEvents extends IGutterWidthEvent {}
 export interface ScrollBarEvents extends IScrollEvent {}
 export interface TextLayerEvents extends ILetterWidthEvent {}
@@ -67,4 +87,5 @@ export interface EditorViewEvents
 		IFocusEvent,
 		IThemeEvent,
 		ILetterWidthEvent,
-		IViewInitializedEvent {}
+		IViewInitializedEvent,
+		IKeyEvnets {}
