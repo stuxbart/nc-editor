@@ -9,8 +9,6 @@ export default class EditorInput {
 	private _editor: Editor | null = null;
 	private _view: EdiotrView | null = null;
 
-	private _insertLine: number = 0;
-	private _insertOffset: number = 0;
 	private _isCtrlHold: boolean = false;
 
 	constructor(editor: Editor, view: EdiotrView) {
@@ -20,11 +18,6 @@ export default class EditorInput {
 		this._domElement = createTextArea(EDITOR_INPUT_CLASS);
 		this._domElement.id = EDITOR_INPUT_ID;
 		this._initEventListeners();
-	}
-
-	public setInsertPos(line: number, offset: number): void {
-		this._insertLine = line;
-		this._insertOffset = offset;
 	}
 
 	public focus(): void {

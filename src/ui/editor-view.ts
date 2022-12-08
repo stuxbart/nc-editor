@@ -136,10 +136,6 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 
 	public update(): void {
 		this._updateEditorSize();
-		if (this._editor && this._input) {
-			const sel = this._editor.getSelctions()[0];
-			this._input.setInsertPos(sel.start.line, sel.start.offset);
-		}
 	}
 
 	public getDOMElement(): HTMLElement | null {
@@ -286,7 +282,6 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 			}
 			case 'AltRight': {
 				this._isRightAltHold = true;
-				// this.emit(EvKey.AltDown, undefined);
 				break;
 			}
 			case 'KeyA': {
@@ -365,7 +360,6 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 			}
 			case 'AltRight': {
 				this._isRightAltHold = false;
-				// this.emit(EvKey.AltUp, undefined);
 				break;
 			}
 			default:
