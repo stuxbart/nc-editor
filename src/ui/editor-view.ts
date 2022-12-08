@@ -318,8 +318,7 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 				}
 				if (this._isShitHold && this._isCtrlHold) {
 					this._editor.selectWordBefore();
-				}
-				if (this._isCtrlHold) {
+				} else if (this._isCtrlHold) {
 					this._editor.moveSelectionWordBefore();
 				} else {
 					this._editor.collapseSelectionToLeft();
@@ -332,8 +331,7 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 				}
 				if (this._isShitHold && this._isCtrlHold) {
 					this._editor.selectWordAfter();
-				}
-				if (this._isCtrlHold) {
+				} else if (this._isCtrlHold) {
 					this._editor.moveSelectionWordAfter();
 				} else {
 					this._editor.collapseSelectionToRight();
