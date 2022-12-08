@@ -347,6 +347,49 @@ class Editor extends EventEmitter<EditorEvents> {
 		this._emitSelectionChangedEvent();
 	}
 
+	public swapLinesUp(): void {
+		if (this._document === null || this._selections.length !== 1) {
+			return;
+		}
+		const sel = this._selections[0];
+		if (sel.start.line === 0) {
+			return;
+		}
+		let line = sel.start.line;
+		while (line < sel.end.line + 1) {
+			this._document.swapLineWithPrevious(line);
+			line++;
+		}
+
+		this._updateLinesTokens(sel.start.line - 1, sel.end.line - sel.start.line + 2);
+		sel.start.line -= 1;
+		sel.end.line -= 1;
+		this._emitSelectionChangedEvent();
+		this._emitEditEvent();
+	}
+
+	public swapLinesDown(): void {
+		if (this._document === null || this._selections.length !== 1) {
+			return;
+		}
+		const sel = this._selections[0];
+		if (sel.end.line === this._document.linesCount - 1) {
+			return;
+		}
+
+		let line = sel.end.line;
+		while (line > sel.start.line - 1) {
+			this._document.swapLineWithNext(line);
+			line--;
+		}
+
+		this._updateLinesTokens(sel.start.line - 1, sel.end.line - sel.start.line + 3);
+		sel.start.line += 1;
+		sel.end.line += 1;
+		this._emitSelectionChangedEvent();
+		this._emitEditEvent();
+	}
+
 	public addView(view: EditorView): void {
 		this._views.push(view);
 		view.on(EvView.Initialized, () => {

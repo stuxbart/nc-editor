@@ -296,13 +296,23 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 				break;
 			}
 			case 'ArrowUp': {
-				if (this._editor) {
+				if (this._editor === null) {
+					return;
+				}
+				if (this._isLeftAltHold) {
+					this._editor.swapLinesUp();
+				} else {
 					this._editor.collapseSelectionToTop();
 				}
 				break;
 			}
 			case 'ArrowDown': {
-				if (this._editor) {
+				if (this._editor === null) {
+					return;
+				}
+				if (this._isLeftAltHold) {
+					this._editor.swapLinesDown();
+				} else {
 					this._editor.collapseSelectionToBottom();
 				}
 				break;

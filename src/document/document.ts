@@ -171,6 +171,24 @@ export default class Document {
 		this._rootNode = this._insertLine(this._rootNode, newNode, lineNumber);
 	}
 
+	public swapLineWithNext(lineNumber: number): void {
+		const firstLine = this._getNodeByLineNumber(this._rootNode, lineNumber);
+		if (firstLine === null) {
+			return;
+		}
+		const nextLine = this._getNextLine(firstLine);
+		if (nextLine === null) {
+			return;
+		}
+		const tmpText = nextLine.text;
+		nextLine.text = firstLine.text;
+		firstLine.text = tmpText;
+	}
+
+	public swapLineWithPrevious(lineNumber: number): void {
+		return this.swapLineWithNext(lineNumber - 1);
+	}
+
 	private _removeLine(node: DocumentNode | null, lineNumber: number): DocumentNode | null {
 		if (node === null) {
 			return node;
