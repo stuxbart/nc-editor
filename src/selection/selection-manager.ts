@@ -1,5 +1,5 @@
 import { Document } from '../document';
-import { getWordAfter, getWordBefore } from '../text-utils';
+import { getWordAfter, getWordBefore, removeAccents } from '../text-utils';
 import Point from './point';
 import Selection from './selection';
 import { pointCompare } from './utils';
@@ -108,6 +108,27 @@ export default class SelectionManager {
 			selection.end.offset = lastLine.length;
 		}
 		this._selections = [selection];
+	}
+
+	public selectWordAt(point: Point, addSelection: boolean = false): void {
+		if (this._document === null) {
+			return;
+		}
+		const line = removeAccents(this._document.getLine(point.line));
+		const wordBefore = getWordBefore(line, point.offset);
+		const wordAfter = getWordAfter(line, point.offset);
+		const sel = new Selection(
+			point.line,
+			point.offset - wordBefore.length,
+			point.line,
+			point.offset + wordAfter.length,
+		);
+		if (addSelection) {
+			this._selections.push(sel);
+		} else {
+			this._selections = [sel];
+		}
+		this._removeOverlappingSelections();
 	}
 
 	public selectWordBefore(): void {

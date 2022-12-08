@@ -265,6 +265,11 @@ class Editor extends EventEmitter<EditorEvents> {
 		this._emitSelectionChangedEvent();
 	}
 
+	public selectWordAt(point: Point, addSelection: boolean): void {
+		this._selections.selectWordAt(point, addSelection);
+		this._emitSelectionChangedEvent();
+	}
+
 	public swapLinesUp(): void {
 		if (this._document === null || this._selections.length !== 1) {
 			return;

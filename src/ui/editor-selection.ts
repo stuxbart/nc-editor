@@ -92,6 +92,7 @@ export default class SelectionLayer {
 			this._selectionContainer.addEventListener('mousedown', (e) => this._onMouseDown(e));
 			this._selectionContainer.addEventListener('mouseup', () => this._onMouseUp());
 			this._selectionContainer.addEventListener('mousemove', (e) => this._onMouseMove(e));
+			this._selectionContainer.addEventListener('dblclick', (e) => this._onDoubleClick(e));
 		}
 	}
 
@@ -220,6 +221,35 @@ export default class SelectionLayer {
 				const offset = columnToOffset(lineContent.rawText, column);
 				this._editor.extendLastSelection(new Point(line, offset));
 			}
+		}
+	}
+
+	private _onDoubleClick(e: MouseEvent): void {
+		if (this._editor === null) {
+			return;
+		}
+		const target = e.target as HTMLDivElement;
+		const rect = target.getBoundingClientRect();
+		const x = e.clientX - rect.left;
+		const y = e.clientY - rect.top;
+		let line = Math.floor(y / this._lineHeight) + this._firstVisibleLine;
+		const linesData = this._editor.getLines(line, 1);
+		let offset = 0;
+		if (linesData.length === 0) {
+			const lineContent = this._editor.getLastLine();
+			if (lineContent === null) {
+				return;
+			}
+			offset = columnToOffset(lineContent.rawText, Infinity);
+			line = this._editor.getTotalLinesCount() - 1;
+		} else {
+			const lineContent = linesData[0];
+			const column = Math.round(x / this._letterWidth);
+			offset = columnToOffset(lineContent.rawText, column);
+		}
+
+		if (!this._isShitHold) {
+			this._editor.selectWordAt(new Point(line, offset), this._isCtrlHold);
 		}
 	}
 }
