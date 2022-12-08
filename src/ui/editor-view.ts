@@ -363,6 +363,17 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 				e.preventDefault();
 				break;
 			}
+			case 'KeyX': {
+				if (!this._editor) {
+					return;
+				}
+				if (this._isCtrlHold) {
+					this._editor.cut();
+				}
+				e.stopPropagation();
+				e.preventDefault();
+				break;
+			}
 			default:
 				break;
 		}

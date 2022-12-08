@@ -64,11 +64,12 @@ class Editor extends EventEmitter<EditorEvents> {
 		this._emitEditEvent();
 	}
 
-	public remove(type: number = 0): void {
+	public remove(type: number = 0): string {
 		if (this._document === null) {
-			return;
+			return '';
 		}
 		const selections = this._selections.getSelections();
+		let text: string = '';
 		for (const sel of selections) {
 			if (sel.isCollapsed) {
 				if (sel.start.offset === 0 && type === 0) {
@@ -105,13 +106,15 @@ class Editor extends EventEmitter<EditorEvents> {
 				-removedLines.length + 1,
 				-(sel.end.offset - sel.start.offset),
 			);
+			text += removedText;
 		}
 		this._emitEditEvent();
+		return text;
 	}
 
-	public removeWordBefore(): void {
+	public removeWordBefore(): string {
 		if (this._selections.length !== 1 || this._document === null) {
-			return;
+			return '';
 		}
 		const sel = this._selections.getSelections()[0];
 		if (!sel.isCollapsed) {
@@ -123,9 +126,9 @@ class Editor extends EventEmitter<EditorEvents> {
 		return this.remove();
 	}
 
-	public removeWordAfter(): void {
+	public removeWordAfter(): string {
 		if (this._selections.length !== 1 || this._document === null) {
-			return;
+			return '';
 		}
 		const sel = this._selections.getSelections()[0];
 		if (!sel.isCollapsed) {
@@ -135,6 +138,14 @@ class Editor extends EventEmitter<EditorEvents> {
 		const word = getWordAfter(line, sel.start.offset);
 		sel.end.offset += word.length;
 		return this.remove();
+	}
+
+	public cut(): void {
+		if (!this._document) {
+			return;
+		}
+		const removedText = this.remove();
+		void navigator.clipboard.writeText(removedText);
 	}
 
 	public setDocument(document: Document): void {
