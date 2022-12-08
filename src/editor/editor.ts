@@ -2,7 +2,7 @@ import { Line } from '../document';
 import Document from '../document/document';
 import { EventEmitter } from '../events';
 import { Point, Selection } from '../selection';
-import { pointCompare } from '../selection/utils';
+import SelectionManager from '../selection/selection-manager';
 import { getWordAfter, getWordBefore } from '../text-utils';
 import { Tokenizer } from '../tokenizer';
 import { EditorView } from '../ui';
@@ -13,7 +13,7 @@ import { EditorEvents, EvDocument, EvSelection, EvTokenizer } from './events';
  * Editor class manages state of editor.
  */
 class Editor extends EventEmitter<EditorEvents> {
-	private _selections: Selection[] = [];
+	private _selections: SelectionManager;
 	private _document: Document | null = null;
 	private _tokenizeAfterEdit: boolean = true;
 	private _tokenizer: Tokenizer;
@@ -28,7 +28,7 @@ class Editor extends EventEmitter<EditorEvents> {
 		super();
 		const newDoc = new Document('');
 		this._document = newDoc;
-		this._selections = [new Selection(0, 0, 0, 0)];
+		this._selections = new SelectionManager(this._document);
 		this._tokenizer = new Tokenizer(this._document, false);
 	}
 
@@ -36,7 +36,8 @@ class Editor extends EventEmitter<EditorEvents> {
 		if (this._document === null) {
 			return;
 		}
-		for (const sel of this._selections) {
+		const selections = this._selections.getSelections();
+		for (const sel of selections) {
 			if (sel.isCollapsed) {
 				continue;
 			}
@@ -52,7 +53,7 @@ class Editor extends EventEmitter<EditorEvents> {
 			);
 		}
 
-		for (const sel of this._selections) {
+		for (const sel of selections) {
 			const line = sel.start.line;
 			const offset = sel.start.offset;
 			const insertedLines = this._document.insert(str, line, offset);
@@ -67,7 +68,8 @@ class Editor extends EventEmitter<EditorEvents> {
 		if (this._document === null) {
 			return;
 		}
-		for (const sel of this._selections) {
+		const selections = this._selections.getSelections();
+		for (const sel of selections) {
 			if (sel.isCollapsed) {
 				if (sel.start.offset === 0 && type === 0) {
 					if (sel.start.line !== 0) {
@@ -111,7 +113,7 @@ class Editor extends EventEmitter<EditorEvents> {
 		if (this._selections.length !== 1 || this._document === null) {
 			return;
 		}
-		const sel = this._selections[0];
+		const sel = this._selections.getSelections()[0];
 		if (!sel.isCollapsed) {
 			return this.remove();
 		}
@@ -125,7 +127,7 @@ class Editor extends EventEmitter<EditorEvents> {
 		if (this._selections.length !== 1 || this._document === null) {
 			return;
 		}
-		const sel = this._selections[0];
+		const sel = this._selections.getSelections()[0];
 		if (!sel.isCollapsed) {
 			return this.remove();
 		}
@@ -140,6 +142,7 @@ class Editor extends EventEmitter<EditorEvents> {
 		if (this._tokenizeAfterEdit) {
 			this.tokenize();
 		}
+		this._selections = new SelectionManager(this._document);
 		this.emit(EvDocument.Set, undefined);
 		this._emitLinesCountChanged(Infinity);
 	}
@@ -209,143 +212,46 @@ class Editor extends EventEmitter<EditorEvents> {
 	}
 
 	public getSelctions(): Selection[] {
-		return this._selections;
+		return this._selections.getSelections();
 	}
 
 	public setSelection(selection: Selection): void {
-		this._selections = [selection];
+		this._selections.setSelection(selection);
 		this._emitSelectionChangedEvent();
 	}
 
 	public addSelection(selection: Selection): void {
-		this._selections.push(selection);
-		this._removeOverlappingSelections();
+		this._selections.addSelection(selection);
 		this._emitSelectionChangedEvent();
 	}
 
 	public extendLastSelection(point: Point): void {
-		if (this._selections.length === 0) {
-			return;
-		}
-		const lastSelection = this._selections[this._selections.length - 1];
-		lastSelection.updateSelection(point);
-		this._removeOverlappingSelections();
+		this._selections.extendLastSelection(point);
 		this._emitSelectionChangedEvent();
 	}
 
 	public selectAll(): void {
-		const selection = new Selection(0, 0, 0, 0);
-		if (this._document) {
-			const linesCount = this._document.linesCount;
-			const lastLine = this._document.getLastLine();
-			selection.end.line = linesCount - 1;
-			selection.end.offset = lastLine.length;
-		}
-		this._selections = [selection];
+		this._selections.selectAll();
 		this._emitSelectionChangedEvent();
 	}
 
 	public collapseSelectionToLeft(): void {
-		if (this._selections.length < 1 || this._document === null) {
-			return;
-		}
-
-		for (const sel of this._selections) {
-			if (sel.isCollapsed) {
-				if (sel.start.line === 0 && sel.start.offset === 0) {
-					continue;
-				}
-				sel.start.offset -= 1;
-				sel.end.offset -= 1;
-				if (sel.start.offset < 0) {
-					const newLine = sel.start.line - 1;
-					const prevLineLength = this._document.getLine(newLine).length;
-					sel.start.line = newLine;
-					sel.end.line = newLine;
-					sel.start.offset = prevLineLength;
-					sel.end.offset = prevLineLength;
-				}
-			} else {
-				sel.end.line = sel.start.line;
-				sel.end.offset = sel.start.offset;
-			}
-		}
+		this._selections.collapseSelectionToLeft();
 		this._emitSelectionChangedEvent();
 	}
 
 	public collapseSelectionToRight(): void {
-		if (this._selections.length < 1 || this._document === null) {
-			return;
-		}
-		const lastLineNumber = this._document.linesCount - 1;
-		const lastLineLength = this._document.getLine(lastLineNumber).length;
-		for (const sel of this._selections) {
-			if (sel.isCollapsed) {
-				if (sel.start.line === lastLineNumber && sel.start.offset === lastLineLength) {
-					continue;
-				}
-				sel.start.offset += 1;
-				sel.end.offset += 1;
-				const lineLength = this._document.getLine(sel.start.line).length;
-				if (sel.start.offset > lineLength) {
-					const newLine = sel.start.line + 1;
-					sel.start.line = newLine;
-					sel.end.line = newLine;
-					sel.start.offset = 0;
-					sel.end.offset = 0;
-				}
-			} else {
-				sel.start.line = sel.end.line;
-				sel.start.offset = sel.end.offset;
-			}
-		}
+		this._selections.collapseSelectionToRight();
 		this._emitSelectionChangedEvent();
 	}
 
 	public collapseSelectionToTop(): void {
-		if (this._selections.length < 1 || this._document === null) {
-			return;
-		}
-
-		for (const sel of this._selections) {
-			if (sel.start.line === 0) {
-				sel.start.offset = 0;
-				sel.end.offset = 0;
-				sel.end.line = 0;
-				continue;
-			}
-			const newLine = sel.start.line - 1;
-			const lineLength = this._document.getLine(newLine).length;
-			const newOffset = lineLength < sel.start.offset ? lineLength : sel.start.offset;
-			sel.start.offset = newOffset;
-			sel.end.offset = newOffset;
-			sel.start.line = newLine;
-			sel.end.line = newLine;
-		}
+		this._selections.collapseSelectionToTop();
 		this._emitSelectionChangedEvent();
 	}
 
 	public collapseSelectionToBottom(): void {
-		if (this._selections.length < 1 || this._document === null) {
-			return;
-		}
-		const lastLineNumber = this._document.linesCount - 1;
-		const lastLineLength = this._document.getLine(lastLineNumber).length;
-		for (const sel of this._selections) {
-			if (sel.end.line === lastLineNumber) {
-				sel.start.offset = lastLineLength;
-				sel.end.offset = lastLineLength;
-				sel.start.line = lastLineNumber;
-				continue;
-			}
-			const newLine = sel.start.line + 1;
-			const lineLength = this._document.getLine(newLine).length;
-			const newOffset = lineLength < sel.end.offset ? lineLength : sel.end.offset;
-			sel.start.offset = newOffset;
-			sel.end.offset = newOffset;
-			sel.start.line = newLine;
-			sel.end.line = newLine;
-		}
+		this._selections.collapseSelectionToBottom();
 		this._emitSelectionChangedEvent();
 	}
 
@@ -353,7 +259,7 @@ class Editor extends EventEmitter<EditorEvents> {
 		if (this._document === null || this._selections.length !== 1) {
 			return;
 		}
-		const sel = this._selections[0];
+		const sel = this._selections.getSelections()[0];
 		if (sel.start.line === 0) {
 			return;
 		}
@@ -374,7 +280,7 @@ class Editor extends EventEmitter<EditorEvents> {
 		if (this._document === null || this._selections.length !== 1) {
 			return;
 		}
-		const sel = this._selections[0];
+		const sel = this._selections.getSelections()[0];
 		if (sel.end.line === this._document.linesCount - 1) {
 			return;
 		}
@@ -424,45 +330,17 @@ class Editor extends EventEmitter<EditorEvents> {
 	}
 
 	public enableSelectionsUpdates(): void {
+		this._selections.enableUpdatingSelections();
 		this._shouldUpdateSelections = true;
 	}
 
 	public disableSelectionsUpdates(): void {
+		this._selections.disableUpdatingSelections();
 		this._shouldUpdateSelections = false;
 	}
 
 	public getActiveLinesNumbers(): Set<number> {
-		if (this._document === null || this._selections.length === 0) {
-			return new Set();
-		}
-		const activeLines = new Set<number>();
-		for (const sel of this._selections) {
-			for (let i = sel.start.line; i < sel.end.line + 1; i++) {
-				activeLines.add(i);
-			}
-		}
-		return activeLines;
-	}
-
-	private _removeOverlappingSelections(): void {
-		if (this._document === null || this._selections.length < 2) {
-			return;
-		}
-		const selectionToRemove: number[] = [];
-		for (let i = 0; i < this._selections.length; i++) {
-			const sel = this._selections[i];
-			for (let j = i + 1; j < this._selections.length; j++) {
-				const sel2 = this._selections[j];
-				if (sel.overlaps(sel2)) {
-					selectionToRemove.push(i);
-				}
-			}
-		}
-		let delta = 0;
-		for (const selectionNumber of selectionToRemove) {
-			this._selections.splice(selectionNumber - delta, 1);
-			delta++;
-		}
+		return this._selections.getActiveLinesNumbers();
 	}
 
 	private _updateSelctions(
@@ -471,54 +349,7 @@ class Editor extends EventEmitter<EditorEvents> {
 		lineDiff: number,
 		offsetDiff: number,
 	): void {
-		if (!this._shouldUpdateSelections) {
-			return;
-		}
-		let op = 0;
-		if (lineDiff < 0) {
-			op = 0;
-		} else {
-			if (offsetDiff < 0) {
-				op = 0;
-			} else {
-				op = 1;
-			}
-		}
-		const start = new Point(line, offset);
-		const end = new Point(line - lineDiff, offset - offsetDiff);
-
-		for (const selection of this._selections) {
-			for (const point of [selection.start, selection.end]) {
-				if (op) {
-					if (pointCompare(point, start) !== 2) {
-						if (point.line === line) {
-							if (lineDiff) {
-								point.offset = point.offset - start.offset + offsetDiff;
-							} else {
-								point.offset += offsetDiff;
-							}
-						}
-						point.line += lineDiff;
-					}
-				} else {
-					if (
-						point.line >= start.line &&
-						point.line <= end.line &&
-						point.offset >= end.offset - 1
-					) {
-						if (pointCompare(point, end) !== 1) {
-							point.offset = start.offset;
-							point.line = start.line;
-						} else {
-							point.line = start.line;
-							point.offset = start.offset + point.offset - end.offset;
-						}
-					}
-				}
-			}
-		}
-
-		this._removeOverlappingSelections();
+		this._selections.update(line, offset, lineDiff, offsetDiff);
 		this._emitSelectionChangedEvent();
 	}
 
