@@ -5,7 +5,7 @@ import EditorLineElement from './editor-line-element';
 import Line from '../document/line';
 import EdiotrView from './editor-view';
 import { EvFont, EvScroll, TextLayerEvents } from './events';
-import { EvDocument, EvTokenizer } from '../editor/events';
+import { EvDocument, EvSelection, EvTokenizer } from '../editor/events';
 import { notEmpty } from '../utils';
 
 class TextLayer extends EventEmitter<TextLayerEvents> {
@@ -45,6 +45,9 @@ class TextLayer extends EventEmitter<TextLayerEvents> {
 			this._editor.on(EvTokenizer.Finished, () => {
 				this.update();
 			});
+			this._editor.on(EvSelection.Changed, () => {
+				this._updateActiveLines();
+			});
 		}
 	}
 
@@ -73,6 +76,22 @@ class TextLayer extends EventEmitter<TextLayerEvents> {
 		return this._measureLetterWidth();
 	}
 
+	private _updateActiveLines(): void {
+		if (this._editor === null || this._textContainer == null) {
+			return;
+		}
+		const lines = this._editor.getLines(this._firstVisibleLine, this._visibleLinesCount);
+		const activeLines = this._editor.getActiveLinesNumbers();
+		if (this._visibleLines.length !== lines.length) {
+			return;
+		}
+		let lineNumber = 0;
+		for (const line of this._visibleLines) {
+			line.setActive(activeLines.has(this._firstVisibleLine + lineNumber));
+			lineNumber++;
+		}
+	}
+
 	private _measureLetterWidth(): void {
 		if (this._textContainer === null) {
 			return;
@@ -93,12 +112,13 @@ class TextLayer extends EventEmitter<TextLayerEvents> {
 			return;
 		}
 		const lines = this._editor.getLines(this._firstVisibleLine, this._visibleLinesCount);
+		const activeLines = this._editor.getActiveLinesNumbers();
 		if (this._visibleLines.length === lines.length) {
 			let lineNumber = 0;
 			for (const line of lines) {
 				this._visibleLines[lineNumber].setData(line);
 				this._visibleLines[lineNumber].setActive(
-					this._firstVisibleLine + lineNumber === this._activeLineNumber,
+					activeLines.has(this._firstVisibleLine + lineNumber),
 				);
 				lineNumber++;
 			}
@@ -107,6 +127,9 @@ class TextLayer extends EventEmitter<TextLayerEvents> {
 			let lineNumber = 0;
 			for (const line of lines) {
 				this._renderLine(this._visibleLines, line, this._firstVisibleLine + lineNumber);
+				this._visibleLines[lineNumber].setActive(
+					activeLines.has(this._firstVisibleLine + lineNumber),
+				);
 				lineNumber++;
 			}
 			const domElements = this._visibleLines.map((el) => el.getNode()).filter(notEmpty);

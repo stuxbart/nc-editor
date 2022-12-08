@@ -429,6 +429,19 @@ class Editor extends EventEmitter<EditorEvents> {
 		this._shouldUpdateSelections = false;
 	}
 
+	public getActiveLinesNumbers(): Set<number> {
+		if (this._document === null || this._selections.length === 0) {
+			return new Set();
+		}
+		const activeLines = new Set<number>();
+		for (const sel of this._selections) {
+			for (let i = sel.start.line; i < sel.end.line + 1; i++) {
+				activeLines.add(i);
+			}
+		}
+		return activeLines;
+	}
+
 	private _updateSelctions(
 		line: number,
 		offset: number,
