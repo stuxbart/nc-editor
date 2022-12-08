@@ -219,6 +219,7 @@ class Editor extends EventEmitter<EditorEvents> {
 
 	public addSelection(selection: Selection): void {
 		this._selections.push(selection);
+		this._removeOverlappingSelections();
 		this._emitSelectionChangedEvent();
 	}
 
@@ -228,6 +229,7 @@ class Editor extends EventEmitter<EditorEvents> {
 		}
 		const lastSelection = this._selections[this._selections.length - 1];
 		lastSelection.updateSelection(point);
+		this._removeOverlappingSelections();
 		this._emitSelectionChangedEvent();
 	}
 
@@ -442,6 +444,27 @@ class Editor extends EventEmitter<EditorEvents> {
 		return activeLines;
 	}
 
+	private _removeOverlappingSelections(): void {
+		if (this._document === null || this._selections.length < 2) {
+			return;
+		}
+		const selectionToRemove: number[] = [];
+		for (let i = 0; i < this._selections.length; i++) {
+			const sel = this._selections[i];
+			for (let j = i + 1; j < this._selections.length; j++) {
+				const sel2 = this._selections[j];
+				if (sel.overlaps(sel2)) {
+					selectionToRemove.push(i);
+				}
+			}
+		}
+		let delta = 0;
+		for (const selectionNumber of selectionToRemove) {
+			this._selections.splice(selectionNumber - delta, 1);
+			delta++;
+		}
+	}
+
 	private _updateSelctions(
 		line: number,
 		offset: number,
@@ -495,6 +518,7 @@ class Editor extends EventEmitter<EditorEvents> {
 			}
 		}
 
+		this._removeOverlappingSelections();
 		this._emitSelectionChangedEvent();
 	}
 

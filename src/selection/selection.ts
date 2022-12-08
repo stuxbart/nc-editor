@@ -49,4 +49,23 @@ export default class Selection extends Range {
 	public toString(): string {
 		return `{start: {l: ${this.start.line}, o:${this.start.offset}}, end: {l: ${this.end.line}, o:${this.end.offset}}}`;
 	}
+
+	public overlaps(other: Selection): boolean {
+		if (this.isCollapsed) {
+			return (
+				pointCompare(this.start, other.start) !== 2 &&
+				pointCompare(this.start, other.end) !== 1
+			);
+		}
+		if (
+			pointCompare(other.start, this.start) !== 2 &&
+			pointCompare(other.start, this.end) !== 1
+		) {
+			return true;
+		}
+		if (pointCompare(other.end, this.start) !== 2 && pointCompare(other.end, this.end) !== 1) {
+			return true;
+		}
+		return false;
+	}
 }
