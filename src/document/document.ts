@@ -110,8 +110,36 @@ export default class Document {
 		return this._getNodeText(this._rootNode);
 	}
 
-	public getText(): string {
-		return this._getNodeText(this._rootNode);
+	public getText(range: Range | null = null): string {
+		if (range === null) {
+			return this.text;
+		}
+		const firstLineNode = this._getNodeByLineNumber(this._rootNode, range.start.line);
+		if (firstLineNode === null) {
+			return '';
+		}
+		if (range.start.line === range.end.line) {
+			const text = firstLineNode.text.substring(range.start.offset, range.end.offset);
+			return text;
+		}
+		let text = firstLineNode.text.substring(range.start.offset);
+		let node: DocumentNode | null = firstLineNode;
+		const linesCount = range.end.line - range.start.line - 1;
+		for (let i = 0; i < linesCount; i++) {
+			node = this._getNextLine(node);
+			if (node === null) {
+				return text;
+			}
+			text += '\n' + node.text;
+		}
+
+		const lastLineNode = this._getNextLine(node);
+		if (lastLineNode === null) {
+			return text;
+		}
+
+		text += '\n' + lastLineNode.text.substring(0, range.end.offset);
+		return text;
 	}
 
 	public getLines(firstLine: number, linesCount: number): string[] {
