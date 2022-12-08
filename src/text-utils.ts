@@ -40,6 +40,9 @@ export function getWordBefore(text: string, offset: number): string {
 	if (offset > text.length) {
 		offset = text.length;
 	}
+	if (offset < 0) {
+		return '';
+	}
 	const char = text[offset - 1];
 	if (isWhiteSpaceChar(char)) {
 		const length = readWhiteSpaceBefore(text, offset);
@@ -52,6 +55,28 @@ export function getWordBefore(text: string, offset: number): string {
 		return text.substring(offset - length, offset);
 	} else {
 		return text.substring(offset - 1, offset);
+	}
+}
+
+export function getWordAfter(text: string, offset: number): string {
+	if (offset > text.length) {
+		return '';
+	}
+	if (offset < 0) {
+		offset = 0;
+	}
+	const char = text[offset];
+	if (isWhiteSpaceChar(char)) {
+		const length = readWhiteSpaceAfter(text, offset);
+		return text.substring(offset, offset + length);
+	} else if (isAlpha(char)) {
+		const length = readWordAfter(text, offset);
+		return text.substring(offset, offset + length);
+	} else if (isNumeric(char)) {
+		const length = readNumberAfter(text, offset);
+		return text.substring(offset, offset + length);
+	} else {
+		return text.substring(offset, offset + 1);
 	}
 }
 
@@ -72,31 +97,45 @@ export function isAlphaNumeric(char: string): boolean {
 }
 
 export function readWhiteSpaceBefore(text: string, offset: number): number {
-	let i = offset - 1;
-	let char = text[i];
-	while (i > -1 && isWhiteSpaceChar(char)) {
-		i--;
-		char = text[i];
-	}
-	return offset - i - 1;
+	return readBeforeUntil(text, offset, isWhiteSpaceChar);
 }
 
 export function readWordBefore(text: string, offset: number): number {
+	return readBeforeUntil(text, offset, isAlpha);
+}
+
+export function readNumberBefore(text: string, offset: number): number {
+	return readBeforeUntil(text, offset, isNumeric);
+}
+
+export function readBeforeUntil(text: string, offset: number, fn: Function): number {
 	let i = offset - 1;
 	let char = text[i];
-	while (i > -1 && isAlpha(char)) {
+	while (i > -1 && fn(char)) {
 		i--;
 		char = text[i];
 	}
 	return offset - i - 1;
 }
 
-export function readNumberBefore(text: string, offset: number): number {
-	let i = offset - 1;
+export function readWhiteSpaceAfter(text: string, offset: number): number {
+	return readAfterUntil(text, offset, isWhiteSpaceChar);
+}
+
+export function readWordAfter(text: string, offset: number): number {
+	return readAfterUntil(text, offset, isAlpha);
+}
+
+export function readNumberAfter(text: string, offset: number): number {
+	return readAfterUntil(text, offset, isNumeric);
+}
+
+export function readAfterUntil(text: string, offset: number, fn: Function): number {
+	let i = offset;
 	let char = text[i];
-	while (i > -1 && isNumeric(char)) {
-		i--;
+	while (i < text.length && fn(char)) {
+		i++;
 		char = text[i];
 	}
-	return offset - i - 1;
+	return i - offset;
 }

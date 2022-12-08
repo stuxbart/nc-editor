@@ -74,18 +74,18 @@ export default class EditorInput {
 			return;
 		}
 		switch (e.key) {
-			case 'Backspace':
+			case 'Backspace': {
 				if (!this._isCtrlHold) {
 					this._editor.remove();
 				}
-				// e.preventDefault();
-				// e.stopPropagation();
 				break;
-			case 'Delete':
-				this._editor.remove(1);
-				e.preventDefault();
-				e.stopPropagation();
+			}
+			case 'Delete': {
+				if (!this._isCtrlHold) {
+					this._editor.remove(1);
+				}
 				break;
+			}
 			case 'Tab':
 				this._editor.insert('\t');
 				e.preventDefault();

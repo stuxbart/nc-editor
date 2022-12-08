@@ -325,6 +325,12 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 				}
 				break;
 			}
+			case 'Delete': {
+				if (this._editor && this._isCtrlHold) {
+					this._editor.removeWordAfter();
+				}
+				break;
+			}
 			default:
 				break;
 		}
