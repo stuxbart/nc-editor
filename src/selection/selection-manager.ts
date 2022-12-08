@@ -1,4 +1,5 @@
 import { Document } from '../document';
+import { getWordAfter, getWordBefore } from '../text-utils';
 import Point from './point';
 import Selection from './selection';
 import { pointCompare } from './utils';
@@ -107,6 +108,48 @@ export default class SelectionManager {
 			selection.end.offset = lastLine.length;
 		}
 		this._selections = [selection];
+	}
+
+	public selectWordBefore(): void {
+		if (this._selections.length !== 1 || this._document === null) {
+			return;
+		}
+		const sel = this._selections[0];
+		if (sel.start.line === 0 && sel.start.offset === 0) {
+			return;
+		}
+		if (sel.start.offset === 0) {
+			sel.start.line -= 1;
+			const lineBefore = this._document.getLine(sel.start.line);
+			const word = getWordBefore(lineBefore, lineBefore.length);
+			sel.start.offset = lineBefore.length - word.length;
+		} else {
+			const line = this._document.getLine(sel.start.line);
+			const word = getWordBefore(line, sel.start.offset);
+			sel.start.offset -= word.length;
+		}
+		this._removeOverlappingSelections();
+	}
+
+	public selectWordAfter(): void {
+		if (this._selections.length !== 1 || this._document === null) {
+			return;
+		}
+		const sel = this._selections[0];
+		const line = this._document.getLine(sel.end.line);
+		if (sel.end.line === this._document.linesCount - 1 && sel.end.offset === line.length) {
+			return;
+		}
+		if (sel.end.offset === line.length) {
+			sel.end.line += 1;
+			const lineAfter = this._document.getLine(sel.end.line);
+			const word = getWordAfter(lineAfter, 0);
+			sel.end.offset = word.length;
+		} else {
+			const word = getWordAfter(line, sel.end.offset);
+			sel.end.offset += word.length;
+		}
+		this._removeOverlappingSelections();
 	}
 
 	public collapseSelectionToLeft(): void {

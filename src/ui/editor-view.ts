@@ -313,13 +313,23 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 				break;
 			}
 			case 'ArrowLeft': {
-				if (this._editor) {
+				if (this._editor === null) {
+					return;
+				}
+				if (this._isShitHold && this._isCtrlHold) {
+					this._editor.selectWordBefore();
+				} else {
 					this._editor.collapseSelectionToLeft();
 				}
 				break;
 			}
 			case 'ArrowRight': {
-				if (this._editor) {
+				if (this._editor === null) {
+					return;
+				}
+				if (this._isShitHold && this._isCtrlHold) {
+					this._editor.selectWordAfter();
+				} else {
 					this._editor.collapseSelectionToRight();
 				}
 				break;
