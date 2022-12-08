@@ -350,6 +350,19 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 				}
 				break;
 			}
+			case 'Tab': {
+				if (!this._editor) {
+					return;
+				}
+				if (this._isShitHold) {
+					this._editor.removeIndentFromSelectedLines();
+				} else {
+					this._editor.indentSelectedLines();
+				}
+				e.stopPropagation();
+				e.preventDefault();
+				break;
+			}
 			default:
 				break;
 		}

@@ -10,6 +10,7 @@ export default class EditorInput {
 	private _view: EdiotrView | null = null;
 
 	private _isCtrlHold: boolean = false;
+	private _isShiftHold: boolean = false;
 
 	constructor(editor: Editor, view: EdiotrView) {
 		this._editor = editor;
@@ -48,6 +49,12 @@ export default class EditorInput {
 			this._view.on(EvKey.CtrlUp, () => {
 				this._isCtrlHold = false;
 			});
+			this._view.on(EvKey.ShiftDown, () => {
+				this._isShiftHold = true;
+			});
+			this._view.on(EvKey.ShiftUp, () => {
+				this._isShiftHold = false;
+			});
 		}
 	}
 
@@ -81,9 +88,12 @@ export default class EditorInput {
 				break;
 			}
 			case 'Tab':
-				this._editor.insert('\t');
-				e.preventDefault();
-				e.stopPropagation();
+				if (!this._isShiftHold) {
+					const linesCount = this._editor.getSelectedLinesCount();
+					if (linesCount === 1) {
+						this._editor.insert('\t');
+					}
+				}
 				break;
 
 			default:

@@ -331,6 +331,12 @@ export default class SelectionManager {
 		return activeLines;
 	}
 
+	public getSelectedLinesCount(): number {
+		const selectedLines = this.getActiveLinesNumbers();
+		const count = selectedLines.size;
+		return count;
+	}
+
 	private _removeOverlappingSelections(): void {
 		if (this._document === null || this._selections.length < 2) {
 			return;

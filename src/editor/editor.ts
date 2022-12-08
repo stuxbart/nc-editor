@@ -1,7 +1,7 @@
 import { Line } from '../document';
 import Document from '../document/document';
 import { EventEmitter } from '../events';
-import { Point, Selection } from '../selection';
+import { Point, Range, Selection } from '../selection';
 import SelectionManager from '../selection/selection-manager';
 import { getWordAfter, getWordBefore } from '../text-utils';
 import { Tokenizer } from '../tokenizer';
@@ -366,6 +366,46 @@ class Editor extends EventEmitter<EditorEvents> {
 
 	public getActiveLinesNumbers(): Set<number> {
 		return this._selections.getActiveLinesNumbers();
+	}
+
+	public getSelectedLinesCount(): number {
+		return this._selections.getSelectedLinesCount();
+	}
+
+	public indentSelectedLines(indentString: string = '\t'): void {
+		if (this._document === null) {
+			return;
+		}
+		const selectedLines = this._selections.getActiveLinesNumbers();
+		if (selectedLines.size < 2) {
+			return;
+		}
+		for (const lineNumber of selectedLines) {
+			this._document.insert(indentString, lineNumber, 0);
+			this._updateLinesTokens(lineNumber, 2);
+			this._updateSelctions(lineNumber, 0, 0, 1);
+		}
+
+		this._emitEditEvent();
+	}
+
+	public removeIndentFromSelectedLines(indentString: string = '\t'): void {
+		if (this._document === null) {
+			return;
+		}
+		const selectedLines = this._selections.getActiveLinesNumbers();
+
+		for (const lineNumber of selectedLines) {
+			const line = this._document.getLine(lineNumber);
+			if (!line.startsWith(indentString)) {
+				continue;
+			}
+			this._document.remove(new Range(lineNumber, 0, lineNumber, indentString.length));
+			this._updateLinesTokens(lineNumber, 2);
+			this._updateSelctions(lineNumber, 0, 0, 1);
+		}
+
+		this._emitEditEvent();
 	}
 
 	private _updateSelctions(
