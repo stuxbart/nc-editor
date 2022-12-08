@@ -7,11 +7,15 @@ export function removeAccents(text: string): string {
 
 export function columnToOffset(line: string, column: number, tabSize: number = 8): number {
 	let offset: number = 0;
+	let readedColumns: number = 0;
 	while (offset < line.length && column > 0) {
 		if (line[offset++] === '\t') {
-			column -= tabSize;
+			const r = readedColumns % tabSize;
+			column -= tabSize - r;
+			readedColumns += tabSize - r;
 		} else {
 			column -= 1;
+			readedColumns += 1;
 		}
 	}
 	if (column > 0) {
@@ -28,7 +32,8 @@ export function offsetToColumn(line: string, offset: number, tabSize: number = 8
 	for (let i = 0; i < offset; i++) {
 		const char = line[i];
 		if (char === '\t') {
-			column += tabSize;
+			const r = column % tabSize;
+			column += tabSize - r;
 		} else {
 			column += 1;
 		}
