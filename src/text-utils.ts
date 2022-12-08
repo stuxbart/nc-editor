@@ -2,7 +2,7 @@ export function removeAccents(text: string): string {
 	return text
 		.normalize('NFD')
 		.replace(/[\u0300-\u036f]/g, '') // get rid of accents
-		.replace('ł', 'l'); // doesnt work for ł
+		.replace(/ł/g, 'l'); // doesnt work for ł
 }
 
 export function columnToOffset(line: string, column: number, tabSize: number = 8): number {
