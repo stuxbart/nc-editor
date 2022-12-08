@@ -173,6 +173,51 @@ export default class SelectionManager {
 		this._removeOverlappingSelections();
 	}
 
+	public moveSelectionWordBefore(): void {
+		if (this._document === null) {
+			return;
+		}
+		for (const sel of this._selections) {
+			if (sel.start.line === 0 && sel.start.offset === 0) {
+				continue;
+			}
+			if (sel.start.offset === 0) {
+				sel.start.line -= 1;
+				const lineBefore = removeAccents(this._document.getLine(sel.start.line));
+				sel.start.offset = lineBefore.length;
+			} else {
+				const line = removeAccents(this._document.getLine(sel.start.line));
+				const word = getWordBefore(line, sel.start.offset);
+				sel.start.offset -= word.length;
+			}
+			sel.end.offset = sel.start.offset;
+			sel.end.line = sel.start.line;
+		}
+		this._removeOverlappingSelections();
+	}
+
+	public moveSelectionWordAfter(): void {
+		if (this._document === null) {
+			return;
+		}
+		for (const sel of this._selections) {
+			const line = removeAccents(this._document.getLine(sel.end.line));
+			if (sel.end.line === this._document.linesCount - 1 && sel.end.offset === line.length) {
+				continue;
+			}
+			if (sel.end.offset === line.length) {
+				sel.end.line += 1;
+				sel.end.offset = 0;
+			} else {
+				const word = getWordAfter(line, sel.end.offset);
+				sel.end.offset += word.length;
+			}
+			sel.start.offset = sel.end.offset;
+			sel.start.line = sel.end.line;
+		}
+		this._removeOverlappingSelections();
+	}
+
 	public collapseSelectionToLeft(): void {
 		if (this._selections.length < 1 || this._document === null) {
 			return;

@@ -270,6 +270,16 @@ class Editor extends EventEmitter<EditorEvents> {
 		this._emitSelectionChangedEvent();
 	}
 
+	public moveSelectionWordBefore(): void {
+		this._selections.moveSelectionWordBefore();
+		this._emitSelectionChangedEvent();
+	}
+
+	public moveSelectionWordAfter(): void {
+		this._selections.moveSelectionWordAfter();
+		this._emitSelectionChangedEvent();
+	}
+
 	public swapLinesUp(): void {
 		if (this._document === null || this._selections.length !== 1) {
 			return;
