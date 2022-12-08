@@ -148,6 +148,21 @@ class Editor extends EventEmitter<EditorEvents> {
 		void navigator.clipboard.writeText(removedText);
 	}
 
+	public copy(): void {
+		if (this._document === null) {
+			return;
+		}
+		const selections = this._selections.getSelections();
+		let copiedText: string = '';
+		for (const sel of selections) {
+			if (sel.isCollapsed) {
+				continue;
+			}
+			copiedText += this._document.getText(sel);
+		}
+		void navigator.clipboard.writeText(copiedText);
+	}
+
 	public setDocument(document: Document): void {
 		this._document = document;
 		if (this._tokenizeAfterEdit) {

@@ -374,6 +374,17 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 				e.preventDefault();
 				break;
 			}
+			case 'KeyC': {
+				if (!this._editor) {
+					return;
+				}
+				if (this._isCtrlHold) {
+					this._editor.copy();
+				}
+				e.stopPropagation();
+				e.preventDefault();
+				break;
+			}
 			default:
 				break;
 		}
