@@ -141,11 +141,11 @@ export default class SelectionManager {
 		}
 		if (sel.start.offset === 0) {
 			sel.start.line -= 1;
-			const lineBefore = this._document.getLine(sel.start.line);
+			const lineBefore = removeAccents(this._document.getLine(sel.start.line));
 			const word = getWordBefore(lineBefore, lineBefore.length);
 			sel.start.offset = lineBefore.length - word.length;
 		} else {
-			const line = this._document.getLine(sel.start.line);
+			const line = removeAccents(this._document.getLine(sel.start.line));
 			const word = getWordBefore(line, sel.start.offset);
 			sel.start.offset -= word.length;
 		}
@@ -157,13 +157,13 @@ export default class SelectionManager {
 			return;
 		}
 		const sel = this._selections[0];
-		const line = this._document.getLine(sel.end.line);
+		const line = removeAccents(this._document.getLine(sel.end.line));
 		if (sel.end.line === this._document.linesCount - 1 && sel.end.offset === line.length) {
 			return;
 		}
 		if (sel.end.offset === line.length) {
 			sel.end.line += 1;
-			const lineAfter = this._document.getLine(sel.end.line);
+			const lineAfter = removeAccents(this._document.getLine(sel.end.line));
 			const word = getWordAfter(lineAfter, 0);
 			sel.end.offset = word.length;
 		} else {
