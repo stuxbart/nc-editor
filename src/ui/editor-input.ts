@@ -17,6 +17,7 @@ export default class EditorInput {
 
 		this._domElement = createTextArea(EDITOR_INPUT_CLASS);
 		this._domElement.id = EDITOR_INPUT_ID;
+		this._domElement.autofocus = true;
 		this._initEventListeners();
 	}
 
