@@ -22,7 +22,7 @@ export default class Document {
 	 * @returns count of inserted new lines, length of last inserted line
 	 */
 	public insert(text: string, line: number, offset: number): [number, number] {
-		if (text.length === 0) {
+		if (text.length === 0 && this._rootNode !== null) {
 			return [0, 0];
 		}
 
