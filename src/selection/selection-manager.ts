@@ -1,13 +1,20 @@
 import { Document } from '../document';
-import { getWordAfter, getWordBefore, removeAccents } from '../text-utils';
+import {
+	columnToOffset,
+	getWordAfter,
+	getWordBefore,
+	offsetToColumn,
+	removeAccents,
+} from '../text-utils';
 import Point from './point';
-import Selection from './selection';
+import Selection, { SelectionType } from './selection';
 import { pointCompare } from './utils';
 
 export default class SelectionManager {
 	private _selections: Selection[] = [];
 	private _document: Document | null = null;
 	private _shouldUpdateSelections: boolean = true;
+	private _rectSelectionStart: Point | null = null;
 
 	constructor(document: Document | null = null) {
 		this._document = document;
@@ -97,6 +104,7 @@ export default class SelectionManager {
 		const lastSelection = this._selections[this._selections.length - 1];
 		lastSelection.updateSelection(point);
 		this._removeOverlappingSelections();
+		this._clearRectSelectionStart();
 	}
 
 	public selectAll(): void {
@@ -108,6 +116,7 @@ export default class SelectionManager {
 			selection.end.offset = lastLine.length;
 		}
 		this._selections = [selection];
+		this._clearRectSelectionStart();
 	}
 
 	public selectWordAt(point: Point, addSelection: boolean = false): void {
@@ -129,6 +138,7 @@ export default class SelectionManager {
 			this._selections = [sel];
 		}
 		this._removeOverlappingSelections();
+		this._clearRectSelectionStart();
 	}
 
 	public selectWordBefore(): void {
@@ -150,6 +160,7 @@ export default class SelectionManager {
 			sel.start.offset -= word.length;
 		}
 		this._removeOverlappingSelections();
+		this._clearRectSelectionStart();
 	}
 
 	public selectWordAfter(): void {
@@ -171,6 +182,7 @@ export default class SelectionManager {
 			sel.end.offset += word.length;
 		}
 		this._removeOverlappingSelections();
+		this._clearRectSelectionStart();
 	}
 
 	public moveSelectionWordBefore(): void {
@@ -194,6 +206,7 @@ export default class SelectionManager {
 			sel.end.line = sel.start.line;
 		}
 		this._removeOverlappingSelections();
+		this._clearRectSelectionStart();
 	}
 
 	public moveSelectionWordAfter(): void {
@@ -214,6 +227,44 @@ export default class SelectionManager {
 			}
 			sel.start.offset = sel.end.offset;
 			sel.start.line = sel.end.line;
+		}
+		this._removeOverlappingSelections();
+		this._clearRectSelectionStart();
+	}
+	/**
+	 * point.offset for this function should be column in text
+	 */
+	public extendRectangleSelection(point: Point): void {
+		if (this._document === null) {
+			return;
+		}
+		if (this._rectSelectionStart === null) {
+			const lastSelection = this._selections[this._selections.length - 1];
+			if (lastSelection.type === SelectionType.L) {
+				this._rectSelectionStart = lastSelection.end;
+			} else {
+				this._rectSelectionStart = lastSelection.start;
+			}
+			const line = this._document.getLine(this._rectSelectionStart.line);
+			this._rectSelectionStart.offset = offsetToColumn(line, this._rectSelectionStart.offset);
+		}
+
+		this._selections = [];
+		const startLine = Math.min(point.line, this._rectSelectionStart.line);
+		const endLine = Math.max(point.line, this._rectSelectionStart.line);
+		const startColumn = Math.min(point.offset, this._rectSelectionStart.offset);
+		const endColumn = Math.max(point.offset, this._rectSelectionStart.offset);
+
+		for (let index = startLine; index < endLine + 1; index++) {
+			const line = this._document.getLine(index);
+			const lineColumns = offsetToColumn(line, line.length);
+			if (startColumn > lineColumns) {
+				continue;
+			}
+			const startOffset = columnToOffset(line, startColumn);
+			const endOffset =
+				endColumn < lineColumns ? columnToOffset(line, endColumn) : line.length;
+			this._selections.push(new Selection(index, startOffset, index, endOffset));
 		}
 		this._removeOverlappingSelections();
 	}
@@ -243,6 +294,7 @@ export default class SelectionManager {
 				sel.end.offset = sel.start.offset;
 			}
 		}
+		this._clearRectSelectionStart();
 	}
 
 	public collapseSelectionToRight(): void {
@@ -271,6 +323,7 @@ export default class SelectionManager {
 				sel.start.offset = sel.end.offset;
 			}
 		}
+		this._clearRectSelectionStart();
 	}
 
 	public collapseSelectionToTop(): void {
@@ -293,6 +346,7 @@ export default class SelectionManager {
 			sel.start.line = newLine;
 			sel.end.line = newLine;
 		}
+		this._clearRectSelectionStart();
 	}
 
 	public collapseSelectionToBottom(): void {
@@ -316,6 +370,7 @@ export default class SelectionManager {
 			sel.start.line = newLine;
 			sel.end.line = newLine;
 		}
+		this._clearRectSelectionStart();
 	}
 
 	public getActiveLinesNumbers(): Set<number> {
@@ -356,5 +411,9 @@ export default class SelectionManager {
 			this._selections.splice(selectionNumber - delta, 1);
 			delta++;
 		}
+	}
+
+	private _clearRectSelectionStart(): void {
+		this._rectSelectionStart = null;
 	}
 }

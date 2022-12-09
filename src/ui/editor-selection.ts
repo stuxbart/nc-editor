@@ -22,6 +22,7 @@ export default class SelectionLayer {
 	private _isMouseHold: boolean = false;
 	private _isCtrlHold: boolean = false;
 	private _isShitHold: boolean = false;
+	private _isAltHold: boolean = false;
 
 	constructor(editor: Editor, view: EdiotrView) {
 		this._editor = editor;
@@ -81,6 +82,12 @@ export default class SelectionLayer {
 			});
 			this._view.on(EvKey.ShiftUp, () => {
 				this._isShitHold = false;
+			});
+			this._view.on(EvKey.AltDown, () => {
+				this._isAltHold = true;
+			});
+			this._view.on(EvKey.AltUp, () => {
+				this._isAltHold = false;
 			});
 		}
 		if (this._editor) {
@@ -186,7 +193,11 @@ export default class SelectionLayer {
 		}
 
 		if (this._isShitHold) {
-			this._editor.extendLastSelection(new Point(line, offset));
+			if (this._isAltHold) {
+				this._editor.extendRectangleSelection(new Point(line, offset));
+			} else {
+				this._editor.extendLastSelection(new Point(line, offset));
+			}
 		} else if (this._isCtrlHold) {
 			this._editor.addSelection(new Selection(line, offset, line, offset));
 		} else {
@@ -204,21 +215,27 @@ export default class SelectionLayer {
 			const rect = target.getBoundingClientRect();
 			const x = e.clientX - rect.left;
 			const y = e.clientY - rect.top;
-			const line = Math.floor(y / this._lineHeight) + this._firstVisibleLine;
+			let line = Math.floor(y / this._lineHeight) + this._firstVisibleLine;
 			const linesData = this._editor.getLines(line, 1);
+			const column = Math.round(x / this._letterWidth);
+			let offset = 0;
 
 			if (linesData.length === 0) {
 				const lineContent = this._editor.getLastLine();
 				if (lineContent === null) {
 					return;
 				}
-				const offset = columnToOffset(lineContent.rawText, Infinity);
-				const line = this._editor.getTotalLinesCount() - 1;
-				this._editor.extendLastSelection(new Point(line, offset));
+				offset = columnToOffset(lineContent.rawText, Infinity);
+				line = this._editor.getTotalLinesCount() - 1;
 			} else {
 				const lineContent = linesData[0];
 				const column = Math.round(x / this._letterWidth);
-				const offset = columnToOffset(lineContent.rawText, column);
+				offset = columnToOffset(lineContent.rawText, column);
+			}
+
+			if (this._isShitHold && this._isAltHold) {
+				this._editor.extendRectangleSelection(new Point(line, column));
+			} else {
 				this._editor.extendLastSelection(new Point(line, offset));
 			}
 		}

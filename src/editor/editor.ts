@@ -434,6 +434,11 @@ class Editor extends EventEmitter<EditorEvents> {
 		this._emitEditEvent();
 	}
 
+	public extendRectangleSelection(point: Point): void {
+		this._selections.extendRectangleSelection(point);
+		this._emitSelectionChangedEvent();
+	}
+
 	private _updateSelctions(
 		line: number,
 		offset: number,
