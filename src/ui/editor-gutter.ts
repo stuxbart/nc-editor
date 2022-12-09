@@ -4,7 +4,7 @@ import { EvDocument } from '../editor/events';
 import { createDiv, px } from './dom-utils';
 import EdiotrView from './editor-view';
 import { EvGutter, EvScroll, EditorGutterEvents } from './events';
-import { CSSClasses } from './config';
+import { CSSClasses } from '../styles/css';
 
 class EditorGutter extends EventEmitter<EditorGutterEvents> {
 	private _editor: Editor | null = null;

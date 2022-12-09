@@ -2,7 +2,7 @@ import { Editor } from '../editor';
 import { EvSelection } from '../editor/events';
 import { Point, Selection } from '../selection';
 import { columnToOffset, offsetToColumn } from '../text-utils';
-import { CSSClasses } from './config';
+import { CSSClasses } from '../styles/css';
 import { createDiv } from './dom-utils';
 import EditorCursor from './editor-cursor';
 import EditorSelectionElement from './editor-selection-element';

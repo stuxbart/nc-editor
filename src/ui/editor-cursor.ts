@@ -1,4 +1,4 @@
-import { CSSClasses } from './config';
+import { CSSClasses } from '../styles/css';
 import { createDiv, px } from './dom-utils';
 
 export default class EditorCursor {

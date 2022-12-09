@@ -1,6 +1,6 @@
 import Line from '../document/line';
 import { Token } from '../tokenizer';
-import { CSSClasses } from './config';
+import { CSSClasses } from '../styles/css';
 import { createElement, createNodeFromTemplate } from './dom-utils';
 
 export default class EditorLineElement {

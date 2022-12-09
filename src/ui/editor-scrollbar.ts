@@ -4,7 +4,8 @@ import { EventEmitter } from '../events';
 import EdiotrView from './editor-view';
 import { EvScroll, ScrollBarEvents } from './events';
 import { EvDocument } from '../editor/events';
-import { CSSClasses, MAX_LINES_COUNT_ON_DEFAULT_SCROLL_SCALE } from './config';
+import { MAX_LINES_COUNT_ON_DEFAULT_SCROLL_SCALE } from './config';
+import { CSSClasses } from '../styles/css';
 
 export default class ScrollBar extends EventEmitter<ScrollBarEvents> {
 	private _editor: Editor | null = null;

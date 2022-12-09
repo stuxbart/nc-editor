@@ -18,7 +18,8 @@ import {
 	EvKey,
 } from './events';
 import { EvDocument, EvTokenizer } from '../editor/events';
-import { CSSClasses, EDITOR_FONT_FAMILY } from './config';
+import { EDITOR_FONT_FAMILY } from './config';
+import { CSSClasses } from '../styles/css';
 
 const MAX_LINES_PADDING = 10;
 

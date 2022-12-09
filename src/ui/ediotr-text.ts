@@ -7,7 +7,7 @@ import EdiotrView from './editor-view';
 import { EvFont, EvScroll, TextLayerEvents } from './events';
 import { EvDocument, EvSelection, EvTokenizer } from '../editor/events';
 import { notEmpty } from '../utils';
-import { CSSClasses } from './config';
+import { CSSClasses } from '../styles/css';
 
 class TextLayer extends EventEmitter<TextLayerEvents> {
 	private _editor: Editor | null = null;

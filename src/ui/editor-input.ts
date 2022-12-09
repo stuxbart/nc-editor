@@ -1,5 +1,6 @@
 import { Editor } from '../editor';
-import { CSSClasses, EDITOR_INPUT_ID } from './config';
+import { EDITOR_INPUT_ID } from './config';
+import { CSSClasses } from '../styles/css';
 import { createTextArea } from './dom-utils';
 import EdiotrView from './editor-view';
 import { EvFocus } from './events';
