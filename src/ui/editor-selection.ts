@@ -3,7 +3,7 @@ import { EvSelection } from '../editor/events';
 import { Point, Selection } from '../selection';
 import { columnToOffset, offsetToColumn } from '../text-utils';
 import { CSSClasses } from '../styles/css';
-import { createDiv } from './dom-utils';
+import { createDiv, em } from './dom-utils';
 import EditorCursor from './editor-cursor';
 import EditorSelectionElement from './editor-selection-element';
 import EdiotrView from './editor-view';
@@ -57,7 +57,7 @@ export default class SelectionLayer {
 		this._selectionContainer.style.gridArea = '1/2/2/3';
 		this._selectionContainer.style.position = 'relative';
 		this._selectionContainer.style.zIndex = '4';
-		this._selectionContainer.style.marginLeft = '1em';
+		this._selectionContainer.style.marginLeft = em(1);
 	}
 
 	private _initEventListeners(): void {

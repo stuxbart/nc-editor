@@ -1,7 +1,7 @@
 import Line from '../document/line';
 import { Token } from '../tokenizer';
 import { CSSClasses } from '../styles/css';
-import { createElement, createNodeFromTemplate } from './dom-utils';
+import { createElement, createNodeFromTemplate, px } from './dom-utils';
 
 export default class EditorLineElement {
 	private _text: string = '';
@@ -21,7 +21,7 @@ export default class EditorLineElement {
 		</div>`,
 		);
 		const el = this._domElement as HTMLElement;
-		el.style.height = '20px';
+		el.style.height = px(20);
 		this.setActive(active);
 		this._renderTokens();
 	}

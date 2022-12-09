@@ -31,3 +31,5 @@ export const isChildOf = (parent: Node | null, element: Node): boolean => {
 };
 
 export const px = (val: number): string => `${val}px`;
+export const rem = (val: number): string => `${val}rem`;
+export const em = (val: number): string => `${val}em`;
