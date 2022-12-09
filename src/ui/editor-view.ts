@@ -18,7 +18,7 @@ import {
 	EvKey,
 } from './events';
 import { EvDocument, EvTokenizer } from '../editor/events';
-import { EDITOR_FONT_FAMILY } from './config';
+import { CSSClasses, EDITOR_FONT_FAMILY } from './config';
 
 const MAX_LINES_PADDING = 10;
 
@@ -156,7 +156,7 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 		if (this._mountPoint === null) {
 			return;
 		}
-		this._editorContainer = createDiv('nc-editor');
+		this._editorContainer = createDiv(CSSClasses.EDITOR);
 		this._mountPoint.appendChild(this._editorContainer);
 		this._editorContainer.style.fontFamily = this._fontFamily;
 		this._editorContainer.style.fontSize = px(this._fontSize);

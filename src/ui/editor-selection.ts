@@ -2,7 +2,7 @@ import { Editor } from '../editor';
 import { EvSelection } from '../editor/events';
 import { Point, Selection } from '../selection';
 import { columnToOffset, offsetToColumn } from '../text-utils';
-import { EDITOR_SELECTION_CSS_CLASS } from './config';
+import { CSSClasses } from './config';
 import { createDiv } from './dom-utils';
 import EditorCursor from './editor-cursor';
 import EditorSelectionElement from './editor-selection-element';
@@ -52,7 +52,7 @@ export default class SelectionLayer {
 		if (this._mountPoint === null) {
 			return;
 		}
-		this._selectionContainer = createDiv(EDITOR_SELECTION_CSS_CLASS);
+		this._selectionContainer = createDiv(CSSClasses.SELECTION);
 		this._mountPoint.appendChild(this._selectionContainer);
 		this._selectionContainer.style.gridArea = '1/2/2/3';
 		this._selectionContainer.style.position = 'relative';

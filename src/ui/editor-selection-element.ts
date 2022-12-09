@@ -1,7 +1,7 @@
 import { Line } from '../document';
 import { Selection } from '../selection';
 import { offsetToColumn } from '../text-utils';
-import { EDITOR_SELECTION_RANGE_CSS_CLASS } from './config';
+import { CSSClasses } from './config';
 import { createDiv, px } from './dom-utils';
 
 export default class EditorSelectionElement {
@@ -56,7 +56,7 @@ export default class EditorSelectionElement {
 				this._domElements[index].style.width = width;
 				this._domElements[index].style.height = height;
 			} else {
-				const element = createDiv(EDITOR_SELECTION_RANGE_CSS_CLASS);
+				const element = createDiv(CSSClasses.SELECTION_RANGE);
 				element.style.left = left;
 				element.style.top = top;
 				element.style.width = width;

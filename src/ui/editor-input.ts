@@ -1,5 +1,5 @@
 import { Editor } from '../editor';
-import { EDITOR_INPUT_CLASS, EDITOR_INPUT_ID } from './config';
+import { CSSClasses, EDITOR_INPUT_ID } from './config';
 import { createTextArea } from './dom-utils';
 import EdiotrView from './editor-view';
 import { EvFocus } from './events';
@@ -13,7 +13,7 @@ export default class EditorInput {
 		this._editor = editor;
 		this._view = view;
 
-		this._domElement = createTextArea(EDITOR_INPUT_CLASS);
+		this._domElement = createTextArea(CSSClasses.MAIN_INPUT);
 		this._domElement.id = EDITOR_INPUT_ID;
 		this._domElement.autofocus = true;
 		this._initEventListeners();

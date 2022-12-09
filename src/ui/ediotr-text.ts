@@ -7,6 +7,7 @@ import EdiotrView from './editor-view';
 import { EvFont, EvScroll, TextLayerEvents } from './events';
 import { EvDocument, EvSelection, EvTokenizer } from '../editor/events';
 import { notEmpty } from '../utils';
+import { CSSClasses } from './config';
 
 class TextLayer extends EventEmitter<TextLayerEvents> {
 	private _editor: Editor | null = null;
@@ -55,7 +56,7 @@ class TextLayer extends EventEmitter<TextLayerEvents> {
 		if (this._mountPoint === null) {
 			return;
 		}
-		this._textContainer = createDiv('nc-editor__text');
+		this._textContainer = createDiv(CSSClasses.TEXT_LAYER);
 		this._mountPoint.appendChild(this._textContainer);
 		this._textContainer.style.gridArea = '1/2/2/3';
 	}

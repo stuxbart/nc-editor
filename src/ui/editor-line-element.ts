@@ -1,11 +1,6 @@
 import Line from '../document/line';
 import { Token } from '../tokenizer';
-import {
-	EDITOR_MULTI_LINE_ACTIVE_CSS_CLASS,
-	EDITOR_MULTI_LINE_CONTENT_CSS_CLASS,
-	EDITOR_MULTI_LINE_CSS_CLASS,
-	EDITOR_MULTI_LINE_HOVERED_CSS_CLASS,
-} from './config';
+import { CSSClasses } from './config';
 import { createElement, createNodeFromTemplate } from './dom-utils';
 
 export default class EditorLineElement {
@@ -19,8 +14,8 @@ export default class EditorLineElement {
 		this._text = line.rawText;
 		this._tokens = line.tokens;
 		this._domElement = createNodeFromTemplate(
-			`<div class="${EDITOR_MULTI_LINE_CSS_CLASS}">
-			<div class="${EDITOR_MULTI_LINE_CONTENT_CSS_CLASS}">
+			`<div class="${CSSClasses.MULTI_LINE}">
+			<div class="${CSSClasses.MULTI_LINE_CONTENT}">
 			  ${this._text || '<br />'}
 			</div>
 		</div>`,
@@ -88,9 +83,9 @@ export default class EditorLineElement {
 		this._isActive = active;
 		const el = this._domElement as HTMLElement;
 		if (active) {
-			el.classList.add(EDITOR_MULTI_LINE_ACTIVE_CSS_CLASS);
+			el.classList.add(CSSClasses.MULTI_LINE_ACTIVE);
 		} else {
-			el.classList.remove(EDITOR_MULTI_LINE_ACTIVE_CSS_CLASS);
+			el.classList.remove(CSSClasses.MULTI_LINE_ACTIVE);
 		}
 	}
 
@@ -101,9 +96,9 @@ export default class EditorLineElement {
 		this._isHovered = hovered;
 		const el = this._domElement as HTMLElement;
 		if (hovered) {
-			el.classList.add(EDITOR_MULTI_LINE_HOVERED_CSS_CLASS);
+			el.classList.add(CSSClasses.MULTI_LINE_HOVERED);
 		} else {
-			el.classList.remove(EDITOR_MULTI_LINE_HOVERED_CSS_CLASS);
+			el.classList.remove(CSSClasses.MULTI_LINE_HOVERED);
 		}
 	}
 }

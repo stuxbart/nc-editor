@@ -1,4 +1,4 @@
-import { EDITOR_CURSOR_ANIMATED_CSS_CLASS, EDITOR_CURSOR_CSS_CLASS } from './config';
+import { CSSClasses } from './config';
 import { createDiv, px } from './dom-utils';
 
 export default class EditorCursor {
@@ -17,9 +17,7 @@ export default class EditorCursor {
 	}
 
 	private _createDOMElement(): void {
-		this._cursorElement = createDiv(
-			EDITOR_CURSOR_CSS_CLASS + ' ' + EDITOR_CURSOR_ANIMATED_CSS_CLASS,
-		);
+		this._cursorElement = createDiv(CSSClasses.CURSOR + ' ' + CSSClasses.CURSOR_ANIMATED);
 		this._cursorElement.style.top = px(this._top);
 		this._cursorElement.style.left = px(this._left);
 	}

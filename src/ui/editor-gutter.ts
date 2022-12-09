@@ -3,8 +3,8 @@ import { EventEmitter } from '../events';
 import { EvDocument } from '../editor/events';
 import { createDiv, px } from './dom-utils';
 import EdiotrView from './editor-view';
-import { EvGutter, EvScroll, EvTheme, EditorGutterEvents } from './events';
-import { Theme } from './themes';
+import { EvGutter, EvScroll, EditorGutterEvents } from './events';
+import { CSSClasses } from './config';
 
 class EditorGutter extends EventEmitter<EditorGutterEvents> {
 	private _editor: Editor | null = null;
@@ -72,25 +72,6 @@ class EditorGutter extends EventEmitter<EditorGutterEvents> {
 			this.update();
 		});
 
-		this._view.on(EvTheme.Changed, (e) => {
-			if (this._gutterContainer === null) {
-				return;
-			}
-			switch (e.theme) {
-				case Theme.Dark:
-					this._gutterContainer.className = 'nc-editor__gutter nc-editor__gutter--dark';
-					break;
-				case Theme.Default:
-					this._gutterContainer.className =
-						'nc-editor__gutter nc-editor__gutter--default';
-					break;
-				case Theme.Light:
-					this._gutterContainer.className = 'nc-editor__gutter nc-editor__gutter--light';
-					break;
-				default:
-					break;
-			}
-		});
 		if (this._editor === null) {
 			return;
 		}
@@ -105,11 +86,9 @@ class EditorGutter extends EventEmitter<EditorGutterEvents> {
 		if (this._mountPoint === null) {
 			return;
 		}
-		this._gutterContainer = createDiv('nc-editor__gutter');
+		this._gutterContainer = createDiv(CSSClasses.GUTTER);
 		this._mountPoint.appendChild(this._gutterContainer);
 		this._gutterContainer.style.gridArea = '1/1/2/2';
-		this._gutterContainer.style.width = '100%';
-		this._gutterContainer.style.height = '100%';
 	}
 
 	private _renderLinesNumbers(): void {
@@ -121,7 +100,7 @@ class EditorGutter extends EventEmitter<EditorGutterEvents> {
 			if (i + this._firstVisibleLine > this._totalLinesCount - 1) {
 				break;
 			}
-			const numberDiv = createDiv('nc-gutter__number');
+			const numberDiv = createDiv(CSSClasses.GUTTER_NUMBER);
 			numberDiv.innerText = `${i + this._firstVisibleLine + 1}`;
 			lines.push(numberDiv);
 		}

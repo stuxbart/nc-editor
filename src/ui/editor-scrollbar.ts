@@ -4,7 +4,7 @@ import { EventEmitter } from '../events';
 import EdiotrView from './editor-view';
 import { EvScroll, ScrollBarEvents } from './events';
 import { EvDocument } from '../editor/events';
-import { MAX_LINES_COUNT_ON_DEFAULT_SCROLL_SCALE } from './config';
+import { CSSClasses, MAX_LINES_COUNT_ON_DEFAULT_SCROLL_SCALE } from './config';
 
 export default class ScrollBar extends EventEmitter<ScrollBarEvents> {
 	private _editor: Editor | null = null;
@@ -60,15 +60,11 @@ export default class ScrollBar extends EventEmitter<ScrollBarEvents> {
 		if (this._mountPoint === null) {
 			return;
 		}
-		this._scrollBarContainer = createDiv('nc-editor__scroll-bar');
-		this._scrollableDiv = createDiv('nc-scroll__scrollable');
+		this._scrollBarContainer = createDiv(CSSClasses.SCROLL_BAR);
+		this._scrollableDiv = createDiv(CSSClasses.SCROLL_INNER);
 		this._scrollBarContainer.appendChild(this._scrollableDiv);
 		this._mountPoint.appendChild(this._scrollBarContainer);
 		this._scrollBarContainer.style.gridArea = '1/3/2/4';
-		this._scrollBarContainer.style.width = '100%';
-		this._scrollBarContainer.style.height = '100%';
-		this._scrollBarContainer.style.maxHeight = '100%';
-		this._scrollableDiv.style.width = '15px';
 	}
 
 	private _updateScrollPosition(): void {
