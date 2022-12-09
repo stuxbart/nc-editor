@@ -385,9 +385,9 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 				}
 				if (this._isCtrlHold) {
 					this._editor.cut();
+					// e.stopPropagation();
+					// e.preventDefault();
 				}
-				e.stopPropagation();
-				e.preventDefault();
 				break;
 			}
 			case 'KeyC': {
@@ -396,9 +396,9 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 				}
 				if (this._isCtrlHold) {
 					this._editor.copy();
+					// e.stopPropagation();
+					// e.preventDefault();
 				}
-				e.stopPropagation();
-				e.preventDefault();
 				break;
 			}
 			default:
