@@ -339,14 +339,24 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 				break;
 			}
 			case 'Backspace': {
-				if (this._editor && this._isCtrlHold) {
+				if (!this._editor) {
+					return;
+				}
+				if (this._isCtrlHold) {
 					this._editor.removeWordBefore();
+				} else {
+					this._editor.remove();
 				}
 				break;
 			}
 			case 'Delete': {
-				if (this._editor && this._isCtrlHold) {
+				if (!this._editor) {
+					return;
+				}
+				if (this._isCtrlHold) {
 					this._editor.removeWordAfter();
+				} else {
+					this._editor.remove(1);
 				}
 				break;
 			}
@@ -357,7 +367,12 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 				if (this._isShitHold) {
 					this._editor.removeIndentFromSelectedLines();
 				} else {
-					this._editor.indentSelectedLines();
+					const linesCount = this._editor.getSelectedLinesCount();
+					if (linesCount === 1) {
+						this._editor.insert('\t');
+					} else {
+						this._editor.indentSelectedLines();
+					}
 				}
 				e.stopPropagation();
 				e.preventDefault();

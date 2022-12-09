@@ -2,15 +2,12 @@ import { Editor } from '../editor';
 import { EDITOR_INPUT_CLASS, EDITOR_INPUT_ID } from './config';
 import { createTextArea } from './dom-utils';
 import EdiotrView from './editor-view';
-import { EvFocus, EvKey } from './events';
+import { EvFocus } from './events';
 
 export default class EditorInput {
 	private _domElement: HTMLTextAreaElement | null = null;
 	private _editor: Editor | null = null;
 	private _view: EdiotrView | null = null;
-
-	private _isCtrlHold: boolean = false;
-	private _isShiftHold: boolean = false;
 
 	constructor(editor: Editor, view: EdiotrView) {
 		this._editor = editor;
@@ -35,25 +32,12 @@ export default class EditorInput {
 	private _initEventListeners(): void {
 		if (this._domElement) {
 			this._domElement.addEventListener('input', () => this._onInput());
-			this._domElement.addEventListener('keydown', (e) => this._onKeyDown(e));
 		}
 		if (this._view) {
 			this._view.on(EvFocus.Changed, (e) => {
 				if (e.focused) {
 					this.focus();
 				}
-			});
-			this._view.on(EvKey.CtrlDown, () => {
-				this._isCtrlHold = true;
-			});
-			this._view.on(EvKey.CtrlUp, () => {
-				this._isCtrlHold = false;
-			});
-			this._view.on(EvKey.ShiftDown, () => {
-				this._isShiftHold = true;
-			});
-			this._view.on(EvKey.ShiftUp, () => {
-				this._isShiftHold = false;
 			});
 		}
 	}
@@ -68,36 +52,5 @@ export default class EditorInput {
 		}
 		this._editor.insert(this._domElement.value);
 		this._domElement.value = '';
-	}
-
-	private _onKeyDown(e: KeyboardEvent): void {
-		if (this._editor === null) {
-			return;
-		}
-		switch (e.key) {
-			case 'Backspace': {
-				if (!this._isCtrlHold) {
-					this._editor.remove();
-				}
-				break;
-			}
-			case 'Delete': {
-				if (!this._isCtrlHold) {
-					this._editor.remove(1);
-				}
-				break;
-			}
-			case 'Tab':
-				if (!this._isShiftHold) {
-					const linesCount = this._editor.getSelectedLinesCount();
-					if (linesCount === 1) {
-						this._editor.insert('\t');
-					}
-				}
-				break;
-
-			default:
-				break;
-		}
 	}
 }
