@@ -114,7 +114,6 @@ export default class JSTokenizer extends Tokenizer {
 			prevData = tokenizerData.data.get(line);
 			lineData = this._makeLineData(line, prevLineState);
 			tokenizerData.data.set(line, lineData);
-			console.log(i, prevData, lineData);
 			i++;
 		} while (!prevData || !compareLineData(prevData, lineData));
 	}
