@@ -22,4 +22,4 @@ Nam a quam vitae neque faucibus euismod.`;
 const editor = new nc.Editor();
 const editorView = new nc.EditorView(editor, 'root');
 const doc = new nc.Document(text20lines);
-editor.setDocument(doc);
+editor.addDocument(doc);
