@@ -8,6 +8,7 @@ export interface TokenizerLineState {
 export interface TokenizerLineData {
 	tokens: Token[];
 	state: TokenizerLineState;
+	length: number;
 }
 
 export default class TokenizerData {
@@ -26,7 +27,7 @@ export default class TokenizerData {
 		if (lineData !== undefined) {
 			return lineData;
 		}
-		return { tokens: [], state: { scope: '' } };
+		return { tokens: [], state: { scope: '' }, length: 0 };
 	}
 
 	public getLineTokens(lineNode: DocumentNode): Token[] {
@@ -43,6 +44,9 @@ export function compareLineData(line1: TokenizerLineData, line2: TokenizerLineDa
 		return false;
 	}
 	if (line1.tokens.length !== line2.tokens.length) {
+		return false;
+	}
+	if (line1.length !== line2.length) {
 		return false;
 	}
 	for (let i = 0; i < line1.tokens.length; i++) {

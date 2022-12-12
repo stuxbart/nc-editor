@@ -123,7 +123,7 @@ export default class JSTokenizer extends Tokenizer {
 		prevLineState: TokenizerLineState,
 	): TokenizerLineData {
 		if (line.text.length === 0) {
-			return { tokens: [], state: { ...prevLineState } };
+			return { tokens: [], state: { ...prevLineState }, length: 0 };
 		}
 
 		const tokens: Token[] = [];
@@ -226,7 +226,7 @@ export default class JSTokenizer extends Tokenizer {
 				case '/': {
 					if (i + 1 < text.length && text[i + 1] === '/') {
 						tokens.push({ type: JSTokens.COMMENT, startIndex: i });
-						return { tokens: tokens, state: { scope: '' } };
+						return { tokens: tokens, state: { scope: '' }, length: text.length };
 					} else {
 						tokens.push({
 							type: JSTokens.OPERATOR,
@@ -333,7 +333,7 @@ export default class JSTokenizer extends Tokenizer {
 			}
 		}
 
-		return { tokens: tokens, state: { scope: '' } };
+		return { tokens: tokens, state: { scope: '' }, length: text.length };
 	}
 
 	private _isWordInList(word: string, words: string[]): boolean {

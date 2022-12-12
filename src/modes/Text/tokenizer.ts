@@ -57,7 +57,7 @@ export default class TextTokenizer extends Tokenizer {
 		prevLineState: TokenizerLineState,
 	): TokenizerLineData {
 		if (line.text.length === 0) {
-			return { tokens: [], state: { ...prevLineState } };
+			return { tokens: [], state: { ...prevLineState }, length: 0 };
 		}
 
 		const tokens: Token[] = [];
@@ -87,7 +87,7 @@ export default class TextTokenizer extends Tokenizer {
 			}
 		}
 
-		return { tokens: tokens, state: { scope: '' } };
+		return { tokens: tokens, state: { scope: '' }, length: text.length };
 	}
 
 	private _isWhiteSpaceChar(char: string): boolean {
