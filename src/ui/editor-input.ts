@@ -18,6 +18,8 @@ export default class EditorInput {
 		this._domElement = createTextArea(CSSClasses.MAIN_INPUT);
 		this._domElement.id = EDITOR_INPUT_ID;
 		this._domElement.autofocus = true;
+		this._domElement.autocapitalize = 'off';
+		this._domElement.autocomplete = 'off';
 		this._initEventListeners();
 	}
 
