@@ -7,9 +7,11 @@ import { createDiv, em } from './dom-utils';
 import EditorCursor from './editor-cursor';
 import EditorSelectionElement from './editor-selection-element';
 import EdiotrView from './editor-view';
-import { EvFont, EvKey, EvScroll } from './events';
+import { EvFont, EvKey, EvScroll, SelectionLayerEvents } from './events';
+import { EventEmitter } from '../events';
 
-export default class SelectionLayer {
+export default class SelectionLayer extends EventEmitter<SelectionLayerEvents> {
+	private _emitterName: string = 'selection-layer';
 	private _editor: Editor | null = null;
 	private _view: EdiotrView | null = null;
 	private _mountPoint: HTMLElement | null = null;
@@ -20,11 +22,16 @@ export default class SelectionLayer {
 	private _letterWidth: number = 0;
 	private _visibleSelections: EditorSelectionElement[] = [];
 	private _isMouseHold: boolean = false;
+	private _isTouchHold: boolean = false;
+	private _isTouchSelecting: boolean = false;
 	private _isCtrlHold: boolean = false;
 	private _isShitHold: boolean = false;
 	private _isAltHold: boolean = false;
+	private _lastTouchTime: number | null = null;
+	private _lastTouchPosition: Point = new Point(0, 0);
 
 	constructor(editor: Editor, view: EdiotrView) {
+		super();
 		this._editor = editor;
 		this._view = view;
 
@@ -64,8 +71,10 @@ export default class SelectionLayer {
 	private _initEventListeners(): void {
 		if (this._view) {
 			this._view.on(EvScroll.Changed, (e) => {
+				// if (e.emitterName !== this._emitterName) {
 				this.setFirstVisibleLine(e.firstVisibleLine);
 				this.update();
+				// }
 			});
 			this._view.on(EvFont.LetterWidth, (e) => {
 				this._letterWidth = e.width;
@@ -100,6 +109,9 @@ export default class SelectionLayer {
 			this._selectionContainer.addEventListener('mouseup', () => this._onMouseUp());
 			this._selectionContainer.addEventListener('mousemove', (e) => this._onMouseMove(e));
 			this._selectionContainer.addEventListener('dblclick', (e) => this._onDoubleClick(e));
+			this._selectionContainer.addEventListener('touchstart', (e) => this._onTouchStart(e));
+			this._selectionContainer.addEventListener('touchend', () => this._onTouchEnd());
+			this._selectionContainer.addEventListener('touchmove', (e) => this._onTouchMove(e));
 		}
 	}
 
@@ -172,29 +184,13 @@ export default class SelectionLayer {
 		if (this._editor === null) {
 			return;
 		}
-		const target = e.target as HTMLDivElement;
-		const rect = target.getBoundingClientRect();
-		const x = e.clientX - rect.left;
-		const y = e.clientY - rect.top;
-		let line = Math.floor(y / this._lineHeight) + this._firstVisibleLine;
-		const linesData = this._editor.getLines(line, 1);
-		let offset = 0;
-		if (linesData.length === 0) {
-			const lineContent = this._editor.getLastLine();
-			if (lineContent === null) {
-				return;
-			}
-			offset = columnToOffset(lineContent.rawText, Infinity);
-			line = this._editor.getTotalLinesCount() - 1;
-		} else {
-			const lineContent = linesData[0];
-			const column = Math.round(x / this._letterWidth);
-			offset = columnToOffset(lineContent.rawText, column);
-		}
+		const [x, y] = getRelativePositionOfMouseEvent(e);
+		const [line, offset] = this._getLineAndOffsetAtPosition(x, y);
+		const column = Math.round(x / this._letterWidth);
 
 		if (this._isShitHold) {
 			if (this._isAltHold) {
-				this._editor.extendRectangleSelection(new Point(line, offset));
+				this._editor.extendRectangleSelection(new Point(line, column));
 			} else {
 				this._editor.extendLastSelection(new Point(line, offset));
 			}
@@ -211,27 +207,9 @@ export default class SelectionLayer {
 
 	private _onMouseMove(e: MouseEvent): void {
 		if (this._isMouseHold && this._editor) {
-			const target = e.target as HTMLDivElement;
-			const rect = target.getBoundingClientRect();
-			const x = e.clientX - rect.left;
-			const y = e.clientY - rect.top;
-			let line = Math.floor(y / this._lineHeight) + this._firstVisibleLine;
-			const linesData = this._editor.getLines(line, 1);
+			const [x, y] = getRelativePositionOfMouseEvent(e);
+			const [line, offset] = this._getLineAndOffsetAtPosition(x, y);
 			const column = Math.round(x / this._letterWidth);
-			let offset = 0;
-
-			if (linesData.length === 0) {
-				const lineContent = this._editor.getLastLine();
-				if (lineContent === null) {
-					return;
-				}
-				offset = columnToOffset(lineContent.rawText, Infinity);
-				line = this._editor.getTotalLinesCount() - 1;
-			} else {
-				const lineContent = linesData[0];
-				const column = Math.round(x / this._letterWidth);
-				offset = columnToOffset(lineContent.rawText, column);
-			}
 
 			if (this._isShitHold && this._isAltHold) {
 				this._editor.extendRectangleSelection(new Point(line, column));
@@ -245,17 +223,80 @@ export default class SelectionLayer {
 		if (this._editor === null) {
 			return;
 		}
-		const target = e.target as HTMLDivElement;
-		const rect = target.getBoundingClientRect();
-		const x = e.clientX - rect.left;
-		const y = e.clientY - rect.top;
+		const [x, y] = getRelativePositionOfMouseEvent(e);
+		const [line, offset] = this._getLineAndOffsetAtPosition(x, y);
+
+		if (!this._isShitHold) {
+			this._editor.selectWordAt(new Point(line, offset), this._isCtrlHold);
+		}
+	}
+
+	private _onTouchStart(e: TouchEvent): void {
+		this._isTouchHold = true;
+		if (this._editor === null) {
+			return;
+		}
+		const [x, y] = getRelativePositionOfTouchEvent(e);
+		// const [line, offset] = this._getLineAndOffsetAtPosition(x, y);
+		const touchTime = performance.now();
+		if (this._lastTouchTime !== null) {
+			if (touchTime - this._lastTouchTime < 200) {
+				this._isTouchSelecting = true;
+			}
+		}
+		this._lastTouchTime = touchTime;
+
+		this._lastTouchPosition.line = y;
+		this._lastTouchPosition.offset = x;
+		e.preventDefault();
+		e.stopPropagation();
+	}
+
+	private _onTouchEnd(): void {
+		this._isTouchHold = false;
+		this._isTouchSelecting = false;
+		if (this._editor === null) {
+			return;
+		}
+		const { line: y, offset: x } = this._lastTouchPosition;
+		const [line, offset] = this._getLineAndOffsetAtPosition(x, y);
+		this._editor.setSelection(new Selection(line, offset, line, offset));
+	}
+	private _onTouchMove(e: TouchEvent): void {
+		if (this._isTouchHold && this._editor) {
+			const [x, y] = getRelativePositionOfTouchEvent(e);
+			const [line, offset] = this._getLineAndOffsetAtPosition(x, y);
+
+			if (this._isTouchSelecting) {
+				this._editor.extendLastSelection(new Point(line, offset));
+			} else {
+				const diffY = this._lastTouchPosition.line - y;
+				const lineDiff =
+					diffY > 0
+						? Math.min(Math.round(diffY / 4), 2)
+						: Math.max(Math.round(diffY / 4), -2);
+				this.emit(EvScroll.Changed, {
+					firstVisibleLine: lineDiff + this._firstVisibleLine,
+					emitterName: this._emitterName,
+				});
+			}
+			this._lastTouchPosition.line = y;
+			this._lastTouchPosition.offset = x;
+		}
+	}
+
+	private _getLineAndOffsetAtPosition(x: number, y: number): [number, number] {
+		if (this._editor === null) {
+			return [0, 0];
+		}
 		let line = Math.floor(y / this._lineHeight) + this._firstVisibleLine;
-		const linesData = this._editor.getLines(line, 1);
 		let offset = 0;
+		const linesData = this._editor.getLines(line, 1);
+
 		if (linesData.length === 0) {
 			const lineContent = this._editor.getLastLine();
 			if (lineContent === null) {
-				return;
+				return [0, 0];
 			}
 			offset = columnToOffset(lineContent.rawText, Infinity);
 			line = this._editor.getTotalLinesCount() - 1;
@@ -264,9 +305,22 @@ export default class SelectionLayer {
 			const column = Math.round(x / this._letterWidth);
 			offset = columnToOffset(lineContent.rawText, column);
 		}
-
-		if (!this._isShitHold) {
-			this._editor.selectWordAt(new Point(line, offset), this._isCtrlHold);
-		}
+		return [line, offset];
 	}
+}
+
+function getRelativePositionOfMouseEvent(e: MouseEvent): [number, number] {
+	const target = e.target as HTMLDivElement;
+	const rect = target.getBoundingClientRect();
+	const x = e.clientX - rect.left;
+	const y = e.clientY - rect.top;
+	return [x, y];
+}
+
+function getRelativePositionOfTouchEvent(e: TouchEvent): [number, number] {
+	const target = e.target as HTMLDivElement;
+	const rect = target.getBoundingClientRect();
+	const x = e.touches[0].clientX - rect.left;
+	const y = e.touches[0].clientY - rect.top;
+	return [x, y];
 }

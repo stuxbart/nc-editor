@@ -241,6 +241,11 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 				this._updateGridLayout();
 			});
 		}
+		if (this._selectionLayer) {
+			this._selectionLayer.on(EvScroll.Changed, (e) => {
+				this._scrollToLine(e.firstVisibleLine, e.emitterName);
+			});
+		}
 	}
 
 	private _onPaste(e: ClipboardEvent): void {

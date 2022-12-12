@@ -89,3 +89,4 @@ export interface EditorViewEvents
 		ILetterWidthEvent,
 		IViewInitializedEvent,
 		IKeyEvnets {}
+export interface SelectionLayerEvents extends IScrollEvent {}
