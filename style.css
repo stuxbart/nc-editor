@@ -58,3 +58,8 @@ body {
 	border: 2px solid rgb(141, 139, 139);
 	border-radius: 0px 0px 5px 5px;
 }
+@media screen and (max-width: 1024px) {
+	.editor-wrapper {
+		width: 100%;
+	}
+}
