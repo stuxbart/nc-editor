@@ -1,6 +1,9 @@
 import { Editor } from '../editor';
 import EdiotrView from './editor-view';
-export default class SelectionLayer {
+import { SelectionLayerEvents } from './events';
+import { EventEmitter } from '../events';
+export default class SelectionLayer extends EventEmitter<SelectionLayerEvents> {
+    private _emitterName;
     private _editor;
     private _view;
     private _mountPoint;
@@ -11,9 +14,13 @@ export default class SelectionLayer {
     private _letterWidth;
     private _visibleSelections;
     private _isMouseHold;
+    private _isTouchHold;
+    private _isTouchSelecting;
     private _isCtrlHold;
     private _isShitHold;
     private _isAltHold;
+    private _lastTouchTime;
+    private _lastTouchPosition;
     constructor(editor: Editor, view: EdiotrView);
     setFirstVisibleLine(firstLine: number): void;
     setVisibleLinesCount(linesCount: number): void;
@@ -26,4 +33,8 @@ export default class SelectionLayer {
     private _onMouseUp;
     private _onMouseMove;
     private _onDoubleClick;
+    private _onTouchStart;
+    private _onTouchEnd;
+    private _onTouchMove;
+    private _getLineAndOffsetAtPosition;
 }

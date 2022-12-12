@@ -70,3 +70,5 @@ export interface TextLayerEvents extends ILetterWidthEvent {
 }
 export interface EditorViewEvents extends IScrollEvent, IFocusEvent, IThemeEvent, ILetterWidthEvent, IViewInitializedEvent, IKeyEvnets {
 }
+export interface SelectionLayerEvents extends IScrollEvent {
+}
