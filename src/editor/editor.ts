@@ -431,7 +431,7 @@ class Editor extends EventEmitter<EditorEvents> {
 			line--;
 		}
 
-		this._updateLinesTokens(sel.start.line - 1);
+		this._updateLinesTokens(sel.start.line);
 		sel.start.line += 1;
 		sel.end.line += 1;
 		this._emitSelectionChangedEvent();

@@ -5,6 +5,7 @@ import { Token } from '../../tokenizer';
 import { TextTokens } from './tokens';
 import { Tokenizer } from '../../tokenizer/tokenizer';
 import TokenizerData, {
+	compareLineData,
 	TokenizerLineData,
 	TokenizerLineState,
 } from '../../tokenizer/tokenizer-data';
@@ -31,8 +32,8 @@ export default class TextTokenizer extends Tokenizer {
 		let line: DocumentNode | null;
 		let i = lineNumber;
 		let prevLineState: TokenizerLineState | undefined;
-		let prevState: TokenizerLineState;
 		let lineData: TokenizerLineData;
+		let prevData: TokenizerLineData | undefined;
 		do {
 			line = document.getLineNode(lineNumber - 1);
 			if (line === null) {
@@ -44,11 +45,12 @@ export default class TextTokenizer extends Tokenizer {
 			if (line === null) {
 				break;
 			}
-			prevState = tokenizerData.data.get(line)?.state ?? { scope: '' };
+			prevData = tokenizerData.data.get(line);
 			lineData = this._makeLineData(line, prevLineState);
 			tokenizerData.data.set(line, lineData);
+			console.log(i, prevData, lineData);
 			i++;
-		} while (prevState === lineData.state);
+		} while (!prevData || !compareLineData(prevData, lineData));
 	}
 
 	private _makeLineData(
