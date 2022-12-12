@@ -36,7 +36,7 @@ export default class Document {
 			return [0, 0];
 		}
 
-		const newLines = text.split('\n');
+		const newLines = text.split(/\r?\n|\r/g);
 		if (newLines.length === 1) {
 			node.text = node.text.slice(0, offset) + text + node.text.slice(offset);
 		} else {
