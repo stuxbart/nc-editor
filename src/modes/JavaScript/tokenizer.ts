@@ -2,7 +2,7 @@ import { Document } from '../../document';
 import DocumentNode from '../../document/document-node';
 import { removeAccents } from '../../text-utils';
 import { Token } from '../../tokenizer';
-import { TokenType } from '../../tokenizer/token';
+import { JSTokens } from './tokens';
 import { Tokenizer } from '../../tokenizer/tokenizer';
 import TokenizerData, {
 	TokenizerLineData,
@@ -93,7 +93,7 @@ export default class JSTokenizer extends Tokenizer {
 			}
 			if (i != startIndex) {
 				tokens.push({
-					type: TokenType.WHITE_SPACE,
+					type: JSTokens.WHITE_SPACE,
 					startIndex: startIndex,
 				});
 			}
@@ -105,7 +105,7 @@ export default class JSTokenizer extends Tokenizer {
 			switch (text[i]) {
 				case '(': {
 					tokens.push({
-						type: TokenType.OPEN_BRACKET,
+						type: JSTokens.OPEN_BRACKET,
 						startIndex: i,
 					});
 					i++;
@@ -113,25 +113,25 @@ export default class JSTokenizer extends Tokenizer {
 				}
 				case ')': {
 					tokens.push({
-						type: TokenType.CLOSE_BRACKET,
+						type: JSTokens.CLOSE_BRACKET,
 						startIndex: i,
 					});
 					i++;
 					break;
 				}
 				case '{': {
-					tokens.push({ type: TokenType.OPEN_BRACE, startIndex: i });
+					tokens.push({ type: JSTokens.OPEN_BRACE, startIndex: i });
 					i++;
 					break;
 				}
 				case '}': {
-					tokens.push({ type: TokenType.CLOSE_BRACE, startIndex: i });
+					tokens.push({ type: JSTokens.CLOSE_BRACE, startIndex: i });
 					i++;
 					break;
 				}
 				case '[': {
 					tokens.push({
-						type: TokenType.OPEN_SQUARE_BRACKET,
+						type: JSTokens.OPEN_SQUARE_BRACKET,
 						startIndex: i,
 					});
 					i++;
@@ -139,29 +139,29 @@ export default class JSTokenizer extends Tokenizer {
 				}
 				case ']': {
 					tokens.push({
-						type: TokenType.CLOSE_SQUARE_BRACKET,
+						type: JSTokens.CLOSE_SQUARE_BRACKET,
 						startIndex: i,
 					});
 					i++;
 					break;
 				}
 				case ':': {
-					tokens.push({ type: TokenType.COLON, startIndex: i });
+					tokens.push({ type: JSTokens.COLON, startIndex: i });
 					i++;
 					break;
 				}
 				case ';': {
-					tokens.push({ type: TokenType.SEMICOLON, startIndex: i });
+					tokens.push({ type: JSTokens.SEMICOLON, startIndex: i });
 					i++;
 					break;
 				}
 				case '.': {
-					tokens.push({ type: TokenType.DOT, startIndex: i });
+					tokens.push({ type: JSTokens.DOT, startIndex: i });
 					i++;
 					break;
 				}
 				case ',': {
-					tokens.push({ type: TokenType.COMMA, startIndex: i });
+					tokens.push({ type: JSTokens.COMMA, startIndex: i });
 					i++;
 					break;
 				}
@@ -175,17 +175,17 @@ export default class JSTokenizer extends Tokenizer {
 				case '<':
 				case '>':
 				case '?': {
-					tokens.push({ type: TokenType.OPERATOR, startIndex: i });
+					tokens.push({ type: JSTokens.OPERATOR, startIndex: i });
 					i++;
 					break;
 				}
 				case '/': {
 					if (i + 1 < text.length && text[i + 1] === '/') {
-						tokens.push({ type: TokenType.COMMENT, startIndex: i });
+						tokens.push({ type: JSTokens.COMMENT, startIndex: i });
 						return { tokens: tokens, state: { scope: '' } };
 					} else {
 						tokens.push({
-							type: TokenType.OPERATOR,
+							type: JSTokens.OPERATOR,
 							startIndex: i,
 						});
 						i++;
@@ -202,7 +202,7 @@ export default class JSTokenizer extends Tokenizer {
 						i++;
 					}
 					tokens.push({
-						type: TokenType.STRING_LITERAL,
+						type: JSTokens.STRING_LITERAL,
 						startIndex: startIndex,
 					});
 					i++;
@@ -218,7 +218,7 @@ export default class JSTokenizer extends Tokenizer {
 						i++;
 					}
 					tokens.push({
-						type: TokenType.STRING_LITERAL,
+						type: JSTokens.STRING_LITERAL,
 						startIndex: startIndex,
 					});
 					i++;
@@ -237,27 +237,27 @@ export default class JSTokenizer extends Tokenizer {
 
 						if (this._isKeyword(tmp)) {
 							tokens.push({
-								type: TokenType.KEYWORD,
+								type: JSTokens.KEYWORD,
 								startIndex: startIndex,
 							});
 						} else if (this._isDecKeyword(tmp)) {
 							tokens.push({
-								type: TokenType.DEC_KEYWORD,
+								type: JSTokens.DEC_KEYWORD,
 								startIndex: startIndex,
 							});
 						} else {
 							tokens.push({
-								type: TokenType.IDENTIFIER,
+								type: JSTokens.IDENTIFIER,
 								startIndex: startIndex,
 							});
 						}
 					} else if (this._isNumeric(text[i])) {
-						tokens.push({ type: TokenType.NUMBER, startIndex: i });
+						tokens.push({ type: JSTokens.NUMBER, startIndex: i });
 						while (this._isNumeric(text[++i])) {
 							/* empty */
 						}
 					} else {
-						tokens.push({ type: TokenType.UNKNOWN, startIndex: i });
+						tokens.push({ type: JSTokens.UNKNOWN, startIndex: i });
 						i++;
 					}
 				}
