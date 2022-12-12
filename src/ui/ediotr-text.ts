@@ -8,6 +8,7 @@ import { EvFont, EvScroll, TextLayerEvents } from './events';
 import { EvDocument, EvSelection, EvTokenizer } from '../editor/events';
 import { notEmpty } from '../utils';
 import { CSSClasses } from '../styles/css';
+import { HighlighterSchema } from '../highlighter';
 
 class TextLayer extends EventEmitter<TextLayerEvents> {
 	private _editor: Editor | null = null;
@@ -21,6 +22,7 @@ class TextLayer extends EventEmitter<TextLayerEvents> {
 	private _hoveredLineNumber: number = 0;
 	private _lineHeight: number = 20;
 	private _letterWidth: number = 0;
+	private _highlighterSchema: HighlighterSchema = {};
 
 	constructor(editor: Editor, view: EdiotrView) {
 		super();
@@ -48,6 +50,11 @@ class TextLayer extends EventEmitter<TextLayerEvents> {
 			});
 			this._editor.on(EvSelection.Changed, () => {
 				this._updateActiveLines();
+			});
+			this._editor.on(EvDocument.Set, () => {
+				if (this._editor) {
+					this._highlighterSchema = this._editor.getHighlighterSchema();
+				}
 			});
 		}
 	}
@@ -139,7 +146,11 @@ class TextLayer extends EventEmitter<TextLayerEvents> {
 	}
 
 	private _renderLine(parent: EditorLineElement[], line: Line, lineNumber: number): void {
-		const lineElement = new EditorLineElement(line, lineNumber === this._activeLineNumber);
+		const lineElement = new EditorLineElement(
+			line,
+			lineNumber === this._activeLineNumber,
+			this._highlighterSchema,
+		);
 		parent.push(lineElement);
 	}
 }

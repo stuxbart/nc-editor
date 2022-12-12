@@ -2,6 +2,7 @@ import Line from '../document/line';
 import { Token } from '../tokenizer';
 import { CSSClasses } from '../styles/css';
 import { createElement, createNodeFromTemplate, px } from './dom-utils';
+import { HighlighterSchema } from '../highlighter';
 
 export default class EditorLineElement {
 	private _text: string = '';
@@ -9,10 +10,12 @@ export default class EditorLineElement {
 	private _isHovered: boolean = false;
 	private _domElement: ChildNode | null = null;
 	private _tokens: Token[] = [];
+	private _highlighterSchema: HighlighterSchema;
 
-	constructor(line: Line, active: boolean = false) {
+	constructor(line: Line, active: boolean = false, highlighterSchema: HighlighterSchema = {}) {
 		this._text = line.rawText;
 		this._tokens = line.tokens;
+		this._highlighterSchema = highlighterSchema;
 		this._domElement = createNodeFromTemplate(
 			`<div class="${CSSClasses.MULTI_LINE}">
 			<div class="${CSSClasses.MULTI_LINE_CONTENT}">
@@ -54,7 +57,7 @@ export default class EditorLineElement {
 		for (let i = 0; i < this._tokens.length; i++) {
 			const token = this._tokens[i];
 			const el = createElement('span');
-			el.className = token.type.toString();
+			el.className = this._highlighterSchema[token.type];
 			const startIndex = token.startIndex;
 			const endIndex =
 				i + 1 < this._tokens.length ? this._tokens[i + 1].startIndex : this._text.length;
