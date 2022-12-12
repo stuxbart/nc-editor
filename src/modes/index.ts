@@ -6,5 +6,6 @@ type IModes = Record<string, Mode>;
 
 export const MODES: IModes = {
 	JavaScript: JSMode,
+	Text: TextMode,
 	default: TextMode,
 };
