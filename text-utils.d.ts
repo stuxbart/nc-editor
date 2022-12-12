@@ -1,0 +1,17 @@
+export declare function removeAccents(text: string): string;
+export declare function columnToOffset(line: string, column: number, tabSize?: number): number;
+export declare function offsetToColumn(line: string, offset: number, tabSize?: number): number;
+export declare function getWordBefore(text: string, offset: number): string;
+export declare function getWordAfter(text: string, offset: number): string;
+export declare function isWhiteSpaceChar(char: string): boolean;
+export declare function isAlpha(char: string): boolean;
+export declare function isNumeric(char: string): boolean;
+export declare function isAlphaNumeric(char: string): boolean;
+export declare function readWhiteSpaceBefore(text: string, offset: number): number;
+export declare function readWordBefore(text: string, offset: number): number;
+export declare function readNumberBefore(text: string, offset: number): number;
+export declare function readBeforeUntil(text: string, offset: number, fn: Function): number;
+export declare function readWhiteSpaceAfter(text: string, offset: number): number;
+export declare function readWordAfter(text: string, offset: number): number;
+export declare function readNumberAfter(text: string, offset: number): number;
+export declare function readAfterUntil(text: string, offset: number, fn: Function): number;
