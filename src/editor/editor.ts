@@ -7,14 +7,18 @@ import { getWordAfter, getWordBefore } from '../text-utils';
 import { Tokenizer } from '../tokenizer';
 import { EditorView } from '../ui';
 import { EvView } from '../ui/events';
+import { randomString } from '../utils';
+import EditorSession from './editor-session';
 import { EditorEvents, EvDocument, EvSelection, EvTokenizer } from './events';
 
 /**
  * Editor class manages state of editor.
  */
 class Editor extends EventEmitter<EditorEvents> {
-	private _selections: SelectionManager;
-	private _document: Document | null = null;
+	private _currentSessionId: string = '';
+	private _sessions: Record<string, EditorSession> = {};
+	private _hasActiveSession: boolean = false;
+
 	private _tokenizeAfterEdit: boolean = true;
 	private _tokenizer: Tokenizer;
 
@@ -26,22 +30,36 @@ class Editor extends EventEmitter<EditorEvents> {
 
 	constructor() {
 		super();
+		this._currentSessionId = 'default';
 		const newDoc = new Document('');
-		this._document = newDoc;
-		this._selections = new SelectionManager(this._document);
-		this._tokenizer = new Tokenizer(this._document, false);
+		this._sessions[this._currentSessionId] = new EditorSession(newDoc);
+		this._tokenizer = new Tokenizer(newDoc, false);
+	}
+
+	private get _session(): EditorSession {
+		const session = this._sessions[this._currentSessionId];
+		if (session === undefined) {
+			throw new Error("Session doesn't exist.");
+		}
+		return session;
+	}
+
+	private get _currentDocument(): Document {
+		return this._session.document;
+	}
+
+	private get _selections(): SelectionManager {
+		return this._session.selections;
 	}
 
 	public insert(str: string): void {
-		if (this._document === null) {
-			return;
-		}
-		const selections = this._selections.getSelections();
+		const document = this._currentDocument;
+		const selections = this._session.selections.getSelections();
 		for (const sel of selections) {
 			if (sel.isCollapsed) {
 				continue;
 			}
-			const removedText = this._document.remove(sel);
+			const removedText = document.remove(sel);
 			const removedLines = removedText.split('\n');
 			this._updateLinesTokens(sel.start.line, 2);
 			this._emitLinesCountChanged(sel.end.line - sel.start.line);
@@ -56,7 +74,7 @@ class Editor extends EventEmitter<EditorEvents> {
 		for (const sel of selections) {
 			const line = sel.start.line;
 			const offset = sel.start.offset;
-			const insertedLines = this._document.insert(str, line, offset);
+			const insertedLines = document.insert(str, line, offset);
 			this._updateLinesTokens(line, insertedLines[0] + 1);
 			this._updateSelctions(line, offset, insertedLines[0], insertedLines[1]);
 		}
@@ -65,27 +83,25 @@ class Editor extends EventEmitter<EditorEvents> {
 	}
 
 	public remove(type: number = 0): string {
-		if (this._document === null) {
-			return '';
-		}
-		const selections = this._selections.getSelections();
+		const document = this._currentDocument;
+		const selections = this._session.selections.getSelections();
 		let text: string = '';
 		for (const sel of selections) {
 			if (sel.isCollapsed) {
 				if (sel.start.offset === 0 && type === 0) {
 					if (sel.start.line !== 0) {
 						sel.start.line -= 1;
-						const line = this._document.getLine(sel.start.line);
+						const line = document.getLine(sel.start.line);
 						sel.start.offset = line.length + 1;
 					} else {
 						continue;
 					}
 				}
 				if (type === 1) {
-					const line = this._document.getLine(sel.start.line);
+					const line = document.getLine(sel.start.line);
 					if (
 						sel.end.offset === line.length &&
-						sel.end.line + 1 !== this._document.linesCount
+						sel.end.line + 1 !== document.linesCount
 					) {
 						sel.end.offset = 0;
 						sel.end.line += 1;
@@ -96,7 +112,7 @@ class Editor extends EventEmitter<EditorEvents> {
 					sel.start.offset = sel.start.offset - 1;
 				}
 			}
-			const removedText = this._document.remove(sel);
+			const removedText = document.remove(sel);
 			const removedLines = removedText.split('\n');
 			this._updateLinesTokens(sel.start.line, 2);
 			this._emitLinesCountChanged(sel.end.line - sel.start.line);
@@ -113,72 +129,130 @@ class Editor extends EventEmitter<EditorEvents> {
 	}
 
 	public removeWordBefore(): string {
-		if (this._selections.length !== 1 || this._document === null) {
+		if (this._selections.length !== 1) {
 			return '';
 		}
 		const sel = this._selections.getSelections()[0];
 		if (!sel.isCollapsed) {
 			return this.remove();
 		}
-		const line = this._document.getLine(sel.start.line);
+		const document = this._currentDocument;
+		const line = document.getLine(sel.start.line);
 		const word = getWordBefore(line, sel.start.offset);
 		sel.start.offset -= word.length;
 		return this.remove();
 	}
 
 	public removeWordAfter(): string {
-		if (this._selections.length !== 1 || this._document === null) {
+		if (this._selections.length !== 1) {
 			return '';
 		}
 		const sel = this._selections.getSelections()[0];
 		if (!sel.isCollapsed) {
 			return this.remove();
 		}
-		const line = this._document.getLine(sel.start.line);
+		const document = this._currentDocument;
+		const line = document.getLine(sel.start.line);
 		const word = getWordAfter(line, sel.start.offset);
 		sel.end.offset += word.length;
 		return this.remove();
 	}
 
 	public cut(): void {
-		if (!this._document) {
-			return;
-		}
 		const removedText = this.remove();
 		void navigator.clipboard.writeText(removedText);
 	}
 
 	public copy(): void {
-		if (this._document === null) {
-			return;
-		}
+		const document = this._currentDocument;
 		const selections = this._selections.getSelections();
 		let copiedText: string = '';
 		for (const sel of selections) {
 			if (sel.isCollapsed) {
 				continue;
 			}
-			copiedText += this._document.getText(sel);
+			copiedText += document.getText(sel);
 		}
 		void navigator.clipboard.writeText(copiedText);
 	}
 
-	public setDocument(document: Document): void {
-		this._document = document;
+	/**
+	 * Returns the name of the new session.
+	 */
+	public addDocument(document: Document, name: string | null = null): string {
+		if (name === null) {
+			do {
+				name = randomString();
+			} while (name in this._sessions);
+		}
+		console.log(name);
+		if (name in this._sessions) {
+			throw new Error('A session for file with the given name already exists.');
+		}
+		const newSession = new EditorSession(document);
+		this._currentSessionId = name;
+		this._sessions[name] = newSession;
+		this._hasActiveSession = true;
+
 		if (this._tokenizeAfterEdit) {
+			this._tokenizer.setDocument(this._currentDocument);
 			this.tokenize();
 		}
-		this._selections = new SelectionManager(this._document);
 		this.emit(EvDocument.Set, undefined);
 		this._emitLinesCountChanged(Infinity);
+		return this._currentSessionId;
+	}
+
+	public changeSession(id: string): string {
+		if (id in this._sessions) {
+			this._currentSessionId = id;
+			this._hasActiveSession = true;
+		} else {
+			throw new Error("Session with given id doesn't exist.");
+		}
+		this.emit(EvDocument.Set, undefined);
+		this._emitLinesCountChanged(Infinity);
+		this._emitEditEvent();
+		this._emitSelectionChangedEvent();
+		return this._currentSessionId;
+	}
+
+	public deleteSession(id: string): string {
+		if (!(id in this._sessions)) {
+			throw new Error("Session with given id doesn't exist.");
+		}
+		const newSessions: Record<string, EditorSession> = {};
+		Object.keys(this._sessions).forEach((sessionName: string) => {
+			if (sessionName !== id) {
+				newSessions[sessionName] = this._sessions[sessionName];
+			}
+		});
+		this._sessions = newSessions;
+
+		if (id !== this._currentSessionId) {
+			return this._currentSessionId;
+		}
+
+		const sessionsCount = Object.keys(newSessions).length;
+		if (sessionsCount === 0) {
+			this._hasActiveSession = false;
+			this._currentSessionId = '';
+		} else {
+			this._currentSessionId = Object.keys(newSessions)[0];
+		}
+		return this._currentSessionId;
+	}
+
+	public get hasActiveSession(): boolean {
+		return this._hasActiveSession;
 	}
 
 	public getText(): string {
-		return this._document?.getText() ?? '';
+		return this._currentDocument.getText();
 	}
 
 	public getTotalLinesCount(): number {
-		return this._document?.linesCount ?? 0;
+		return this._currentDocument.linesCount;
 	}
 
 	/**
@@ -188,10 +262,8 @@ class Editor extends EventEmitter<EditorEvents> {
 	 * @returns list of lines with tokenization data
 	 */
 	public getLines(firstLine: number, count: number): Line[] {
-		if (this._document === null) {
-			return [];
-		}
-		const rawLines = this._document.getLineNodes(firstLine, count);
+		const document = this._currentDocument;
+		const rawLines = document.getLineNodes(firstLine, count);
 		const lines: Line[] = [];
 		for (const line of rawLines) {
 			lines.push({
@@ -204,10 +276,8 @@ class Editor extends EventEmitter<EditorEvents> {
 	}
 
 	public getFirstLine(): Line | null {
-		if (this._document === null) {
-			return null;
-		}
-		const firstLine = this._document.getFirstLineNode();
+		const document = this._currentDocument;
+		const firstLine = document.getFirstLineNode();
 		if (firstLine === null) {
 			return null;
 		}
@@ -216,10 +286,8 @@ class Editor extends EventEmitter<EditorEvents> {
 	}
 
 	public getLastLine(): Line | null {
-		if (this._document === null) {
-			return null;
-		}
-		const lastLine = this._document.getLastLineNode();
+		const document = this._currentDocument;
+		const lastLine = document.getLastLineNode();
 		if (lastLine === null) {
 			return null;
 		}
@@ -229,10 +297,8 @@ class Editor extends EventEmitter<EditorEvents> {
 	}
 
 	public tokenize(): void {
-		if (this._document === null) {
-			return;
-		}
-		this._tokenizer.setDocument(this._document);
+		const document = this._currentDocument;
+		this._tokenizer.setDocument(document);
 		this._tokenizer.makeTokens();
 		this.emit(EvTokenizer.Finished, undefined);
 	}
@@ -307,16 +373,17 @@ class Editor extends EventEmitter<EditorEvents> {
 	}
 
 	public swapLinesUp(): void {
-		if (this._document === null || this._selections.length !== 1) {
+		if (this._selections.length !== 1) {
 			return;
 		}
+		const document = this._currentDocument;
 		const sel = this._selections.getSelections()[0];
 		if (sel.start.line === 0) {
 			return;
 		}
 		let line = sel.start.line;
 		while (line < sel.end.line + 1) {
-			this._document.swapLineWithPrevious(line);
+			document.swapLineWithPrevious(line);
 			line++;
 		}
 
@@ -328,17 +395,18 @@ class Editor extends EventEmitter<EditorEvents> {
 	}
 
 	public swapLinesDown(): void {
-		if (this._document === null || this._selections.length !== 1) {
+		if (this._selections.length !== 1) {
 			return;
 		}
+		const document = this._currentDocument;
 		const sel = this._selections.getSelections()[0];
-		if (sel.end.line === this._document.linesCount - 1) {
+		if (sel.end.line === document.linesCount - 1) {
 			return;
 		}
 
 		let line = sel.end.line;
 		while (line > sel.start.line - 1) {
-			this._document.swapLineWithNext(line);
+			document.swapLineWithNext(line);
 			line--;
 		}
 
@@ -399,15 +467,13 @@ class Editor extends EventEmitter<EditorEvents> {
 	}
 
 	public indentSelectedLines(indentString: string = '\t'): void {
-		if (this._document === null) {
-			return;
-		}
+		const document = this._currentDocument;
 		const selectedLines = this._selections.getActiveLinesNumbers();
 		if (selectedLines.size < 2) {
 			return;
 		}
 		for (const lineNumber of selectedLines) {
-			this._document.insert(indentString, lineNumber, 0);
+			document.insert(indentString, lineNumber, 0);
 			this._updateLinesTokens(lineNumber, 2);
 			this._updateSelctions(lineNumber, 0, 0, 1);
 		}
@@ -416,17 +482,15 @@ class Editor extends EventEmitter<EditorEvents> {
 	}
 
 	public removeIndentFromSelectedLines(indentString: string = '\t'): void {
-		if (this._document === null) {
-			return;
-		}
+		const document = this._currentDocument;
 		const selectedLines = this._selections.getActiveLinesNumbers();
 
 		for (const lineNumber of selectedLines) {
-			const line = this._document.getLine(lineNumber);
+			const line = document.getLine(lineNumber);
 			if (!line.startsWith(indentString)) {
 				continue;
 			}
-			this._document.remove(new Range(lineNumber, 0, lineNumber, indentString.length));
+			document.remove(new Range(lineNumber, 0, lineNumber, indentString.length));
 			this._updateLinesTokens(lineNumber, 2);
 			this._updateSelctions(lineNumber, 0, 0, 1);
 		}
@@ -463,8 +527,9 @@ class Editor extends EventEmitter<EditorEvents> {
 
 	private _emitLinesCountChanged(lineDiff: number): void {
 		if (this._shouldEmitLinesCountChangeEvent && lineDiff !== 0) {
+			const document = this._currentDocument;
 			this.emit(EvDocument.LinesCount, {
-				linesCount: this._document?.linesCount ?? 0,
+				linesCount: document.linesCount,
 			});
 		}
 	}
@@ -474,10 +539,11 @@ class Editor extends EventEmitter<EditorEvents> {
 	}
 
 	private _emitInitEvents(): void {
+		const document = this._currentDocument;
 		this.emit(EvSelection.Changed, undefined);
 		this.emit(EvDocument.Set, undefined);
 		this.emit(EvDocument.LinesCount, {
-			linesCount: this._document?.linesCount ?? 0,
+			linesCount: document.linesCount,
 		});
 		this.emit(EvTokenizer.Finished, undefined);
 	}
