@@ -237,15 +237,15 @@ export default class SelectionLayer extends EventEmitter<SelectionLayerEvents> {
 			return;
 		}
 		const [x, y] = getRelativePositionOfTouchEvent(e);
-		// const [line, offset] = this._getLineAndOffsetAtPosition(x, y);
+		const [line, offset] = this._getLineAndOffsetAtPosition(x, y);
 		const touchTime = performance.now();
 		if (this._lastTouchTime !== null) {
 			if (touchTime - this._lastTouchTime < 200) {
 				this._isTouchSelecting = true;
+				this._editor.setSelection(new Selection(line, offset, line, offset));
 			}
 		}
 		this._lastTouchTime = touchTime;
-
 		this._lastTouchPosition.line = y;
 		this._lastTouchPosition.offset = x;
 		e.preventDefault();
@@ -255,13 +255,8 @@ export default class SelectionLayer extends EventEmitter<SelectionLayerEvents> {
 	private _onTouchEnd(): void {
 		this._isTouchHold = false;
 		this._isTouchSelecting = false;
-		if (this._editor === null) {
-			return;
-		}
-		const { line: y, offset: x } = this._lastTouchPosition;
-		const [line, offset] = this._getLineAndOffsetAtPosition(x, y);
-		this._editor.setSelection(new Selection(line, offset, line, offset));
 	}
+
 	private _onTouchMove(e: TouchEvent): void {
 		if (this._isTouchHold && this._editor) {
 			const [x, y] = getRelativePositionOfTouchEvent(e);
