@@ -45,6 +45,7 @@ class EditorGutter extends EventEmitter<EditorGutterEvents> {
 
 		if (this._gutterWidth !== gutterWidth) {
 			this._gutterWidth = chars * 10;
+			this._gutterWidth = gutterWidth;
 			this._gutterContainer.style.width = px(this._gutterWidth);
 		}
 		this.emit(EvGutter.Width, { width: this._gutterWidth });
