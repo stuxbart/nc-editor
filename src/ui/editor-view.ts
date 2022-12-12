@@ -211,6 +211,7 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 			this._editorContainer.addEventListener('blur', () => this._onBlur());
 			this._editorContainer.addEventListener('keydown', (e) => this._onKeyDown(e));
 			this._editorContainer.addEventListener('keyup', (e) => this._onKeyUp(e));
+			this._editorContainer.addEventListener('paste', (e) => this._onPaste(e));
 		}
 		if (this._editor) {
 			this._editor.on(EvDocument.Edited, () => {
@@ -240,6 +241,17 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 				this._updateGridLayout();
 			});
 		}
+	}
+
+	private _onPaste(e: ClipboardEvent): void {
+		if (!this._editor) {
+			return;
+		}
+		if (e.clipboardData) {
+			this._editor.insert(e.clipboardData.getData('text'));
+		}
+		e.stopPropagation();
+		e.preventDefault();
 	}
 
 	private _onResize(): void {
