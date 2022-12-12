@@ -1,4 +1,6 @@
 import { Document } from '../document';
+import { Mode } from '../mode';
+import { MODES } from '../modes';
 import SelectionManager from '../selection/selection-manager';
 import TokenizerData from '../tokenizer/tokenizer-data';
 
@@ -6,11 +8,13 @@ export default class EditorSession {
 	private _document: Document;
 	private _tokenizerData: TokenizerData;
 	private _selections: SelectionManager;
+	private _mode: Mode;
 
 	constructor(
 		document: Document,
 		tokenizerData: TokenizerData | null = null,
 		selections: SelectionManager | null = null,
+		mode: Mode | null = null,
 	) {
 		this._document = document;
 		if (tokenizerData === null) {
@@ -22,6 +26,11 @@ export default class EditorSession {
 			this._selections = new SelectionManager(document);
 		} else {
 			this._selections = selections;
+		}
+		if (mode === null) {
+			this._mode = MODES.default;
+		} else {
+			this._mode = mode;
 		}
 	}
 
@@ -35,5 +44,13 @@ export default class EditorSession {
 
 	public get selections(): SelectionManager {
 		return this._selections;
+	}
+
+	public get mode(): Mode {
+		return this._mode;
+	}
+
+	public set mode(value: Mode) {
+		this._mode = value;
 	}
 }

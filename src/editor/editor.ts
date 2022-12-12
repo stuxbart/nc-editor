@@ -1,7 +1,8 @@
 import { Line } from '../document';
 import Document from '../document/document';
 import { EventEmitter } from '../events';
-import { JSTokenizer } from '../modes/JavaScript';
+import { HighlighterSchema } from '../highlighter';
+import { MODES } from '../modes';
 import { Point, Range, Selection } from '../selection';
 import SelectionManager from '../selection/selection-manager';
 import { getWordAfter, getWordBefore } from '../text-utils';
@@ -21,7 +22,6 @@ class Editor extends EventEmitter<EditorEvents> {
 	private _hasActiveSession: boolean = false;
 
 	private _tokenizeAfterEdit: boolean = true;
-	private _tokenizer: Tokenizer;
 
 	private _shouldEmitEditEvent: boolean = true;
 	private _shouldEmitLinesCountChangeEvent: boolean = true;
@@ -34,7 +34,6 @@ class Editor extends EventEmitter<EditorEvents> {
 		this._currentSessionId = 'default';
 		const newDoc = new Document('');
 		this._sessions[this._currentSessionId] = new EditorSession(newDoc);
-		this._tokenizer = new JSTokenizer();
 	}
 
 	private get _session(): EditorSession {
@@ -53,8 +52,20 @@ class Editor extends EventEmitter<EditorEvents> {
 		return this._session.selections;
 	}
 
-	public setTokenizer(tokenizer: Tokenizer): void {
-		this._tokenizer = tokenizer;
+	private get _tokenizer(): Tokenizer {
+		return this._session.mode.tokenizer;
+	}
+
+	public setMode(mode: string): void {
+		if (mode in MODES) {
+			this._session.mode = MODES[mode];
+		} else {
+			throw new Error("Mode with given name doesn't exist.");
+		}
+	}
+
+	public getHighlighterSchema(): HighlighterSchema {
+		return this._session.mode.schema;
 	}
 
 	public insert(str: string): void {
