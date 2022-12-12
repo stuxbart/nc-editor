@@ -4,6 +4,7 @@ import { CSSClasses } from '../styles/css';
 import { createTextArea } from './dom-utils';
 import EdiotrView from './editor-view';
 import { EvFocus } from './events';
+import { EvDocument } from '../editor/events';
 
 export default class EditorInput {
 	private _domElement: HTMLTextAreaElement | null = null;
@@ -39,6 +40,9 @@ export default class EditorInput {
 				if (e.focused) {
 					this.focus();
 				}
+			});
+			this._editor?.on(EvDocument.Set, () => {
+				this.focus();
 			});
 		}
 	}
