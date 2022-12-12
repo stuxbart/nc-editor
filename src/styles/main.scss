@@ -165,7 +165,9 @@
 .nc-format__dot,
 .nc-format__number,
 .nc-format__declartion,
-.nc-format__type {
+.nc-format__type,
+.nc-format__const-value,
+.nc-format__access-modifier {
 	white-space: pre;
 }
 
@@ -205,6 +207,8 @@
 .nc-format__number {
 	color: rgb(58, 189, 127);
 }
+.nc-format__const-value,
+.nc-format__access-modifier,
 .nc-format__declaration {
 	color: rgb(57, 108, 202);
 }

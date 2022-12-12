@@ -26,6 +26,8 @@ export const JSTokens: TokenType = {
 	TYPE: 19,
 	DEC_KEYWORD: 20,
 	WHITE_SPACE: 21,
+	CONST_VALUE: 22,
+	ACCESS_MODIFIER: 23,
 };
 
 export const JSHighlighterSchema: HighlighterSchema = {
@@ -53,4 +55,6 @@ export const JSHighlighterSchema: HighlighterSchema = {
 	[JSTokens.TYPE]: 'nc-format__type',
 	[JSTokens.DEC_KEYWORD]: 'nc-format__declaration',
 	[JSTokens.WHITE_SPACE]: 'nc-format__space',
+	[JSTokens.CONST_VALUE]: 'nc-format__const-value',
+	[JSTokens.ACCESS_MODIFIER]: 'nc-format__access-modifier',
 };

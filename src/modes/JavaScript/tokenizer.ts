@@ -1,6 +1,12 @@
 import { Document } from '../../document';
 import DocumentNode from '../../document/document-node';
-import { removeAccents } from '../../text-utils';
+import {
+	isAlpha,
+	isAlphaNumeric,
+	isNumeric,
+	isWhiteSpaceChar,
+	removeAccents,
+} from '../../text-utils';
 import { Token } from '../../tokenizer';
 import { JSTokens } from './tokens';
 import { Tokenizer } from '../../tokenizer/tokenizer';
@@ -11,27 +17,64 @@ import TokenizerData, {
 
 export default class JSTokenizer extends Tokenizer {
 	public KEYWORDS = [
-		'import',
-		'from',
-		'export',
-		'default',
-		'constructor',
-		'return',
-		'while',
-		'for',
-		'if',
-		'switch',
-		'default',
-		'case',
+		'abstract',
+		'await',
 		'break',
+		'case',
+		'catch',
+		'continue',
+		'debugger',
+		'default',
+		'do',
+		'else',
+		'enum',
+		'export',
 		'extends',
-		'implements',
-		'of',
-		'in',
+		'finally',
+		'for',
+		'from',
 		'function',
+		'goto',
+		'if',
+		'implements',
+		'import',
+		'in',
+		'package',
+		'return',
+		'switch',
+		'throw',
+		'try',
+		'while',
+		'with',
+		'yield',
 	];
-
-	public DEC_KEYWORDS = ['let', 'const', 'var', 'type', 'interface', 'class'];
+	public ACCESS_MODIFIRES = ['public', 'private', 'protected', 'static'];
+	public LITERALS = [
+		'true',
+		'false',
+		'null',
+		'void',
+		'this',
+		'constructor',
+		'Infinity',
+		'super',
+		'NaN',
+		'undefined',
+	];
+	public DEC_KEYWORDS = [
+		'let',
+		'const',
+		'var',
+		'type',
+		'interface',
+		'class',
+		'delete',
+		'new',
+		'interface',
+		'instanceof',
+		'typeof',
+	];
+	public BASE_TYPES = ['Array', 'Date', 'Math', 'Number', 'Object', 'String'];
 
 	public tokenize(document: Document, tokenizerData: TokenizerData): void {
 		let line: DocumentNode | null = document.getFirstLineNode();
@@ -56,6 +99,7 @@ export default class JSTokenizer extends Tokenizer {
 		let prevLineState: TokenizerLineState | undefined;
 		let prevState: TokenizerLineState;
 		let lineData: TokenizerLineData;
+		let prevData: TokenizerLineData | undefined;
 		do {
 			line = document.getLineNode(lineNumber - 1);
 			if (line === null) {
@@ -67,11 +111,12 @@ export default class JSTokenizer extends Tokenizer {
 			if (line === null) {
 				break;
 			}
-			prevState = tokenizerData.data.get(line)?.state ?? { scope: '' };
+			prevData = tokenizerData.data.get(line);
+			prevState = prevData?.state ?? { scope: '' };
 			lineData = this._makeLineData(line, prevLineState);
 			tokenizerData.data.set(line, lineData);
 			i++;
-		} while (prevState === lineData.state);
+		} while (prevData !== lineData || prevState !== lineData.state);
 	}
 
 	private _makeLineData(
@@ -88,7 +133,7 @@ export default class JSTokenizer extends Tokenizer {
 		let i = 0;
 		while (i < text.length) {
 			const startIndex = i;
-			while (i < text.length && this._isWhiteSpaceChar(text[i])) {
+			while (i < text.length && isWhiteSpaceChar(text[i])) {
 				i++;
 			}
 			if (i != startIndex) {
@@ -194,11 +239,9 @@ export default class JSTokenizer extends Tokenizer {
 				}
 				case "'": {
 					const startIndex = i;
-					// let tmp: string = '';
 					i++;
 
 					while (i < text.length && text[i] !== "'") {
-						// tmp += text[i];
 						i++;
 					}
 					tokens.push({
@@ -210,11 +253,23 @@ export default class JSTokenizer extends Tokenizer {
 				}
 				case '"': {
 					const startIndex = i;
-					// let tmp: string = '';
 					i++;
 
 					while (i < text.length && text[i] !== '"') {
-						// tmp += text[i];
+						i++;
+					}
+					tokens.push({
+						type: JSTokens.STRING_LITERAL,
+						startIndex: startIndex,
+					});
+					i++;
+					break;
+				}
+				case '`': {
+					const startIndex = i;
+					i++;
+
+					while (i < text.length && text[i] !== '`') {
 						i++;
 					}
 					tokens.push({
@@ -227,22 +282,37 @@ export default class JSTokenizer extends Tokenizer {
 				default: {
 					let tmp: string = '';
 
-					if (this._isAlpha(text[i])) {
+					if (isAlpha(text[i])) {
 						const startIndex = i;
 
-						while (i < text.length && this._isAlphaNumeric(text[i])) {
+						while (i < text.length && isAlphaNumeric(text[i])) {
 							tmp += text[i];
 							i++;
 						}
 
-						if (this._isKeyword(tmp)) {
+						if (this._isWordInList(tmp, this.KEYWORDS)) {
 							tokens.push({
 								type: JSTokens.KEYWORD,
 								startIndex: startIndex,
 							});
-						} else if (this._isDecKeyword(tmp)) {
+						} else if (this._isWordInList(tmp, this.DEC_KEYWORDS)) {
 							tokens.push({
 								type: JSTokens.DEC_KEYWORD,
+								startIndex: startIndex,
+							});
+						} else if (this._isWordInList(tmp, this.BASE_TYPES)) {
+							tokens.push({
+								type: JSTokens.TYPE,
+								startIndex: startIndex,
+							});
+						} else if (this._isWordInList(tmp, this.LITERALS)) {
+							tokens.push({
+								type: JSTokens.CONST_VALUE,
+								startIndex: startIndex,
+							});
+						} else if (this._isWordInList(tmp, this.ACCESS_MODIFIRES)) {
+							tokens.push({
+								type: JSTokens.ACCESS_MODIFIER,
 								startIndex: startIndex,
 							});
 						} else {
@@ -251,9 +321,9 @@ export default class JSTokenizer extends Tokenizer {
 								startIndex: startIndex,
 							});
 						}
-					} else if (this._isNumeric(text[i])) {
+					} else if (isNumeric(text[i])) {
 						tokens.push({ type: JSTokens.NUMBER, startIndex: i });
-						while (this._isNumeric(text[++i])) {
+						while (isNumeric(text[++i])) {
 							/* empty */
 						}
 					} else {
@@ -267,39 +337,12 @@ export default class JSTokenizer extends Tokenizer {
 		return { tokens: tokens, state: { scope: '' } };
 	}
 
-	private _isWhiteSpaceChar(char: string): boolean {
-		return char === ' ' || char === '\t';
-	}
-
-	private _isAlpha(char: string): boolean {
-		return /[_a-zA-Z]/.test(char);
-	}
-
-	private _isNumeric(char: string): boolean {
-		return /^[0-9]+$/i.test(char);
-	}
-
-	private _isAlphaNumeric(char: string): boolean {
-		return /^[_a-zA-Z0-9]+$/i.test(char);
-	}
-	private _isKeyword(str: string): boolean {
-		if (str.length === 1) {
+	private _isWordInList(word: string, words: string[]): boolean {
+		if (word.length === 1) {
 			return false;
 		}
-		for (const keyword of this.KEYWORDS) {
-			if (keyword.includes(str) && keyword.length === str.length) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	private _isDecKeyword(str: string): boolean {
-		if (str.length === 1) {
-			return false;
-		}
-		for (const keyword of this.DEC_KEYWORDS) {
-			if (keyword.includes(str) && keyword.length === str.length) {
+		for (const patternWord of words) {
+			if (patternWord.includes(word) && patternWord.length === word.length) {
 				return true;
 			}
 		}
