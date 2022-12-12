@@ -1,6 +1,7 @@
 import { Line } from '../document';
 import Document from '../document/document';
 import { EventEmitter } from '../events';
+import { JSTokenizer } from '../modes/JavaScript';
 import { Point, Range, Selection } from '../selection';
 import SelectionManager from '../selection/selection-manager';
 import { getWordAfter, getWordBefore } from '../text-utils';
@@ -33,7 +34,7 @@ class Editor extends EventEmitter<EditorEvents> {
 		this._currentSessionId = 'default';
 		const newDoc = new Document('');
 		this._sessions[this._currentSessionId] = new EditorSession(newDoc);
-		this._tokenizer = new Tokenizer(newDoc, false);
+		this._tokenizer = new JSTokenizer();
 	}
 
 	private get _session(): EditorSession {
@@ -52,6 +53,10 @@ class Editor extends EventEmitter<EditorEvents> {
 		return this._session.selections;
 	}
 
+	public setTokenizer(tokenizer: Tokenizer): void {
+		this._tokenizer = tokenizer;
+	}
+
 	public insert(str: string): void {
 		const document = this._currentDocument;
 		const selections = this._session.selections.getSelections();
@@ -61,7 +66,7 @@ class Editor extends EventEmitter<EditorEvents> {
 			}
 			const removedText = document.remove(sel);
 			const removedLines = removedText.split('\n');
-			this._updateLinesTokens(sel.start.line, 2);
+			this._updateLinesTokens(sel.start.line);
 			this._emitLinesCountChanged(sel.end.line - sel.start.line);
 			this._updateSelctions(
 				sel.start.line,
@@ -75,7 +80,7 @@ class Editor extends EventEmitter<EditorEvents> {
 			const line = sel.start.line;
 			const offset = sel.start.offset;
 			const insertedLines = document.insert(str, line, offset);
-			this._updateLinesTokens(line, insertedLines[0] + 1);
+			this._updateLinesTokens(line);
 			this._updateSelctions(line, offset, insertedLines[0], insertedLines[1]);
 		}
 		this._emitLinesCountChanged(1);
@@ -114,7 +119,7 @@ class Editor extends EventEmitter<EditorEvents> {
 			}
 			const removedText = document.remove(sel);
 			const removedLines = removedText.split('\n');
-			this._updateLinesTokens(sel.start.line, 2);
+			this._updateLinesTokens(sel.start.line);
 			this._emitLinesCountChanged(sel.end.line - sel.start.line);
 			this._updateSelctions(
 				sel.start.line,
@@ -185,17 +190,15 @@ class Editor extends EventEmitter<EditorEvents> {
 				name = randomString();
 			} while (name in this._sessions);
 		}
-		console.log(name);
 		if (name in this._sessions) {
 			throw new Error('A session for file with the given name already exists.');
 		}
 		const newSession = new EditorSession(document);
-		this._currentSessionId = name;
 		this._sessions[name] = newSession;
+		this._currentSessionId = name;
 		this._hasActiveSession = true;
 
 		if (this._tokenizeAfterEdit) {
-			this._tokenizer.setDocument(this._currentDocument);
 			this.tokenize();
 		}
 		this.emit(EvDocument.Set, undefined);
@@ -263,12 +266,13 @@ class Editor extends EventEmitter<EditorEvents> {
 	 */
 	public getLines(firstLine: number, count: number): Line[] {
 		const document = this._currentDocument;
+		const tokenizerData = this._session.tokenizerData;
 		const rawLines = document.getLineNodes(firstLine, count);
 		const lines: Line[] = [];
 		for (const line of rawLines) {
 			lines.push({
 				rawText: line.text,
-				tokens: this._tokenizer.getTokensForLine(line),
+				tokens: tokenizerData.getLineTokens(line),
 				lineBreaks: [],
 			});
 		}
@@ -277,29 +281,30 @@ class Editor extends EventEmitter<EditorEvents> {
 
 	public getFirstLine(): Line | null {
 		const document = this._currentDocument;
+		const tokenizerData = this._session.tokenizerData;
 		const firstLine = document.getFirstLineNode();
 		if (firstLine === null) {
 			return null;
 		}
-		const line = new Line(firstLine.text, this._tokenizer.getTokensForLine(firstLine), []);
+		const line = new Line(firstLine.text, tokenizerData.getLineTokens(firstLine), []);
 		return line;
 	}
 
 	public getLastLine(): Line | null {
 		const document = this._currentDocument;
+		const tokenizerData = this._session.tokenizerData;
 		const lastLine = document.getLastLineNode();
 		if (lastLine === null) {
 			return null;
 		}
 
-		const line = new Line(lastLine.text, this._tokenizer.getTokensForLine(lastLine), []);
+		const line = new Line(lastLine.text, tokenizerData.getLineTokens(lastLine), []);
 		return line;
 	}
 
 	public tokenize(): void {
 		const document = this._currentDocument;
-		this._tokenizer.setDocument(document);
-		this._tokenizer.makeTokens();
+		this._tokenizer.tokenize(document, this._session.tokenizerData);
 		this.emit(EvTokenizer.Finished, undefined);
 	}
 
@@ -387,7 +392,7 @@ class Editor extends EventEmitter<EditorEvents> {
 			line++;
 		}
 
-		this._updateLinesTokens(sel.start.line - 1, sel.end.line - sel.start.line + 2);
+		this._updateLinesTokens(sel.start.line - 1);
 		sel.start.line -= 1;
 		sel.end.line -= 1;
 		this._emitSelectionChangedEvent();
@@ -410,7 +415,7 @@ class Editor extends EventEmitter<EditorEvents> {
 			line--;
 		}
 
-		this._updateLinesTokens(sel.start.line - 1, sel.end.line - sel.start.line + 3);
+		this._updateLinesTokens(sel.start.line - 1);
 		sel.start.line += 1;
 		sel.end.line += 1;
 		this._emitSelectionChangedEvent();
@@ -474,7 +479,7 @@ class Editor extends EventEmitter<EditorEvents> {
 		}
 		for (const lineNumber of selectedLines) {
 			document.insert(indentString, lineNumber, 0);
-			this._updateLinesTokens(lineNumber, 2);
+			this._updateLinesTokens(lineNumber);
 			this._updateSelctions(lineNumber, 0, 0, 1);
 		}
 
@@ -491,7 +496,7 @@ class Editor extends EventEmitter<EditorEvents> {
 				continue;
 			}
 			document.remove(new Range(lineNumber, 0, lineNumber, indentString.length));
-			this._updateLinesTokens(lineNumber, 2);
+			this._updateLinesTokens(lineNumber);
 			this._updateSelctions(lineNumber, 0, 0, 1);
 		}
 
@@ -513,9 +518,11 @@ class Editor extends EventEmitter<EditorEvents> {
 		this._emitSelectionChangedEvent();
 	}
 
-	private _updateLinesTokens(firstLine: number, linesCount: number): void {
+	private _updateLinesTokens(firstLine: number): void {
 		if (this._tokenizeAfterEdit) {
-			this._tokenizer.updateLinesTokens(firstLine, linesCount);
+			const document = this._currentDocument;
+			const tokenizerData = this._session.tokenizerData;
+			this._tokenizer.updateTokens(document, tokenizerData, firstLine);
 		}
 	}
 
