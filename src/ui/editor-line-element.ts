@@ -39,7 +39,14 @@ export default class EditorLineElement {
 		}
 		this._text = line.rawText;
 		this._tokens = line.tokens;
+	}
+
+	public render(): void {
 		this._renderTokens();
+	}
+
+	public setSchema(highlighterSchema: HighlighterSchema): void {
+		this._highlighterSchema = highlighterSchema;
 	}
 
 	private _renderTokens(): void {

@@ -54,6 +54,7 @@ class TextLayer extends EventEmitter<TextLayerEvents> {
 			this._editor.on(EvDocument.Set, () => {
 				if (this._editor) {
 					this._highlighterSchema = this._editor.getHighlighterSchema();
+					this.update();
 				}
 			});
 		}
@@ -124,10 +125,12 @@ class TextLayer extends EventEmitter<TextLayerEvents> {
 		if (this._visibleLines.length === lines.length) {
 			let lineNumber = 0;
 			for (const line of lines) {
+				this._visibleLines[lineNumber].setSchema(this._highlighterSchema);
 				this._visibleLines[lineNumber].setData(line);
 				this._visibleLines[lineNumber].setActive(
 					activeLines.has(this._firstVisibleLine + lineNumber),
 				);
+				this._visibleLines[lineNumber].render();
 				lineNumber++;
 			}
 		} else {

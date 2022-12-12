@@ -195,7 +195,11 @@ class Editor extends EventEmitter<EditorEvents> {
 	/**
 	 * Returns the name of the new session.
 	 */
-	public addDocument(document: Document, name: string | null = null): string {
+	public addDocument(
+		document: Document,
+		name: string | null = null,
+		mode: string = 'default',
+	): string {
 		if (name === null) {
 			do {
 				name = randomString();
@@ -209,6 +213,7 @@ class Editor extends EventEmitter<EditorEvents> {
 		this._currentSessionId = name;
 		this._hasActiveSession = true;
 
+		this.setMode(mode);
 		if (this._tokenizeAfterEdit) {
 			this.tokenize();
 		}
