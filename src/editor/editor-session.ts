@@ -1,6 +1,8 @@
 import { Document } from '../document';
 import { Mode } from '../mode';
 import { MODES } from '../modes';
+import { NaiveSearch, Search } from '../search';
+import SerachResults from '../search/search-results';
 import SelectionManager from '../selection/selection-manager';
 import TokenizerData from '../tokenizer/tokenizer-data';
 
@@ -9,12 +11,16 @@ export default class EditorSession {
 	private _tokenizerData: TokenizerData;
 	private _selections: SelectionManager;
 	private _mode: Mode;
+	private _searchResults: SerachResults;
+	private _search: Search;
 
 	constructor(
 		document: Document,
 		tokenizerData: TokenizerData | null = null,
 		selections: SelectionManager | null = null,
 		mode: Mode | null = null,
+		searchResults: SerachResults | null = null,
+		search: Search | null = null,
 	) {
 		this._document = document;
 		if (tokenizerData === null) {
@@ -31,6 +37,16 @@ export default class EditorSession {
 			this._mode = MODES.default;
 		} else {
 			this._mode = mode;
+		}
+		if (searchResults === null) {
+			this._searchResults = new SerachResults();
+		} else {
+			this._searchResults = searchResults;
+		}
+		if (search === null) {
+			this._search = new NaiveSearch();
+		} else {
+			this._search = search;
 		}
 	}
 
@@ -52,5 +68,13 @@ export default class EditorSession {
 
 	public set mode(value: Mode) {
 		this._mode = value;
+	}
+
+	public get searchResults(): SerachResults {
+		return this._searchResults;
+	}
+
+	public get search(): Search {
+		return this._search;
 	}
 }
