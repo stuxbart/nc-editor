@@ -36,9 +36,20 @@ export interface ISelectionChangedEvent {
 	[EvSelection.Changed]: undefined;
 }
 
+/*
+ * Search events
+ */
+export enum EvSearch {
+	Finished = 'editor.Search.Finished',
+}
+export interface ISearchFinishedEvent {
+	[EvSearch.Finished]: undefined;
+}
+
 export interface EditorEvents
 	extends ITokenizerEvent,
 		IDocumentEditedEvent,
 		IDocumentSetEvent,
 		IDocumentLinesCountChanged,
-		ISelectionChangedEvent {}
+		ISelectionChangedEvent,
+		ISearchFinishedEvent {}

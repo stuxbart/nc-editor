@@ -1,9 +1,9 @@
 import { Editor } from '../editor';
-import { EvSelection } from '../editor/events';
+import { EvSearch, EvSelection } from '../editor/events';
 import { Point, Selection } from '../selection';
 import { columnToOffset, offsetToColumn } from '../text-utils';
 import { CSSClasses } from '../styles/css';
-import { createDiv, em } from './dom-utils';
+import { createDiv, em, px } from './dom-utils';
 import EditorCursor from './editor-cursor';
 import EditorSelectionElement from './editor-selection-element';
 import EdiotrView from './editor-view';
@@ -53,7 +53,8 @@ export default class SelectionLayer extends EventEmitter<SelectionLayerEvents> {
 		if (this._selectionContainer) {
 			const el1 = this._renderSelections();
 			const el2 = this._renderCursors();
-			this._selectionContainer.replaceChildren(...el1, ...el2);
+			const el3 = this._renderSearchResults();
+			this._selectionContainer.replaceChildren(...el1, ...el2, ...el3);
 		}
 	}
 
@@ -102,6 +103,9 @@ export default class SelectionLayer extends EventEmitter<SelectionLayerEvents> {
 		}
 		if (this._editor) {
 			this._editor.on(EvSelection.Changed, () => {
+				this.update();
+			});
+			this._editor.on(EvSearch.Finished, () => {
 				this.update();
 			});
 		}
@@ -187,6 +191,34 @@ export default class SelectionLayer extends EventEmitter<SelectionLayerEvents> {
 		}
 
 		return cursorElements;
+	}
+
+	private _renderSearchResults(): HTMLElement[] {
+		if (this._editor === null || this._selectionContainer === null) {
+			return [];
+		}
+		const lines = this._editor.getLines(this._firstVisibleLine, this._visibleLinesCount);
+		const searchPhraseLength = this._editor.getSearchPhrase().length;
+		const searchResultElements: HTMLElement[] = [];
+
+		let i = 0;
+		for (const line of lines) {
+			for (const match of line.searchResults) {
+				const resultElement = createDiv(CSSClasses.SELECTION_SEARCH);
+				const left = offsetToColumn(line.rawText, match) * this._letterWidth;
+				const right =
+					offsetToColumn(line.rawText, match + searchPhraseLength) * this._letterWidth;
+				const top = i * this._lineHeight;
+				resultElement.style.top = px(top);
+				resultElement.style.left = px(left);
+				resultElement.style.width = px(right - left);
+				resultElement.style.height = px(this._lineHeight);
+				searchResultElements.push(resultElement);
+			}
+			i++;
+		}
+
+		return searchResultElements;
 	}
 
 	private _onMouseDown(e: MouseEvent): void {

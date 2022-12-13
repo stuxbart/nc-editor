@@ -11,6 +11,7 @@ export const CSSClasses = {
 	MULTI_LINE_HOVERED: 'nc-text__multi-line--hovered',
 	MULTI_LINE_CONTENT: 'nc-text__multi-line_content',
 	SELECTION_RANGE: 'nc-selection__range',
+	SELECTION_SEARCH: 'nc-selection__search',
 	SELECTION: 'nc-editor__selection',
 	SCROLL_BAR: 'nc-editor__scroll-bar',
 	SCROLL_INNER: 'nc-scroll__scrollable',

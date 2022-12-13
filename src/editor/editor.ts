@@ -3,6 +3,7 @@ import Document from '../document/document';
 import { EventEmitter } from '../events';
 import { HighlighterSchema } from '../highlighter';
 import { MODES } from '../modes';
+import { Search } from '../search';
 import { Point, Range, Selection } from '../selection';
 import SelectionManager from '../selection/selection-manager';
 import { getWordAfter, getWordBefore } from '../text-utils';
@@ -11,7 +12,7 @@ import { EditorView } from '../ui';
 import { EvView } from '../ui/events';
 import { randomString } from '../utils';
 import EditorSession from './editor-session';
-import { EditorEvents, EvDocument, EvSelection, EvTokenizer } from './events';
+import { EditorEvents, EvDocument, EvSearch, EvSelection, EvTokenizer } from './events';
 
 /**
  * Editor class manages state of editor.
@@ -22,6 +23,7 @@ class Editor extends EventEmitter<EditorEvents> {
 	private _hasActiveSession: boolean = false;
 
 	private _tokenizeAfterEdit: boolean = true;
+	private _searchAfterEdit: boolean = true;
 
 	private _shouldEmitEditEvent: boolean = true;
 	private _shouldEmitLinesCountChangeEvent: boolean = true;
@@ -56,6 +58,10 @@ class Editor extends EventEmitter<EditorEvents> {
 		return this._session.mode.tokenizer;
 	}
 
+	private get _search(): Search {
+		return this._session.search;
+	}
+
 	public setMode(mode: string): void {
 		if (mode in MODES) {
 			this._session.mode = MODES[mode];
@@ -78,6 +84,7 @@ class Editor extends EventEmitter<EditorEvents> {
 			const removedText = document.remove(sel);
 			const removedLines = removedText.split('\n');
 			this._updateLinesTokens(sel.start.line);
+			this._updateLinesSearchResults(sel.start.line);
 			this._emitLinesCountChanged(sel.end.line - sel.start.line);
 			this._updateSelctions(
 				sel.start.line,
@@ -92,6 +99,7 @@ class Editor extends EventEmitter<EditorEvents> {
 			const offset = sel.start.offset;
 			const insertedLines = document.insert(str, line, offset);
 			this._updateLinesTokens(line);
+			this._updateLinesSearchResults(line);
 			this._updateSelctions(line, offset, insertedLines[0], insertedLines[1]);
 		}
 		this._emitLinesCountChanged(1);
@@ -131,6 +139,7 @@ class Editor extends EventEmitter<EditorEvents> {
 			const removedText = document.remove(sel);
 			const removedLines = removedText.split('\n');
 			this._updateLinesTokens(sel.start.line);
+			this._updateLinesSearchResults(sel.start.line);
 			this._emitLinesCountChanged(sel.end.line - sel.start.line);
 			this._updateSelctions(
 				sel.start.line,
@@ -279,6 +288,7 @@ class Editor extends EventEmitter<EditorEvents> {
 	public getLines(firstLine: number, count: number): Line[] {
 		const document = this._currentDocument;
 		const tokenizerData = this._session.tokenizerData;
+		const searchResults = this._session.searchResults;
 		const rawLines = document.getLineNodes(firstLine, count);
 		const lines: Line[] = [];
 		for (const line of rawLines) {
@@ -286,6 +296,7 @@ class Editor extends EventEmitter<EditorEvents> {
 				rawText: line.text,
 				tokens: tokenizerData.getLineTokens(line),
 				lineBreaks: [],
+				searchResults: searchResults.getLineResutls(line).matches,
 			});
 		}
 		return lines;
@@ -318,6 +329,12 @@ class Editor extends EventEmitter<EditorEvents> {
 		const document = this._currentDocument;
 		this._tokenizer.tokenize(document, this._session.tokenizerData);
 		this.emit(EvTokenizer.Finished, undefined);
+	}
+
+	public search(phrase: string): void {
+		const document = this._currentDocument;
+		this._search.search(phrase, document, this._session.searchResults);
+		this.emit(EvSearch.Finished, undefined);
 	}
 
 	public getSelctions(): Selection[] {
@@ -543,6 +560,14 @@ class Editor extends EventEmitter<EditorEvents> {
 		this._emitSelectionChangedEvent();
 	}
 
+	public getSearchPhrase(): string {
+		return this._session.searchResults.phrase;
+	}
+
+	public getSearchMatchCount(): number {
+		return this._session.searchResults.matchCount;
+	}
+
 	private _updateSelctions(
 		line: number,
 		offset: number,
@@ -558,6 +583,14 @@ class Editor extends EventEmitter<EditorEvents> {
 			const document = this._currentDocument;
 			const tokenizerData = this._session.tokenizerData;
 			this._tokenizer.updateTokens(document, tokenizerData, firstLine);
+		}
+	}
+
+	private _updateLinesSearchResults(firstLine: number): void {
+		if (this._searchAfterEdit) {
+			const document = this._currentDocument;
+			const searchResults = this._session.searchResults;
+			this._search.updateSearchResults(document, searchResults, firstLine);
 		}
 	}
 
