@@ -373,13 +373,18 @@ export default class SelectionManager {
 		this._clearRectSelectionStart();
 	}
 
-	public getActiveLinesNumbers(): Set<number> {
+	public getActiveLinesNumbers(
+		firstLine: number = 0,
+		linesCount: number = Infinity,
+	): Set<number> {
 		if (this._document === null || this._selections.length === 0) {
 			return new Set();
 		}
 		const activeLines = new Set<number>();
 		for (const sel of this._selections) {
-			for (let i = sel.start.line; i < sel.end.line + 1; i++) {
+			const startLine = Math.max(firstLine, sel.start.line);
+			const endLine = Math.min(sel.end.line + 1, firstLine + linesCount);
+			for (let i = startLine; i < endLine; i++) {
 				activeLines.add(i);
 			}
 		}

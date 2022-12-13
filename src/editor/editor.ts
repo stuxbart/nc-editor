@@ -479,8 +479,11 @@ class Editor extends EventEmitter<EditorEvents> {
 		this._shouldUpdateSelections = false;
 	}
 
-	public getActiveLinesNumbers(): Set<number> {
-		return this._selections.getActiveLinesNumbers();
+	public getActiveLinesNumbers(
+		firstLine: number = 0,
+		linesCount: number = Infinity,
+	): Set<number> {
+		return this._selections.getActiveLinesNumbers(firstLine, linesCount);
 	}
 
 	public getSelectedLinesCount(): number {

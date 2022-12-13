@@ -90,7 +90,10 @@ class TextLayer extends EventEmitter<TextLayerEvents> {
 			return;
 		}
 		const lines = this._editor.getLines(this._firstVisibleLine, this._visibleLinesCount);
-		const activeLines = this._editor.getActiveLinesNumbers();
+		const activeLines = this._editor.getActiveLinesNumbers(
+			this._firstVisibleLine,
+			this._visibleLinesCount,
+		);
 		if (this._visibleLines.length !== lines.length) {
 			return;
 		}
@@ -121,7 +124,10 @@ class TextLayer extends EventEmitter<TextLayerEvents> {
 			return;
 		}
 		const lines = this._editor.getLines(this._firstVisibleLine, this._visibleLinesCount);
-		const activeLines = this._editor.getActiveLinesNumbers();
+		const activeLines = this._editor.getActiveLinesNumbers(
+			this._firstVisibleLine,
+			this._visibleLinesCount,
+		);
 		if (this._visibleLines.length === lines.length) {
 			let lineNumber = 0;
 			for (const line of lines) {
