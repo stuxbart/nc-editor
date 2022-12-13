@@ -143,44 +143,49 @@ export default class SelectionManager {
 	}
 
 	public selectWordBefore(): void {
-		if (this._selections.length !== 1 || this._document === null) {
+		if (this._selections.length < 1 || this._document === null) {
 			return;
 		}
-		const sel = this._selections[0];
-		if (sel.start.line === 0 && sel.start.offset === 0) {
-			return;
-		}
-		if (sel.start.offset === 0) {
-			sel.start.line -= 1;
-			const lineBefore = removeAccents(this._document.getLine(sel.start.line));
-			const word = getWordBefore(lineBefore, lineBefore.length);
-			sel.start.offset = lineBefore.length - word.length;
-		} else {
-			const line = removeAccents(this._document.getLine(sel.start.line));
-			const word = getWordBefore(line, sel.start.offset);
-			sel.start.offset -= word.length;
+		for (const sel of this._selections) {
+			if (sel.start.line === 0 && sel.start.offset === 0) {
+				return;
+			}
+
+			if (sel.start.offset === 0) {
+				sel.start.line -= 1;
+				const lineBefore = removeAccents(this._document.getLine(sel.start.line));
+				const word = getWordBefore(lineBefore, lineBefore.length);
+				sel.start.offset = lineBefore.length - word.length;
+			} else {
+				const line = removeAccents(this._document.getLine(sel.start.line));
+				const word = getWordBefore(line, sel.start.offset);
+				sel.start.offset -= word.length;
+			}
+			sel.type = SelectionType.L;
 		}
 		this._removeOverlappingSelections();
 		this._clearRectSelectionStart();
 	}
 
 	public selectWordAfter(): void {
-		if (this._selections.length !== 1 || this._document === null) {
+		if (this._selections.length < 1 || this._document === null) {
 			return;
 		}
-		const sel = this._selections[0];
-		const line = removeAccents(this._document.getLine(sel.end.line));
-		if (sel.end.line === this._document.linesCount - 1 && sel.end.offset === line.length) {
-			return;
-		}
-		if (sel.end.offset === line.length) {
-			sel.end.line += 1;
-			const lineAfter = removeAccents(this._document.getLine(sel.end.line));
-			const word = getWordAfter(lineAfter, 0);
-			sel.end.offset = word.length;
-		} else {
-			const word = getWordAfter(line, sel.end.offset);
-			sel.end.offset += word.length;
+		for (const sel of this._selections) {
+			const line = removeAccents(this._document.getLine(sel.end.line));
+			if (sel.end.line === this._document.linesCount - 1 && sel.end.offset === line.length) {
+				return;
+			}
+			if (sel.end.offset === line.length) {
+				sel.end.line += 1;
+				const lineAfter = removeAccents(this._document.getLine(sel.end.line));
+				const word = getWordAfter(lineAfter, 0);
+				sel.end.offset = word.length;
+			} else {
+				const word = getWordAfter(line, sel.end.offset);
+				sel.end.offset += word.length;
+			}
+			sel.type = SelectionType.R;
 		}
 		this._removeOverlappingSelections();
 		this._clearRectSelectionStart();
