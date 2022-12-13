@@ -20,6 +20,7 @@ select all \t\t\t\t Ctrl + A
 cut \t\t\t\t\t Ctrl + X
 paste \t\t\t\t\t Ctrl + V
 copy \t\t\t\t\t Ctrl + C
+find \t\t\t\t\t Ctrl + F
 
 `;
 

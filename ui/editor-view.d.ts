@@ -12,6 +12,7 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
     private _scrollBar;
     private _selectionLayer;
     private _input;
+    private _search;
     private _firstVisibleLine;
     private _visibleLinesCount;
     private _scrollHeight;
@@ -57,4 +58,5 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
     scrollToLine(lineNumber: number): void;
     private _setFocus;
     private _scrollToLine;
+    private _isCursorVisible;
 }

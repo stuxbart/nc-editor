@@ -21,6 +21,7 @@ export default class SelectionLayer extends EventEmitter<SelectionLayerEvents> {
     private _isAltHold;
     private _lastTouchTime;
     private _lastTouchPosition;
+    private _showSearchResults;
     constructor(editor: Editor, view: EdiotrView);
     setFirstVisibleLine(firstLine: number): void;
     setVisibleLinesCount(linesCount: number): void;
@@ -29,6 +30,7 @@ export default class SelectionLayer extends EventEmitter<SelectionLayerEvents> {
     private _initEventListeners;
     private _renderSelections;
     private _renderCursors;
+    private _renderSearchResults;
     private _onMouseDown;
     private _onMouseUp;
     private _onMouseMove;

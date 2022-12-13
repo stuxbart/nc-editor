@@ -46,6 +46,14 @@ export interface IGutterWidthEvent {
         width: number;
     };
 }
+export declare enum EvSearchUi {
+    Open = "search.Open",
+    Close = "search.CLose"
+}
+export interface ISearchUiVisibilityEvents {
+    [EvSearchUi.Open]: undefined;
+    [EvSearchUi.Close]: undefined;
+}
 export declare enum EvKey {
     CtrlDown = "key.Ctrl.down",
     CtrlUp = "key.Ctrl.up",
@@ -68,7 +76,9 @@ export interface ScrollBarEvents extends IScrollEvent {
 }
 export interface TextLayerEvents extends ILetterWidthEvent {
 }
-export interface EditorViewEvents extends IScrollEvent, IFocusEvent, IThemeEvent, ILetterWidthEvent, IViewInitializedEvent, IKeyEvnets {
+export interface EditorViewEvents extends IScrollEvent, IFocusEvent, IThemeEvent, ILetterWidthEvent, IViewInitializedEvent, IKeyEvnets, ISearchUiVisibilityEvents {
 }
 export interface SelectionLayerEvents extends IScrollEvent {
+}
+export interface SearchUiEvents extends ISearchUiVisibilityEvents {
 }

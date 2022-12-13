@@ -13,6 +13,7 @@ declare class Editor extends EventEmitter<EditorEvents> {
     private _sessions;
     private _hasActiveSession;
     private _tokenizeAfterEdit;
+    private _searchAfterEdit;
     private _shouldEmitEditEvent;
     private _shouldEmitLinesCountChangeEvent;
     private _shouldUpdateSelections;
@@ -22,6 +23,7 @@ declare class Editor extends EventEmitter<EditorEvents> {
     private get _currentDocument();
     private get _selections();
     private get _tokenizer();
+    private get _search();
     setMode(mode: string): void;
     getHighlighterSchema(): HighlighterSchema;
     insert(str: string): void;
@@ -49,6 +51,7 @@ declare class Editor extends EventEmitter<EditorEvents> {
     getFirstLine(): Line | null;
     getLastLine(): Line | null;
     tokenize(): void;
+    search(phrase: string): void;
     getSelctions(): Selection[];
     setSelection(selection: Selection): void;
     addSelection(selection: Selection): void;
@@ -58,9 +61,13 @@ declare class Editor extends EventEmitter<EditorEvents> {
     collapseSelectionToRight(): void;
     collapseSelectionToTop(): void;
     collapseSelectionToBottom(): void;
+    collapseSelectionToHome(): void;
+    collapseSelectionToEnd(): void;
     selectWordBefore(): void;
     selectWordAfter(): void;
     selectWordAt(point: Point, addSelection: boolean): void;
+    selectStartOfTheLine(): void;
+    selectEndOfTheLine(): void;
     moveSelectionWordBefore(): void;
     moveSelectionWordAfter(): void;
     swapLinesUp(): void;
@@ -74,13 +81,16 @@ declare class Editor extends EventEmitter<EditorEvents> {
     disableLinesChangedEvent(): void;
     enableSelectionsUpdates(): void;
     disableSelectionsUpdates(): void;
-    getActiveLinesNumbers(): Set<number>;
+    getActiveLinesNumbers(firstLine?: number, linesCount?: number): Set<number>;
     getSelectedLinesCount(): number;
     indentSelectedLines(indentString?: string): void;
     removeIndentFromSelectedLines(indentString?: string): void;
     extendRectangleSelection(point: Point): void;
+    getSearchPhrase(): string;
+    getSearchMatchCount(): number;
     private _updateSelctions;
     private _updateLinesTokens;
+    private _updateLinesSearchResults;
     private _emitEditEvent;
     private _emitLinesCountChanged;
     private _emitSelectionChangedEvent;

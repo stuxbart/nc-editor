@@ -3,5 +3,6 @@ export default class Line {
     rawText: string;
     tokens: Token[];
     lineBreaks: number[];
-    constructor(rawText: string, tokens: Token[], lineBreaks: number[]);
+    searchResults: number[];
+    constructor(rawText: string, tokens: Token[], lineBreaks: number[], searchResults?: number[]);
 }

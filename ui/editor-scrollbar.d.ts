@@ -24,5 +24,7 @@ export default class ScrollBar extends EventEmitter<ScrollBarEvents> {
     private _updateScrollPosition;
     private _initEventListeners;
     private _onScroll;
+    private _onMouseDown;
+    private _onMouseUp;
     private _updateScale;
 }

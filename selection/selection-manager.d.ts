@@ -19,6 +19,8 @@ export default class SelectionManager {
     selectWordAt(point: Point, addSelection?: boolean): void;
     selectWordBefore(): void;
     selectWordAfter(): void;
+    selectStartOfTheLine(): void;
+    selectEndOfTheLine(): void;
     moveSelectionWordBefore(): void;
     moveSelectionWordAfter(): void;
     /**
@@ -29,7 +31,9 @@ export default class SelectionManager {
     collapseSelectionToRight(): void;
     collapseSelectionToTop(): void;
     collapseSelectionToBottom(): void;
-    getActiveLinesNumbers(): Set<number>;
+    collapseSelectionToHome(): void;
+    collapseSelectionToEnd(): void;
+    getActiveLinesNumbers(firstLine?: number, linesCount?: number): Set<number>;
     getSelectedLinesCount(): number;
     private _removeOverlappingSelections;
     private _clearRectSelectionStart;

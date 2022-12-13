@@ -26,5 +26,11 @@ export declare enum EvSelection {
 export interface ISelectionChangedEvent {
     [EvSelection.Changed]: undefined;
 }
-export interface EditorEvents extends ITokenizerEvent, IDocumentEditedEvent, IDocumentSetEvent, IDocumentLinesCountChanged, ISelectionChangedEvent {
+export declare enum EvSearch {
+    Finished = "editor.Search.Finished"
+}
+export interface ISearchFinishedEvent {
+    [EvSearch.Finished]: undefined;
+}
+export interface EditorEvents extends ITokenizerEvent, IDocumentEditedEvent, IDocumentSetEvent, IDocumentLinesCountChanged, ISelectionChangedEvent, ISearchFinishedEvent {
 }

@@ -11,7 +11,12 @@ export declare const CSSClasses: {
     MULTI_LINE_HOVERED: string;
     MULTI_LINE_CONTENT: string;
     SELECTION_RANGE: string;
+    SELECTION_SEARCH: string;
     SELECTION: string;
     SCROLL_BAR: string;
     SCROLL_INNER: string;
+    SEARCH: string;
+    CLOSE_SEARCH: string;
+    SEARCH_INPUT: string;
+    SEARCH_RESULT: string;
 };
