@@ -20,6 +20,8 @@ import {
 import { EvDocument, EvTokenizer } from '../editor/events';
 import { EDITOR_FONT_FAMILY } from './config';
 import { CSSClasses } from '../styles/css';
+import { Point } from '../selection';
+import { SelectionType } from '../selection/selection';
 
 const MAX_LINES_PADDING = 10;
 
@@ -215,7 +217,20 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 		}
 		if (this._editor) {
 			this._editor.on(EvDocument.Edited, () => {
-				this.update();
+				if (this._editor) {
+					const selections = this._editor.getSelctions();
+					const lastSel = selections[selections.length - 1];
+					const editPoint =
+						lastSel.type === SelectionType.L ? lastSel.start : lastSel.end;
+					const isVisible = this._isCursorVisible(editPoint);
+					if (!isVisible) {
+						this._scrollToLine(
+							editPoint.line - Math.round(this._visibleLinesCount / 2),
+							'editor-view',
+						);
+					}
+				}
+				// this.update();
 			});
 			this._editor.on(EvDocument.Set, () => {
 				this.update();
@@ -510,5 +525,15 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 		});
 
 		this.update();
+	}
+
+	private _isCursorVisible(cursorPos: Point): boolean {
+		if (cursorPos.line < this._firstVisibleLine) {
+			return false;
+		}
+		if (cursorPos.line > this._firstVisibleLine + this._visibleLinesCount) {
+			return false;
+		}
+		return true;
 	}
 }
