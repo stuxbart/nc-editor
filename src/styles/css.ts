@@ -15,4 +15,8 @@ export const CSSClasses = {
 	SELECTION: 'nc-editor__selection',
 	SCROLL_BAR: 'nc-editor__scroll-bar',
 	SCROLL_INNER: 'nc-scroll__scrollable',
+	SEARCH: 'nc-search',
+	CLOSE_SEARCH: 'nc-search__close',
+	SEARCH_INPUT: 'nc-search__input',
+	SEARCH_RESULT: 'nc-search__result',
 };

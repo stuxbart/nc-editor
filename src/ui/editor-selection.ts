@@ -7,7 +7,7 @@ import { createDiv, em, px } from './dom-utils';
 import EditorCursor from './editor-cursor';
 import EditorSelectionElement from './editor-selection-element';
 import EdiotrView from './editor-view';
-import { EvFont, EvKey, EvScroll, SelectionLayerEvents } from './events';
+import { EvFont, EvKey, EvScroll, EvSearchUi, SelectionLayerEvents } from './events';
 import { EventEmitter } from '../events';
 import { SelectionType } from '../selection/selection';
 
@@ -30,6 +30,7 @@ export default class SelectionLayer extends EventEmitter<SelectionLayerEvents> {
 	private _isAltHold: boolean = false;
 	private _lastTouchTime: number | null = null;
 	private _lastTouchPosition: Point = new Point(0, 0);
+	private _showSearchResults: boolean = false;
 
 	constructor(editor: Editor, view: EdiotrView) {
 		super();
@@ -73,10 +74,8 @@ export default class SelectionLayer extends EventEmitter<SelectionLayerEvents> {
 	private _initEventListeners(): void {
 		if (this._view) {
 			this._view.on(EvScroll.Changed, (e) => {
-				// if (e.emitterName !== this._emitterName) {
 				this.setFirstVisibleLine(e.firstVisibleLine);
 				this.update();
-				// }
 			});
 			this._view.on(EvFont.LetterWidth, (e) => {
 				this._letterWidth = e.width;
@@ -99,6 +98,14 @@ export default class SelectionLayer extends EventEmitter<SelectionLayerEvents> {
 			});
 			this._view.on(EvKey.AltUp, () => {
 				this._isAltHold = false;
+			});
+			this._view.on(EvSearchUi.Open, () => {
+				this._showSearchResults = true;
+				this.update();
+			});
+			this._view.on(EvSearchUi.Close, () => {
+				this._showSearchResults = false;
+				this.update();
 			});
 		}
 		if (this._editor) {
@@ -194,7 +201,11 @@ export default class SelectionLayer extends EventEmitter<SelectionLayerEvents> {
 	}
 
 	private _renderSearchResults(): HTMLElement[] {
-		if (this._editor === null || this._selectionContainer === null) {
+		if (
+			this._editor === null ||
+			this._selectionContainer === null ||
+			!this._showSearchResults
+		) {
 			return [];
 		}
 		const lines = this._editor.getLines(this._firstVisibleLine, this._visibleLinesCount);

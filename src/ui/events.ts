@@ -59,6 +59,17 @@ export interface IGutterWidthEvent {
 	[EvGutter.Width]: { width: number };
 }
 /*
+ * Search events
+ */
+export enum EvSearchUi {
+	Open = 'search.Open',
+	Close = 'search.CLose',
+}
+export interface ISearchUiVisibilityEvents {
+	[EvSearchUi.Open]: undefined;
+	[EvSearchUi.Close]: undefined;
+}
+/*
  * Key events
  */
 export enum EvKey {
@@ -88,5 +99,7 @@ export interface EditorViewEvents
 		IThemeEvent,
 		ILetterWidthEvent,
 		IViewInitializedEvent,
-		IKeyEvnets {}
+		IKeyEvnets,
+		ISearchUiVisibilityEvents {}
 export interface SelectionLayerEvents extends IScrollEvent {}
+export interface SearchUiEvents extends ISearchUiVisibilityEvents {}

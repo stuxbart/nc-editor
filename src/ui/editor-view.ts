@@ -16,12 +16,14 @@ import {
 	EvView,
 	EditorViewEvents,
 	EvKey,
+	EvSearchUi,
 } from './events';
 import { EvDocument, EvTokenizer } from '../editor/events';
 import { EDITOR_FONT_FAMILY } from './config';
 import { CSSClasses } from '../styles/css';
 import { Point } from '../selection';
 import { SelectionType } from '../selection/selection';
+import EditorSearch from './editor-search';
 
 const MAX_LINES_PADDING = 10;
 
@@ -37,6 +39,7 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 	private _scrollBar: ScrollBar | null = null;
 	private _selectionLayer: SelectionLayer | null = null;
 	private _input: EditorInput | null = null;
+	private _search: EditorSearch | null = null;
 
 	private _firstVisibleLine: number = 0;
 	private _visibleLinesCount: number = 0;
@@ -75,6 +78,7 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 		this._gutter = new EditorGutter(editor, this);
 		this._scrollBar = new ScrollBar(editor, this);
 		this._input = new EditorInput(editor, this);
+		this._search = new EditorSearch(editor, this);
 		this._scrollBarInitialConfig();
 		this._initEventListeners();
 		this._createInputElement();
@@ -204,12 +208,11 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 
 	private _initEventListeners(): void {
 		window.addEventListener('resize', () => this._onResize());
-		document.addEventListener('click', (e) => this._onDocumentClick(e));
 		if (this._editorContainer) {
 			this._editorContainer.addEventListener('mousewheel', (e: Event) =>
 				this._onMouseWheel(e as WheelEvent),
 			);
-			this._editorContainer.addEventListener('click', () => this._onMouseDown());
+			this._editorContainer.addEventListener('click', (e) => this._onMouseDown(e));
 			this._editorContainer.addEventListener('blur', () => this._onBlur());
 			this._editorContainer.addEventListener('keydown', (e) => this._onKeyDown(e));
 			this._editorContainer.addEventListener('keyup', (e) => this._onKeyUp(e));
@@ -261,6 +264,12 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 				this._scrollToLine(e.firstVisibleLine, e.emitterName);
 			});
 		}
+		if (this._search) {
+			this._search.on(EvSearchUi.Close, () => {
+				this.emit(EvSearchUi.Close, undefined);
+				this._setFocus(true);
+			});
+		}
 	}
 
 	private _onPaste(e: ClipboardEvent): void {
@@ -287,8 +296,10 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 		e.stopPropagation();
 	}
 
-	private _onMouseDown(): void {
-		this._setFocus(true);
+	private _onMouseDown(e: MouseEvent): void {
+		if (!this._search || !isChildOf(this._search.getDOMElement() as Node, e.target as Node)) {
+			this._setFocus(true);
+		}
 	}
 
 	private _onBlur(): void {
@@ -448,6 +459,17 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 				}
 				if (this._isCtrlHold) {
 					this._editor.copy();
+				}
+				break;
+			}
+			case 'KeyF': {
+				if (!this._editor) {
+					return;
+				}
+				if (this._isCtrlHold) {
+					this.emit(EvSearchUi.Open, undefined);
+					e.preventDefault();
+					e.stopPropagation();
 				}
 				break;
 			}
