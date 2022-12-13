@@ -167,7 +167,7 @@ class Editor extends EventEmitter<EditorEvents> {
 			const word = getWordAfter(line, sel.start.offset);
 			sel.end.offset += word.length;
 		}
-		return this.remove();
+		return this.remove(1);
 	}
 
 	public cut(): void {
