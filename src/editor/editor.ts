@@ -145,32 +145,28 @@ class Editor extends EventEmitter<EditorEvents> {
 	}
 
 	public removeWordBefore(): string {
-		if (this._selections.length !== 1) {
-			return '';
-		}
-		const sel = this._selections.getSelections()[0];
-		if (!sel.isCollapsed) {
-			return this.remove();
-		}
 		const document = this._currentDocument;
-		const line = document.getLine(sel.start.line);
-		const word = getWordBefore(line, sel.start.offset);
-		sel.start.offset -= word.length;
+		for (const sel of this._selections.getSelections()) {
+			if (!sel.isCollapsed) {
+				continue;
+			}
+			const line = document.getLine(sel.start.line);
+			const word = getWordBefore(line, sel.start.offset);
+			sel.start.offset -= word.length;
+		}
 		return this.remove();
 	}
 
 	public removeWordAfter(): string {
-		if (this._selections.length !== 1) {
-			return '';
-		}
-		const sel = this._selections.getSelections()[0];
-		if (!sel.isCollapsed) {
-			return this.remove();
-		}
 		const document = this._currentDocument;
-		const line = document.getLine(sel.start.line);
-		const word = getWordAfter(line, sel.start.offset);
-		sel.end.offset += word.length;
+		for (const sel of this._selections.getSelections()) {
+			if (!sel.isCollapsed) {
+				continue;
+			}
+			const line = document.getLine(sel.start.line);
+			const word = getWordAfter(line, sel.start.offset);
+			sel.end.offset += word.length;
+		}
 		return this.remove();
 	}
 
