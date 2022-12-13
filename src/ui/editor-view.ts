@@ -356,6 +356,28 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 				}
 				break;
 			}
+			case 'Home': {
+				if (this._editor === null) {
+					return;
+				}
+				if (this._isShitHold) {
+					this._editor.selectStartOfTheLine();
+				} else {
+					this._editor.collapseSelectionToHome();
+				}
+				break;
+			}
+			case 'End': {
+				if (this._editor === null) {
+					return;
+				}
+				if (this._isShitHold) {
+					this._editor.selectEndOfTheLine();
+				} else {
+					this._editor.collapseSelectionToEnd();
+				}
+				break;
+			}
 			case 'Backspace': {
 				if (!this._editor) {
 					return;

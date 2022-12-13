@@ -4,6 +4,7 @@ import {
 	getWordAfter,
 	getWordBefore,
 	offsetToColumn,
+	readWhiteSpaceAfter,
 	removeAccents,
 } from '../text-utils';
 import Point from './point';
@@ -181,6 +182,67 @@ export default class SelectionManager {
 			const word = getWordAfter(line, sel.end.offset);
 			sel.end.offset += word.length;
 		}
+		this._removeOverlappingSelections();
+		this._clearRectSelectionStart();
+	}
+
+	public selectStartOfTheLine(): void {
+		if (this._selections.length < 1 || this._document === null) {
+			return;
+		}
+		for (const sel of this._selections) {
+			if (sel.type === SelectionType.R) {
+				const line = this._document.getLine(sel.end.line);
+				const whiteSpaceLength = readWhiteSpaceAfter(line, 0);
+				if (sel.end.offset === whiteSpaceLength) {
+					sel.end.offset = 0;
+				} else {
+					sel.end.offset = whiteSpaceLength;
+				}
+				if (sel.start.line === sel.end.line) {
+					const tmpOffset = sel.start.offset;
+					sel.start.offset = sel.end.offset;
+					sel.end.offset = tmpOffset;
+					sel.type = SelectionType.L;
+				}
+			} else {
+				const line = this._document.getLine(sel.start.line);
+				const whiteSpaceLength = readWhiteSpaceAfter(line, 0);
+				if (sel.start.offset === whiteSpaceLength) {
+					sel.start.offset = 0;
+				} else {
+					sel.start.offset = whiteSpaceLength;
+				}
+				sel.type = SelectionType.L;
+			}
+		}
+
+		this._removeOverlappingSelections();
+		this._clearRectSelectionStart();
+	}
+
+	public selectEndOfTheLine(): void {
+		if (this._selections.length < 1 || this._document === null) {
+			return;
+		}
+
+		for (const sel of this._selections) {
+			if (sel.type === SelectionType.L) {
+				const line = this._document.getLine(sel.start.line);
+				sel.start.offset = line.length;
+				if (sel.start.line === sel.end.line) {
+					const tmpOffset = sel.start.offset;
+					sel.start.offset = sel.end.offset;
+					sel.end.offset = tmpOffset;
+					sel.type = SelectionType.R;
+				}
+			} else {
+				const line = this._document.getLine(sel.end.line);
+				sel.end.offset = line.length;
+				sel.type = SelectionType.R;
+			}
+		}
+
 		this._removeOverlappingSelections();
 		this._clearRectSelectionStart();
 	}
@@ -371,6 +433,57 @@ export default class SelectionManager {
 			sel.end.line = newLine;
 		}
 		this._clearRectSelectionStart();
+	}
+
+	public collapseSelectionToHome(): void {
+		if (this._selections.length < 1 || this._document === null) {
+			return;
+		}
+		for (const sel of this._selections) {
+			let line: string = '';
+			let currentOffset: number = 0;
+			if (sel.type === SelectionType.L) {
+				line = this._document.getLine(sel.start.line);
+				sel.end.line = sel.start.line;
+				currentOffset = sel.start.offset;
+			} else {
+				line = this._document.getLine(sel.end.line);
+				sel.start.line = sel.end.line;
+				currentOffset = sel.end.offset;
+			}
+			const whiteSpaceLength = readWhiteSpaceAfter(line, 0);
+			if (currentOffset === whiteSpaceLength) {
+				sel.start.offset = 0;
+				sel.end.offset = 0;
+			} else {
+				sel.start.offset = whiteSpaceLength;
+				sel.end.offset = whiteSpaceLength;
+			}
+		}
+		this._clearRectSelectionStart();
+		this._removeOverlappingSelections();
+	}
+
+	public collapseSelectionToEnd(): void {
+		if (this._selections.length < 1 || this._document === null) {
+			return;
+		}
+		for (const sel of this._selections) {
+			let line: string = '';
+			if (sel.type === SelectionType.L) {
+				line = this._document.getLine(sel.start.line);
+				sel.end.line = sel.start.line;
+			} else {
+				line = this._document.getLine(sel.end.line);
+				sel.start.line = sel.end.line;
+			}
+			const lineLength = line.length;
+
+			sel.start.offset = lineLength;
+			sel.end.offset = lineLength;
+		}
+		this._clearRectSelectionStart();
+		this._removeOverlappingSelections();
 	}
 
 	public getActiveLinesNumbers(

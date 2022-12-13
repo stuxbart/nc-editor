@@ -368,6 +368,16 @@ class Editor extends EventEmitter<EditorEvents> {
 		this._emitSelectionChangedEvent();
 	}
 
+	public collapseSelectionToHome(): void {
+		this._selections.collapseSelectionToHome();
+		this._emitSelectionChangedEvent();
+	}
+
+	public collapseSelectionToEnd(): void {
+		this._selections.collapseSelectionToEnd();
+		this._emitSelectionChangedEvent();
+	}
+
 	public selectWordBefore(): void {
 		this._selections.selectWordBefore();
 		this._emitSelectionChangedEvent();
@@ -380,6 +390,16 @@ class Editor extends EventEmitter<EditorEvents> {
 
 	public selectWordAt(point: Point, addSelection: boolean): void {
 		this._selections.selectWordAt(point, addSelection);
+		this._emitSelectionChangedEvent();
+	}
+
+	public selectStartOfTheLine(): void {
+		this._selections.selectStartOfTheLine();
+		this._emitSelectionChangedEvent();
+	}
+
+	public selectEndOfTheLine(): void {
+		this._selections.selectEndOfTheLine();
 		this._emitSelectionChangedEvent();
 	}
 
