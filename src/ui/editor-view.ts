@@ -289,8 +289,7 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 	}
 
 	private _onMouseWheel(e: WheelEvent): void {
-		const lineDelta = (e.deltaY / Math.abs(e.deltaY)) * 3;
-
+		const lineDelta = Math.round((e.deltaY / Math.abs(e.deltaY)) * 3);
 		this._scrollToLine(this._firstVisibleLine + lineDelta, this._emitterName);
 		e.preventDefault();
 		e.stopPropagation();

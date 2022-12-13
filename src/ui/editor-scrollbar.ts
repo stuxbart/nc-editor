@@ -72,13 +72,16 @@ export default class ScrollBar extends EventEmitter<ScrollBarEvents> {
 		if (this._scrollBarContainer === null) {
 			return;
 		}
-		this._scrollBarContainer.scrollTop = this._firstVisibleLine * this._scale;
+		this._scrollBarContainer.scrollTop = Math.ceil(this._firstVisibleLine * this._scale);
 	}
 
 	private _initEventListeners(): void {
 		if (this._scrollBarContainer) {
-			this._scrollBarContainer.addEventListener('scroll', () => {
-				this._onScroll();
+			this._scrollBarContainer.addEventListener('mousedown', () => {
+				this._onMouseDown();
+			});
+			this._scrollBarContainer.addEventListener('mouseup', () => {
+				this._onMouseUp();
 			});
 		}
 		if (this._view) {
@@ -97,17 +100,28 @@ export default class ScrollBar extends EventEmitter<ScrollBarEvents> {
 		}
 	}
 
-	private _onScroll(): void {
+	private _onScroll = (): void => {
 		if (this._scrollBarContainer === null) {
 			return;
 		}
 		const newLineNumber = Math.ceil(this._scrollBarContainer.scrollTop / this._scale);
-		if (newLineNumber !== this._firstVisibleLine) {
-			this._firstVisibleLine = newLineNumber;
-			this.emit(EvScroll.Changed, {
-				firstVisibleLine: newLineNumber,
-				emitterName: this._emitterName,
-			});
+
+		this._firstVisibleLine = newLineNumber;
+		this.emit(EvScroll.Changed, {
+			firstVisibleLine: newLineNumber,
+			emitterName: this._emitterName,
+		});
+	};
+
+	private _onMouseDown(): void {
+		if (this._scrollBarContainer) {
+			this._scrollBarContainer.addEventListener('scroll', this._onScroll);
+		}
+	}
+
+	private _onMouseUp(): void {
+		if (this._scrollBarContainer) {
+			this._scrollBarContainer.removeEventListener('scroll', this._onScroll);
 		}
 	}
 
