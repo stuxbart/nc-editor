@@ -9,6 +9,7 @@ import EditorSelectionElement from './editor-selection-element';
 import EdiotrView from './editor-view';
 import { EvFont, EvKey, EvScroll, SelectionLayerEvents } from './events';
 import { EventEmitter } from '../events';
+import { SelectionType } from '../selection/selection';
 
 export default class SelectionLayer extends EventEmitter<SelectionLayerEvents> {
 	private _emitterName: string = 'selection-layer';
@@ -162,12 +163,21 @@ export default class SelectionLayer extends EventEmitter<SelectionLayerEvents> {
 		const cursorElements: HTMLElement[] = [];
 
 		for (const sel of selections) {
-			const i = sel.end.line - this._firstVisibleLine;
+			let i = 0;
+			let offset = 0;
+			if (sel.type === SelectionType.L) {
+				i = sel.start.line - this._firstVisibleLine;
+				offset = sel.start.offset;
+			} else {
+				i = sel.end.line - this._firstVisibleLine;
+				offset = sel.end.offset;
+			}
 			if (i >= lines.length || i < 0) {
 				continue;
 			}
 			const lineContent = lines[i];
-			const left = offsetToColumn(lineContent.rawText, sel.end.offset) * this._letterWidth;
+
+			const left = offsetToColumn(lineContent.rawText, offset) * this._letterWidth;
 			const top = i * this._lineHeight;
 			const cursor = new EditorCursor(left, top);
 			const cursorElement = cursor.getDOMElment();
