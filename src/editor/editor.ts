@@ -37,10 +37,10 @@ class Editor extends EventEmitter<EditorEvents> {
 	}
 
 	private get _session(): EditorSession {
-		const session = this._sessions[this._currentSessionId];
-		if (session === undefined) {
+		if (!(this._currentSessionId in this._sessions)) {
 			throw new Error("Session doesn't exist.");
 		}
+		const session = this._sessions[this._currentSessionId];
 		return session;
 	}
 
