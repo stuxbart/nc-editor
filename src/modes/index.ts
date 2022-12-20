@@ -11,3 +11,17 @@ export const MODES: IModes = {
 	LaTeX: LaTeXMode,
 	default: TextMode,
 };
+
+export function getMode(name: string): Mode {
+	name = name.toLowerCase();
+	switch (name) {
+		case 'javascript':
+			return MODES.JavaScript;
+		case 'text':
+			return MODES.Text;
+		case 'latex':
+			return MODES.LaTeX;
+		default:
+			return MODES.default;
+	}
+}
