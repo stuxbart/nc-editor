@@ -6,22 +6,15 @@ import { MODES } from '../modes';
 import { EditorEvents, EvDocument } from './events';
 
 export default class Editor extends EventEmitter<EditorEvents> {
-	private _documentSessions: Record<string, DocumentSession> = {};
-	private _editSessions: Record<string, EditSession> = {};
+	private _documentSessions: Map<string, DocumentSession> = new Map<string, DocumentSession>();
+	private _editSessions: Map<string, EditSession> = new Map<string, EditSession>();
 	private _latestDocId: string | null = null;
-
-	private _getDocumentSession(id: string): DocumentSession {
-		if (id in this._documentSessions) {
-			return this._documentSessions[id];
-		}
-		throw new Error("Session doesn't exist.");
-	}
 
 	public setDocumentMode(mode: string, docSessionId: string): void {
 		if (!(mode in MODES)) {
 			throw new Error("Mode with given name doesn't exist.");
 		}
-		const session = this._getDocumentSession(docSessionId);
+		const session = this.getDocumentSession(docSessionId);
 		session.mode = MODES[mode];
 
 		session.tokenize();
@@ -37,7 +30,7 @@ export default class Editor extends EventEmitter<EditorEvents> {
 		}
 		const newSession = new DocumentSession(document);
 		newSession.setMode(mode);
-		this._documentSessions[newSession.id] = newSession;
+		this._documentSessions.set(newSession.id, newSession);
 		this._latestDocId = newSession.id;
 
 		this.emit(EvDocument.Set, undefined);
@@ -46,10 +39,11 @@ export default class Editor extends EventEmitter<EditorEvents> {
 	}
 
 	public getDocumentSession(id: string): DocumentSession {
-		if (!(id in this._documentSessions)) {
+		const docSession = this._documentSessions.get(id);
+		if (!docSession) {
 			throw new Error("Document with given id doesn't exist.");
 		}
-		return this._documentSessions[id];
+		return docSession;
 	}
 
 	public getLatestDocumentId(): string | null {
@@ -64,32 +58,45 @@ export default class Editor extends EventEmitter<EditorEvents> {
 	}
 
 	public createSession(docId: string): string {
-		if (!(docId in this._documentSessions)) {
+		const docSession = this._documentSessions.get(docId);
+		if (!docSession) {
 			throw new Error("Document with given id doesn't exist.");
 		}
-		const docSession = this._documentSessions[docId];
 		const newEditSession = new EditSession(docSession);
-		this._editSessions[newEditSession.id] = newEditSession;
+		this._editSessions.set(newEditSession.id, newEditSession);
 		return newEditSession.id;
 	}
 
 	public getSession(id: string): EditSession {
-		if (!(id in this._editSessions)) {
+		const session = this._editSessions.get(id);
+		if (!session) {
 			throw new Error("Document with given id doesn't exist.");
 		}
-		return this._editSessions[id];
+		return session;
+	}
+
+	public getEditSessionForDocument(docId: string): EditSession {
+		let latestSession: EditSession | undefined;
+		this._editSessions.forEach((editSession) => {
+			if (editSession.documentSession.id === docId) {
+				latestSession = editSession;
+			}
+		});
+		if (latestSession) {
+			return latestSession;
+		}
+		const latestEditSessionId = this.createSession(docId);
+		latestSession = this._editSessions.get(latestEditSessionId);
+		if (!latestSession) {
+			throw new Error('?');
+		}
+		return latestSession;
 	}
 
 	public deleteSession(id: string): void {
 		if (!(id in this._editSessions)) {
 			throw new Error("Session with given id doesn't exist.");
 		}
-		const newSessions: Record<string, EditSession> = {};
-		Object.keys(this._editSessions).forEach((sessionId: string) => {
-			if (sessionId !== id) {
-				newSessions[sessionId] = this._editSessions[sessionId];
-			}
-		});
-		this._editSessions = newSessions;
+		this._editSessions.delete(id);
 	}
 }
