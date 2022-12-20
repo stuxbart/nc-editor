@@ -1,14 +1,13 @@
-import { Editor } from '../editor';
 import { EventEmitter } from '../events';
-import { EvDocument, EvSearch } from '../editor/events';
 import { createDiv, createElement } from './dom-utils';
 import EdiotrView from './editor-view';
 import { EvSearchUi, SearchUiEvents } from './events';
 import { CSSClasses } from '../styles/css';
+import EditSession from '../edit-session/edit-session';
+import { EvSearch } from '../edit-session/events';
 
 class EditorSearch extends EventEmitter<SearchUiEvents> {
-	private _editor: Editor | null = null;
-	private _view: EdiotrView | null = null;
+	private _view: EdiotrView;
 	private _mountPoint: HTMLElement | null = null;
 	private _searchContainer: HTMLDivElement | null = null;
 	private _closeButton: HTMLButtonElement | null = null;
@@ -18,13 +17,15 @@ class EditorSearch extends EventEmitter<SearchUiEvents> {
 	private _seatchMatchesCount: number = 0;
 	private _searchPhrase: string = '';
 
-	constructor(editor: Editor, view: EdiotrView) {
+	constructor(view: EdiotrView) {
 		super();
-		this._editor = editor;
 		this._view = view;
 		this._mountPoint = view.getDOMElement();
 		this._createSearchContainer();
 		this._initEventListeners();
+	}
+	private get _session(): EditSession {
+		return this._view.session;
 	}
 
 	public update(): void {
@@ -53,31 +54,16 @@ class EditorSearch extends EventEmitter<SearchUiEvents> {
 	}
 
 	private _initEventListeners(): void {
-		if (this._view) {
-			this._view.on(EvSearchUi.Open, () => {
-				this.show();
-				this.update();
-			});
-		}
+		this._view.on(EvSearchUi.Open, () => {
+			this.show();
+			this.update();
+		});
 
-		if (this._editor) {
-			this._editor.on(EvSearch.Finished, () => {
-				if (this._editor) {
-					this._seatchMatchesCount = this._editor.getSearchMatchCount();
-					this.update();
-				}
-			});
-			this._editor.on(EvDocument.Set, () => {
-				if (this._editor) {
-					this._seatchMatchesCount = this._editor.getSearchMatchCount();
-					this._searchPhrase = this._editor.getSearchPhrase();
-					if (this._input) {
-						this._input.value = this._searchPhrase;
-					}
-					this.update();
-				}
-			});
-		}
+		this._session.on(EvSearch.Finished, () => {
+			this._seatchMatchesCount = this._session.getSearchMatchCount();
+			this.update();
+		});
+
 		if (this._closeButton) {
 			this._closeButton.addEventListener('click', () => {
 				this.emit(EvSearchUi.Close, undefined);
@@ -86,11 +72,11 @@ class EditorSearch extends EventEmitter<SearchUiEvents> {
 		}
 		if (this._input) {
 			this._input.addEventListener('input', () => {
-				if (!this._input || !this._editor) {
+				if (!this._input) {
 					return;
 				}
 				this._searchPhrase = this._input.value;
-				this._editor.search(this._searchPhrase);
+				this._session.search(this._searchPhrase);
 			});
 		}
 	}

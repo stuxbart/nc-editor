@@ -1,18 +1,18 @@
-import { Editor } from '../editor';
 import { EventEmitter } from '../events';
 import { createDiv } from './dom-utils';
 import EditorLineElement from './editor-line-element';
 import Line from '../document/line';
 import EdiotrView from './editor-view';
 import { EvFont, EvScroll, TextLayerEvents } from './events';
-import { EvDocument, EvSelection, EvTokenizer } from '../editor/events';
 import { notEmpty } from '../utils';
 import { CSSClasses } from '../styles/css';
 import { HighlighterSchema } from '../highlighter';
+import EditSession from '../edit-session/edit-session';
+import { EvDocument, EvTokenizer } from '../document-session/events';
+import { EvSelection } from '../edit-session/events';
 
 class TextLayer extends EventEmitter<TextLayerEvents> {
-	private _editor: Editor | null = null;
-	private _view: EdiotrView | null = null;
+	private _view: EdiotrView;
 	private _mountPoint: HTMLElement | null = null;
 	private _textContainer: HTMLDivElement | null = null;
 	private _firstVisibleLine: number = 0;
@@ -22,11 +22,9 @@ class TextLayer extends EventEmitter<TextLayerEvents> {
 	private _hoveredLineNumber: number = 0;
 	private _lineHeight: number = 20;
 	private _letterWidth: number = 0;
-	private _highlighterSchema: HighlighterSchema = {};
 
-	constructor(editor: Editor, view: EdiotrView) {
+	constructor(view: EdiotrView) {
 		super();
-		this._editor = editor;
 		this._view = view;
 		this._mountPoint = view.getDOMElement();
 		this._createTextContainer();
@@ -34,30 +32,29 @@ class TextLayer extends EventEmitter<TextLayerEvents> {
 		this._measureLetterWidth();
 	}
 
+	private get _session(): EditSession {
+		return this._view.session;
+	}
+
+	private get _highlighterSchema(): HighlighterSchema {
+		return this._session.highlightingSchema;
+	}
+
 	private _initEventListeners(): void {
-		if (this._view) {
-			this._view.on(EvScroll.Changed, (e) => {
-				this.setFirstVisibleLine(e.firstVisibleLine);
-				this.update();
-			});
-		}
-		if (this._editor) {
-			this._editor.on(EvDocument.Edited, () => {
-				this.update();
-			});
-			this._editor.on(EvTokenizer.Finished, () => {
-				this.update();
-			});
-			this._editor.on(EvSelection.Changed, () => {
-				this._updateActiveLines();
-			});
-			this._editor.on(EvDocument.Set, () => {
-				if (this._editor) {
-					this._highlighterSchema = this._editor.getHighlighterSchema();
-					this.update();
-				}
-			});
-		}
+		this._view.on(EvScroll.Changed, (e) => {
+			this.setFirstVisibleLine(e.firstVisibleLine);
+			this.update();
+		});
+
+		this._session.documentSession.on(EvDocument.Edited, () => {
+			this.update();
+		});
+		this._session.documentSession.on(EvTokenizer.Finished, () => {
+			this.update();
+		});
+		this._session.on(EvSelection.Changed, () => {
+			this._updateActiveLines();
+		});
 	}
 
 	private _createTextContainer(): void {
@@ -86,11 +83,14 @@ class TextLayer extends EventEmitter<TextLayerEvents> {
 	}
 
 	private _updateActiveLines(): void {
-		if (this._editor === null || this._textContainer == null) {
+		if (this._textContainer == null) {
 			return;
 		}
-		const lines = this._editor.getLines(this._firstVisibleLine, this._visibleLinesCount);
-		const activeLines = this._editor.getActiveLinesNumbers(
+		const lines = this._session.reader.getLines(
+			this._firstVisibleLine,
+			this._visibleLinesCount,
+		);
+		const activeLines = this._session.getActiveLinesNumbers(
 			this._firstVisibleLine,
 			this._visibleLinesCount,
 		);
@@ -120,11 +120,14 @@ class TextLayer extends EventEmitter<TextLayerEvents> {
 	}
 
 	private _renderLines(): void {
-		if (this._editor === null || this._textContainer == null) {
+		if (this._textContainer === null) {
 			return;
 		}
-		const lines = this._editor.getLines(this._firstVisibleLine, this._visibleLinesCount);
-		const activeLines = this._editor.getActiveLinesNumbers(
+		const lines = this._session.reader.getLines(
+			this._firstVisibleLine,
+			this._visibleLinesCount,
+		);
+		const activeLines = this._session.getActiveLinesNumbers(
 			this._firstVisibleLine,
 			this._visibleLinesCount,
 		);

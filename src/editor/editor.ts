@@ -8,13 +8,7 @@ import { EditorEvents, EvDocument } from './events';
 export default class Editor extends EventEmitter<EditorEvents> {
 	private _documentSessions: Record<string, DocumentSession> = {};
 	private _editSessions: Record<string, EditSession> = {};
-
-	constructor() {
-		super();
-		const newDoc = new Document('');
-		const newDocumentSession = new DocumentSession(newDoc);
-		this._documentSessions[newDocumentSession.id] = newDocumentSession;
-	}
+	private _latestDocId: string | null = null;
 
 	private _getDocumentSession(id: string): DocumentSession {
 		if (id in this._documentSessions) {
@@ -44,10 +38,22 @@ export default class Editor extends EventEmitter<EditorEvents> {
 		const newSession = new DocumentSession(document);
 		newSession.setMode(mode);
 		this._documentSessions[newSession.id] = newSession;
+		this._latestDocId = newSession.id;
 
 		this.emit(EvDocument.Set, undefined);
 		newSession.emitLinesCountChanged(Infinity);
 		return newSession.id;
+	}
+
+	public getDocumentSession(id: string): DocumentSession {
+		if (!(id in this._documentSessions)) {
+			throw new Error("Document with given id doesn't exist.");
+		}
+		return this._documentSessions[id];
+	}
+
+	public getLatestDocumentId(): string | null {
+		return this._latestDocId;
 	}
 
 	public deleteDocument(id: string): void {

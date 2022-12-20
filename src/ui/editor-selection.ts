@@ -1,5 +1,3 @@
-import { Editor } from '../editor';
-import { EvSearch, EvSelection } from '../editor/events';
 import { Point, Selection } from '../selection';
 import { columnToOffset, offsetToColumn } from '../text-utils';
 import { CSSClasses } from '../styles/css';
@@ -10,11 +8,12 @@ import EdiotrView from './editor-view';
 import { EvFont, EvKey, EvScroll, EvSearchUi, SelectionLayerEvents } from './events';
 import { EventEmitter } from '../events';
 import { SelectionType } from '../selection/selection';
+import EditSession from '../edit-session/edit-session';
+import { EvSearch, EvSelection } from '../edit-session/events';
 
 export default class SelectionLayer extends EventEmitter<SelectionLayerEvents> {
 	private _emitterName: string = 'selection-layer';
-	private _editor: Editor | null = null;
-	private _view: EdiotrView | null = null;
+	private _view: EdiotrView;
 	private _mountPoint: HTMLElement | null = null;
 	private _selectionContainer: HTMLDivElement | null = null;
 	private _firstVisibleLine: number = 0;
@@ -32,14 +31,18 @@ export default class SelectionLayer extends EventEmitter<SelectionLayerEvents> {
 	private _lastTouchPosition: Point = new Point(0, 0);
 	private _showSearchResults: boolean = false;
 
-	constructor(editor: Editor, view: EdiotrView) {
+	constructor(view: EdiotrView) {
 		super();
-		this._editor = editor;
+
 		this._view = view;
 
 		this._mountPoint = view.getDOMElement();
 		this._crateSelctionContainer();
 		this._initEventListeners();
+	}
+
+	private get _session(): EditSession {
+		return this._view.session;
 	}
 
 	public setFirstVisibleLine(firstLine: number): void {
@@ -72,50 +75,48 @@ export default class SelectionLayer extends EventEmitter<SelectionLayerEvents> {
 	}
 
 	private _initEventListeners(): void {
-		if (this._view) {
-			this._view.on(EvScroll.Changed, (e) => {
-				this.setFirstVisibleLine(e.firstVisibleLine);
-				this.update();
-			});
-			this._view.on(EvFont.LetterWidth, (e) => {
-				this._letterWidth = e.width;
-				this.update();
-			});
-			this._view.on(EvKey.CtrlDown, () => {
-				this._isCtrlHold = true;
-			});
-			this._view.on(EvKey.CtrlUp, () => {
-				this._isCtrlHold = false;
-			});
-			this._view.on(EvKey.ShiftDown, () => {
-				this._isShitHold = true;
-			});
-			this._view.on(EvKey.ShiftUp, () => {
-				this._isShitHold = false;
-			});
-			this._view.on(EvKey.AltDown, () => {
-				this._isAltHold = true;
-			});
-			this._view.on(EvKey.AltUp, () => {
-				this._isAltHold = false;
-			});
-			this._view.on(EvSearchUi.Open, () => {
-				this._showSearchResults = true;
-				this.update();
-			});
-			this._view.on(EvSearchUi.Close, () => {
-				this._showSearchResults = false;
-				this.update();
-			});
-		}
-		if (this._editor) {
-			this._editor.on(EvSelection.Changed, () => {
-				this.update();
-			});
-			this._editor.on(EvSearch.Finished, () => {
-				this.update();
-			});
-		}
+		this._view.on(EvScroll.Changed, (e) => {
+			this.setFirstVisibleLine(e.firstVisibleLine);
+			this.update();
+		});
+		this._view.on(EvFont.LetterWidth, (e) => {
+			this._letterWidth = e.width;
+			this.update();
+		});
+		this._view.on(EvKey.CtrlDown, () => {
+			this._isCtrlHold = true;
+		});
+		this._view.on(EvKey.CtrlUp, () => {
+			this._isCtrlHold = false;
+		});
+		this._view.on(EvKey.ShiftDown, () => {
+			this._isShitHold = true;
+		});
+		this._view.on(EvKey.ShiftUp, () => {
+			this._isShitHold = false;
+		});
+		this._view.on(EvKey.AltDown, () => {
+			this._isAltHold = true;
+		});
+		this._view.on(EvKey.AltUp, () => {
+			this._isAltHold = false;
+		});
+		this._view.on(EvSearchUi.Open, () => {
+			this._showSearchResults = true;
+			this.update();
+		});
+		this._view.on(EvSearchUi.Close, () => {
+			this._showSearchResults = false;
+			this.update();
+		});
+
+		this._session.on(EvSelection.Changed, () => {
+			this.update();
+		});
+		this._session.on(EvSearch.Finished, () => {
+			this.update();
+		});
+
 		if (this._selectionContainer) {
 			this._selectionContainer.addEventListener('mousedown', (e) => this._onMouseDown(e));
 			this._selectionContainer.addEventListener('mouseup', () => this._onMouseUp());
@@ -128,11 +129,14 @@ export default class SelectionLayer extends EventEmitter<SelectionLayerEvents> {
 	}
 
 	private _renderSelections(): HTMLElement[] {
-		if (this._editor === null || this._selectionContainer === null) {
+		if (this._selectionContainer === null) {
 			return [];
 		}
-		const selections = this._editor.getSelctions();
-		const lines = this._editor.getLines(this._firstVisibleLine, this._visibleLinesCount);
+		const selections = this._session.getSelctions();
+		const lines = this._session.reader.getLines(
+			this._firstVisibleLine,
+			this._visibleLinesCount,
+		);
 		const selectionElements: HTMLElement[] = [];
 		if (selections.length === this._visibleSelections.length) {
 			for (let i = 0; i < selections.length; i++) {
@@ -166,11 +170,14 @@ export default class SelectionLayer extends EventEmitter<SelectionLayerEvents> {
 	}
 
 	private _renderCursors(): HTMLElement[] {
-		if (this._editor === null || this._selectionContainer === null) {
+		if (this._selectionContainer === null) {
 			return [];
 		}
-		const selections = this._editor.getSelctions();
-		const lines = this._editor.getLines(this._firstVisibleLine, this._visibleLinesCount);
+		const selections = this._session.getSelctions();
+		const lines = this._session.reader.getLines(
+			this._firstVisibleLine,
+			this._visibleLinesCount,
+		);
 		const cursorElements: HTMLElement[] = [];
 
 		for (const sel of selections) {
@@ -201,15 +208,14 @@ export default class SelectionLayer extends EventEmitter<SelectionLayerEvents> {
 	}
 
 	private _renderSearchResults(): HTMLElement[] {
-		if (
-			this._editor === null ||
-			this._selectionContainer === null ||
-			!this._showSearchResults
-		) {
+		if (this._selectionContainer === null || !this._showSearchResults) {
 			return [];
 		}
-		const lines = this._editor.getLines(this._firstVisibleLine, this._visibleLinesCount);
-		const searchPhraseLength = this._editor.getSearchPhrase().length;
+		const lines = this._session.reader.getLines(
+			this._firstVisibleLine,
+			this._visibleLinesCount,
+		);
+		const searchPhraseLength = this._session.getSearchPhrase().length;
 		const searchResultElements: HTMLElement[] = [];
 
 		let i = 0;
@@ -234,23 +240,20 @@ export default class SelectionLayer extends EventEmitter<SelectionLayerEvents> {
 
 	private _onMouseDown(e: MouseEvent): void {
 		this._isMouseHold = true;
-		if (this._editor === null) {
-			return;
-		}
 		const [x, y] = getRelativePositionOfMouseEvent(e);
 		const [line, offset] = this._getLineAndOffsetAtPosition(x, y);
 		const column = Math.round(x / this._letterWidth);
 
 		if (this._isShitHold) {
 			if (this._isAltHold) {
-				this._editor.extendRectangleSelection(new Point(line, column));
+				this._session.extendRectangleSelection(new Point(line, column));
 			} else {
-				this._editor.extendLastSelection(new Point(line, offset));
+				this._session.extendLastSelection(new Point(line, offset));
 			}
 		} else if (this._isCtrlHold) {
-			this._editor.addSelection(new Selection(line, offset, line, offset));
+			this._session.addSelection(new Selection(line, offset, line, offset));
 		} else {
-			this._editor.setSelection(new Selection(line, offset, line, offset));
+			this._session.setSelection(new Selection(line, offset, line, offset));
 		}
 	}
 
@@ -259,43 +262,37 @@ export default class SelectionLayer extends EventEmitter<SelectionLayerEvents> {
 	}
 
 	private _onMouseMove(e: MouseEvent): void {
-		if (this._isMouseHold && this._editor) {
+		if (this._isMouseHold) {
 			const [x, y] = getRelativePositionOfMouseEvent(e);
 			const [line, offset] = this._getLineAndOffsetAtPosition(x, y);
 			const column = Math.round(x / this._letterWidth);
 
 			if (this._isShitHold && this._isAltHold) {
-				this._editor.extendRectangleSelection(new Point(line, column));
+				this._session.extendRectangleSelection(new Point(line, column));
 			} else {
-				this._editor.extendLastSelection(new Point(line, offset));
+				this._session.extendLastSelection(new Point(line, offset));
 			}
 		}
 	}
 
 	private _onDoubleClick(e: MouseEvent): void {
-		if (this._editor === null) {
-			return;
-		}
 		const [x, y] = getRelativePositionOfMouseEvent(e);
 		const [line, offset] = this._getLineAndOffsetAtPosition(x, y);
 
 		if (!this._isShitHold) {
-			this._editor.selectWordAt(new Point(line, offset), this._isCtrlHold);
+			this._session.selectWordAt(new Point(line, offset), this._isCtrlHold);
 		}
 	}
 
 	private _onTouchStart(e: TouchEvent): void {
 		this._isTouchHold = true;
-		if (this._editor === null) {
-			return;
-		}
 		const [x, y] = getRelativePositionOfTouchEvent(e);
 		const [line, offset] = this._getLineAndOffsetAtPosition(x, y);
 		const touchTime = performance.now();
 		if (this._lastTouchTime !== null) {
 			if (touchTime - this._lastTouchTime < 200) {
 				this._isTouchSelecting = true;
-				this._editor.setSelection(new Selection(line, offset, line, offset));
+				this._session.setSelection(new Selection(line, offset, line, offset));
 			}
 		}
 		this._lastTouchTime = touchTime;
@@ -311,12 +308,12 @@ export default class SelectionLayer extends EventEmitter<SelectionLayerEvents> {
 	}
 
 	private _onTouchMove(e: TouchEvent): void {
-		if (this._isTouchHold && this._editor) {
+		if (this._isTouchHold) {
 			const [x, y] = getRelativePositionOfTouchEvent(e);
 			const [line, offset] = this._getLineAndOffsetAtPosition(x, y);
 
 			if (this._isTouchSelecting) {
-				this._editor.extendLastSelection(new Point(line, offset));
+				this._session.extendLastSelection(new Point(line, offset));
 			} else {
 				const diffY = this._lastTouchPosition.line - y;
 				const lineDiff =
@@ -334,20 +331,17 @@ export default class SelectionLayer extends EventEmitter<SelectionLayerEvents> {
 	}
 
 	private _getLineAndOffsetAtPosition(x: number, y: number): [number, number] {
-		if (this._editor === null) {
-			return [0, 0];
-		}
 		let line = Math.floor(y / this._lineHeight) + this._firstVisibleLine;
 		let offset = 0;
-		const linesData = this._editor.getLines(line, 1);
+		const linesData = this._session.reader.getLines(line, 1);
 
 		if (linesData.length === 0) {
-			const lineContent = this._editor.getLastLine();
+			const lineContent = this._session.reader.getLastLine();
 			if (lineContent === null) {
 				return [0, 0];
 			}
 			offset = columnToOffset(lineContent.rawText, Infinity);
-			line = this._editor.getTotalLinesCount() - 1;
+			line = this._session.reader.getTotalLinesCount() - 1;
 		} else {
 			const lineContent = linesData[0];
 			const column = Math.round(x / this._letterWidth);

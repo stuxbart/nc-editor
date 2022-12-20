@@ -1,15 +1,15 @@
-import { Editor } from '../editor';
 import { createDiv, px } from './dom-utils';
 import { EventEmitter } from '../events';
 import EdiotrView from './editor-view';
 import { EvScroll, ScrollBarEvents } from './events';
-import { EvDocument } from '../editor/events';
+
 import { MAX_LINES_COUNT_ON_DEFAULT_SCROLL_SCALE } from './config';
 import { CSSClasses } from '../styles/css';
+import EditSession from '../edit-session/edit-session';
+import { EvDocument } from '../document-session/events';
 
 export default class ScrollBar extends EventEmitter<ScrollBarEvents> {
-	private _editor: Editor | null = null;
-	private _view: EdiotrView | null = null;
+	private _view: EdiotrView;
 	private _mountPoint: HTMLElement | null = null;
 	private _emitterName: string = 'scroll-bar';
 	private _scrollBarContainer: HTMLDivElement | null = null;
@@ -20,13 +20,16 @@ export default class ScrollBar extends EventEmitter<ScrollBarEvents> {
 	private _maxLinesPadding: number = 10;
 	private _scale: number = 20;
 
-	constructor(editor: Editor, view: EdiotrView) {
+	constructor(view: EdiotrView) {
 		super();
-		this._editor = editor;
 		this._view = view;
 		this._mountPoint = view.getDOMElement();
 		this._createScrollContainer();
 		this._initEventListeners();
+	}
+
+	private get _session(): EditSession {
+		return this._view.session;
 	}
 
 	public update(): void {
@@ -84,20 +87,18 @@ export default class ScrollBar extends EventEmitter<ScrollBarEvents> {
 				this._onMouseUp();
 			});
 		}
-		if (this._view) {
-			this._view.on(EvScroll.Changed, (e) => {
-				if (e.emitterName === this._emitterName) {
-					return;
-				}
-				this.setFirstVisibleLine(e.firstVisibleLine);
-				this.update();
-			});
-		}
-		if (this._editor) {
-			this._editor.on(EvDocument.LinesCount, (e) => {
-				this.setTotalLinesCount(e.linesCount);
-			});
-		}
+
+		this._view.on(EvScroll.Changed, (e) => {
+			if (e.emitterName === this._emitterName) {
+				return;
+			}
+			this.setFirstVisibleLine(e.firstVisibleLine);
+			this.update();
+		});
+
+		this._session.documentSession.on(EvDocument.LinesCount, (e) => {
+			this.setTotalLinesCount(e.linesCount);
+		});
 	}
 
 	private _onScroll = (): void => {

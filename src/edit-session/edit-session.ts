@@ -29,7 +29,7 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
 		this._documentSession = documentSession;
 		this._highlightingSchema = getMode(documentSession.modeName).schema;
 
-		this._selectionManager = new SelectionManager();
+		this._selectionManager = new SelectionManager(this._document);
 		this._searchResults = new SerachResults();
 		this._reader = new DocumentReader(this._documentSession, this);
 		this._writer = new DocumentWriter(this._documentSession, this);
@@ -53,6 +53,14 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
 
 	public get searchResults(): SerachResults {
 		return this._searchResults;
+	}
+
+	public get documentSession(): DocumentSession {
+		return this._documentSession;
+	}
+
+	public get highlightingSchema(): HighlighterSchema {
+		return this._highlightingSchema;
 	}
 
 	private get _document(): Document {

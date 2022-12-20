@@ -55,4 +55,8 @@ export default class DocumentReader {
 		const line = new Line(lastLine.text, tokenizerData.getLineTokens(lastLine), []);
 		return line;
 	}
+
+	public getTotalLinesCount(): number {
+		return this._document.linesCount;
+	}
 }

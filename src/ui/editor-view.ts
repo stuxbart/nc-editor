@@ -18,17 +18,25 @@ import {
 	EvKey,
 	EvSearchUi,
 } from './events';
-import { EvDocument, EvTokenizer } from '../editor/events';
 import { EDITOR_FONT_FAMILY } from './config';
 import { CSSClasses } from '../styles/css';
 import { Point } from '../selection';
 import { SelectionType } from '../selection/selection';
 import EditorSearch from './editor-search';
+import EditSession from '../edit-session/edit-session';
+import DocumentSession from '../document-session/document-session';
+import { Document } from '../document';
+import { EvDocument, EvTokenizer } from '../document-session/events';
+import DocumentReader from '../document-reader/document-reader';
+import DocumentWriter from '../document-writer/document-writer';
 
 const MAX_LINES_PADDING = 10;
 
 export default class EditorView extends EventEmitter<EditorViewEvents> {
-	private _editor: Editor | null = null;
+	private _editor: Editor;
+	private _sessionId: string;
+	private _session: EditSession;
+	private _docSession: DocumentSession;
 	private _mountPoint: HTMLElement | null = null;
 	private _editorContainer: HTMLDivElement | null = null;
 	private _emitterName: string = 'editor-view';
@@ -71,14 +79,26 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 		super();
 		this._editor = editor;
 
+		let docId = editor.getLatestDocumentId();
+
+		if (!docId) {
+			const newDoc = new Document('doc');
+			docId = editor.addDocument(newDoc);
+		}
+
+		this._sessionId = editor.createSession(docId);
+		this._session = editor.getSession(this._sessionId);
+		this._docSession = editor.getDocumentSession(docId);
+
 		this.mount(mountPoint);
-		this._editor.addView(this);
-		this._textLayer = new TextLayer(editor, this);
-		this._selectionLayer = new SelectionLayer(editor, this);
-		this._gutter = new EditorGutter(editor, this);
-		this._scrollBar = new ScrollBar(editor, this);
-		this._input = new EditorInput(editor, this);
-		this._search = new EditorSearch(editor, this);
+
+		this._textLayer = new TextLayer(this);
+		this._selectionLayer = new SelectionLayer(this);
+		this._gutter = new EditorGutter(this);
+		this._scrollBar = new ScrollBar(this);
+		this._input = new EditorInput(this);
+		this._search = new EditorSearch(this);
+
 		this._scrollBarInitialConfig();
 		this._initEventListeners();
 		this._createInputElement();
@@ -88,9 +108,22 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 		this._emitInitEvent();
 	}
 
-	/*
-	 *   Creates entire dom structure of editor.
-	 */
+	public get session(): EditSession {
+		return this._session;
+	}
+
+	public get reader(): DocumentReader {
+		return this._session.reader;
+	}
+
+	public get writer(): DocumentWriter {
+		return this._session.writer;
+	}
+
+	public get visibleLinesCount(): number {
+		return this._visibleLinesCount;
+	}
+
 	public mount(parent: HTMLElement | string): number {
 		if (typeof parent === 'string') {
 			const p = document.getElementById(parent);
@@ -139,6 +172,12 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 
 		this.emit(EvTheme.Changed, { theme: this._theme });
 		return 0;
+	}
+
+	public setSession(id: string): void {
+		this._session = this._editor.getSession(id);
+		this._docSession = this._session.documentSession;
+		this._sessionId = id;
 	}
 
 	public update(): void {
@@ -218,30 +257,23 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 			this._editorContainer.addEventListener('keyup', (e) => this._onKeyUp(e));
 			this._editorContainer.addEventListener('paste', (e) => this._onPaste(e));
 		}
-		if (this._editor) {
-			this._editor.on(EvDocument.Edited, () => {
-				if (this._editor) {
-					const selections = this._editor.getSelctions();
-					const lastSel = selections[selections.length - 1];
-					const editPoint =
-						lastSel.type === SelectionType.L ? lastSel.start : lastSel.end;
-					const isVisible = this._isCursorVisible(editPoint);
-					if (!isVisible) {
-						this._scrollToLine(
-							editPoint.line - Math.round(this._visibleLinesCount / 2),
-							'editor-view',
-						);
-					}
-				}
-				// this.update();
-			});
-			this._editor.on(EvDocument.Set, () => {
-				this.update();
-			});
-			this._editor.on(EvTokenizer.Finished, () => {
-				this.update();
-			});
-		}
+
+		this._docSession.on(EvDocument.Edited, () => {
+			const selections = this._session.getSelctions();
+			const lastSel = selections[selections.length - 1];
+			const editPoint = lastSel.type === SelectionType.L ? lastSel.start : lastSel.end;
+			const isVisible = this._isCursorVisible(editPoint);
+			if (!isVisible) {
+				this._scrollToLine(
+					editPoint.line - Math.round(this._visibleLinesCount / 2),
+					'editor-view',
+				);
+			}
+		});
+		this._docSession.on(EvTokenizer.Finished, () => {
+			this.update();
+		});
+
 		if (this._scrollBar) {
 			this._scrollBar.on(EvScroll.Changed, (e) => {
 				this._scrollToLine(e.firstVisibleLine, e.emitterName);
@@ -273,11 +305,8 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 	}
 
 	private _onPaste(e: ClipboardEvent): void {
-		if (!this._editor) {
-			return;
-		}
 		if (e.clipboardData) {
-			this._editor.insert(e.clipboardData.getData('text'));
+			this.writer.insert(e.clipboardData.getData('text'));
 		}
 		e.stopPropagation();
 		e.preventDefault();
@@ -328,115 +357,88 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 				break;
 			}
 			case 'KeyA': {
-				if (this._editor && this._isCtrlHold && !this._isRightAltHold) {
-					this._editor.selectAll();
+				if (this._isCtrlHold && !this._isRightAltHold) {
+					this._session.selectAll();
 				}
 				break;
 			}
 			case 'ArrowUp': {
-				if (this._editor === null) {
-					return;
-				}
 				if (this._isLeftAltHold) {
-					this._editor.swapLinesUp();
+					this.writer.swapLinesUp();
 				} else {
-					this._editor.collapseSelectionToTop();
+					this._session.collapseSelectionToTop();
 				}
 				break;
 			}
 			case 'ArrowDown': {
-				if (this._editor === null) {
-					return;
-				}
 				if (this._isLeftAltHold) {
-					this._editor.swapLinesDown();
+					this.writer.swapLinesDown();
 				} else {
-					this._editor.collapseSelectionToBottom();
+					this._session.collapseSelectionToBottom();
 				}
 				break;
 			}
 			case 'ArrowLeft': {
-				if (this._editor === null) {
-					return;
-				}
 				if (this._isShitHold && this._isCtrlHold) {
-					this._editor.selectWordBefore();
+					this._session.selectWordBefore();
 				} else if (this._isCtrlHold) {
-					this._editor.moveSelectionWordBefore();
+					this._session.moveSelectionWordBefore();
 				} else {
-					this._editor.collapseSelectionToLeft();
+					this._session.collapseSelectionToLeft();
 				}
 				break;
 			}
 			case 'ArrowRight': {
-				if (this._editor === null) {
-					return;
-				}
 				if (this._isShitHold && this._isCtrlHold) {
-					this._editor.selectWordAfter();
+					this._session.selectWordAfter();
 				} else if (this._isCtrlHold) {
-					this._editor.moveSelectionWordAfter();
+					this._session.moveSelectionWordAfter();
 				} else {
-					this._editor.collapseSelectionToRight();
+					this._session.collapseSelectionToRight();
 				}
 				break;
 			}
 			case 'Home': {
-				if (this._editor === null) {
-					return;
-				}
 				if (this._isShitHold) {
-					this._editor.selectStartOfTheLine();
+					this._session.selectStartOfTheLine();
 				} else {
-					this._editor.collapseSelectionToHome();
+					this._session.collapseSelectionToHome();
 				}
 				break;
 			}
 			case 'End': {
-				if (this._editor === null) {
-					return;
-				}
 				if (this._isShitHold) {
-					this._editor.selectEndOfTheLine();
+					this._session.selectEndOfTheLine();
 				} else {
-					this._editor.collapseSelectionToEnd();
+					this._session.collapseSelectionToEnd();
 				}
 				break;
 			}
 			case 'Backspace': {
-				if (!this._editor) {
-					return;
-				}
 				if (this._isCtrlHold) {
-					this._editor.removeWordBefore();
+					this.writer.removeWordBefore();
 				} else {
-					this._editor.remove();
+					this.writer.remove();
 				}
 				break;
 			}
 			case 'Delete': {
-				if (!this._editor) {
-					return;
-				}
 				if (this._isCtrlHold) {
-					this._editor.removeWordAfter();
+					this.writer.removeWordAfter();
 				} else {
-					this._editor.remove(1);
+					this.writer.remove(1);
 				}
 				break;
 			}
 			case 'Tab': {
-				if (!this._editor) {
-					return;
-				}
 				if (this._isShitHold) {
-					this._editor.removeIndentFromSelectedLines();
+					this.writer.removeIndentFromSelectedLines();
 				} else {
-					const linesCount = this._editor.getSelectedLinesCount();
+					const linesCount = this._session.getSelectedLinesCount();
 					if (linesCount === 1) {
-						this._editor.insert('\t');
+						this.writer.insert('\t');
 					} else {
-						this._editor.indentSelectedLines();
+						this.writer.indentSelectedLines();
 					}
 				}
 				e.stopPropagation();
@@ -444,27 +446,18 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 				break;
 			}
 			case 'KeyX': {
-				if (!this._editor) {
-					return;
-				}
 				if (this._isCtrlHold) {
-					this._editor.cut();
+					this.writer.cut();
 				}
 				break;
 			}
 			case 'KeyC': {
-				if (!this._editor) {
-					return;
-				}
 				if (this._isCtrlHold) {
-					this._editor.copy();
+					this.writer.copy();
 				}
 				break;
 			}
 			case 'KeyF': {
-				if (!this._editor) {
-					return;
-				}
 				if (this._isCtrlHold) {
 					this.emit(EvSearchUi.Open, undefined);
 					e.preventDefault();
@@ -524,10 +517,7 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 	}
 
 	private _scrollToLine(lineNumber: number, emitterName: string = this._emitterName): void {
-		if (this._editor === null) {
-			return;
-		}
-		let totalLines = this._editor.getTotalLinesCount();
+		let totalLines = this.reader.getTotalLinesCount();
 		totalLines = totalLines < 0 ? 0 : totalLines;
 
 		if (lineNumber < 0) {

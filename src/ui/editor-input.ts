@@ -1,18 +1,14 @@
-import { Editor } from '../editor';
 import { EDITOR_INPUT_ID } from './config';
 import { CSSClasses } from '../styles/css';
 import { createTextArea } from './dom-utils';
 import EdiotrView from './editor-view';
 import { EvFocus } from './events';
-import { EvDocument } from '../editor/events';
 
 export default class EditorInput {
 	private _domElement: HTMLTextAreaElement | null = null;
-	private _editor: Editor | null = null;
-	private _view: EdiotrView | null = null;
+	private _view: EdiotrView;
 
-	constructor(editor: Editor, view: EdiotrView) {
-		this._editor = editor;
+	constructor(view: EdiotrView) {
 		this._view = view;
 
 		this._domElement = createTextArea(CSSClasses.MAIN_INPUT);
@@ -36,27 +32,19 @@ export default class EditorInput {
 		if (this._domElement) {
 			this._domElement.addEventListener('input', () => this._onInput());
 		}
-		if (this._view) {
-			this._view.on(EvFocus.Changed, (e) => {
-				if (e.focused) {
-					this.focus();
-				}
-			});
-			this._editor?.on(EvDocument.Set, () => {
+
+		this._view.on(EvFocus.Changed, (e) => {
+			if (e.focused) {
 				this.focus();
-			});
-		}
+			}
+		});
 	}
 
 	private _onInput(): void {
-		if (
-			this._editor === null ||
-			this._domElement === null ||
-			this._domElement.value.length === 0
-		) {
+		if (this._domElement === null || this._domElement.value.length === 0) {
 			return;
 		}
-		this._editor.insert(this._domElement.value);
+		this._view.writer.insert(this._domElement.value);
 		this._domElement.value = '';
 	}
 }

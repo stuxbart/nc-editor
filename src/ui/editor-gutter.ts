@@ -1,14 +1,13 @@
-import { Editor } from '../editor';
 import { EventEmitter } from '../events';
-import { EvDocument } from '../editor/events';
 import { createDiv, px } from './dom-utils';
 import EdiotrView from './editor-view';
 import { EvGutter, EvScroll, EditorGutterEvents } from './events';
 import { CSSClasses } from '../styles/css';
+import EditSession from '../edit-session/edit-session';
+import { EvDocument } from '../document-session/events';
 
 class EditorGutter extends EventEmitter<EditorGutterEvents> {
-	private _editor: Editor | null = null;
-	private _view: EdiotrView | null = null;
+	private _view: EdiotrView;
 	private _mountPoint: HTMLElement | null = null;
 	private _gutterContainer: HTMLDivElement | null = null;
 	private _firstVisibleLine: number = 0;
@@ -16,13 +15,19 @@ class EditorGutter extends EventEmitter<EditorGutterEvents> {
 	private _totalLinesCount: number = 50;
 	private _gutterWidth: number = 50;
 
-	constructor(editor: Editor, view: EdiotrView) {
+	constructor(view: EdiotrView) {
 		super();
-		this._editor = editor;
 		this._view = view;
 		this._mountPoint = view.getDOMElement();
 		this._createGutterContainer();
 		this._initEventListeners();
+		this._totalLinesCount = this._session.reader.getTotalLinesCount();
+		this._visibleLinesCount = this._view.visibleLinesCount;
+		this.update();
+	}
+
+	private get _session(): EditSession {
+		return this._view.session;
 	}
 
 	public update(): void {
@@ -65,18 +70,11 @@ class EditorGutter extends EventEmitter<EditorGutterEvents> {
 	}
 
 	private _initEventListeners(): void {
-		if (this._view === null) {
-			return;
-		}
 		this._view.on(EvScroll.Changed, (e) => {
 			this.setFirstVisibleLine(e.firstVisibleLine);
 			this.update();
 		});
-
-		if (this._editor === null) {
-			return;
-		}
-		this._editor.on(EvDocument.LinesCount, (e) => {
+		this._session.documentSession.on(EvDocument.LinesCount, (e) => {
 			this.setTotalLinesCount(e.linesCount);
 			this.setWidthForLinesCount(e.linesCount);
 			this.update();
@@ -96,6 +94,7 @@ class EditorGutter extends EventEmitter<EditorGutterEvents> {
 		if (this._gutterContainer === null) {
 			return;
 		}
+
 		const lines = [];
 		for (let i = 0; i < this._visibleLinesCount; i++) {
 			if (i + this._firstVisibleLine > this._totalLinesCount - 1) {
