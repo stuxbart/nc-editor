@@ -78,6 +78,12 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 
 	constructor(editor: Editor, mountPoint: HTMLElement | string) {
 		super();
+		this._onDocumentEdit = this._onDocumentEdit.bind(this);
+		this._onTokenizerFinished = this._onTokenizerFinished.bind(this);
+		this._onSelectionChanged = this._onSelectionChanged.bind(this);
+		this._onLinesCountChanged = this._onLinesCountChanged.bind(this);
+		this._onSearchFinished = this._onSearchFinished.bind(this);
+
 		this._editor = editor;
 
 		let docId = editor.getLatestDocumentId();
@@ -309,36 +315,61 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 	}
 
 	private _initSessionEventListeners(): void {
-		this._docSession.on(EvDocument.Edited, () => {
-			const selections = this._session.getSelctions();
-			const lastSel = selections[selections.length - 1];
-			const editPoint = lastSel.type === SelectionType.L ? lastSel.start : lastSel.end;
-			const isVisible = this._isCursorVisible(editPoint);
-			if (!isVisible) {
-				this._scrollToLine(
-					editPoint.line - Math.round(this._visibleLinesCount / 2),
-					'editor-view',
-				);
-			}
-			this.emit(EvDocument.Edited, undefined);
-		});
-		this._docSession.on(EvTokenizer.Finished, () => {
-			this.update();
-			this.emit(EvTokenizer.Finished, undefined);
-		});
-		this._session.on(EvSelection.Changed, () => {
-			this.emit(EvSelection.Changed, undefined);
-		});
-		this._docSession.on(EvDocument.LinesCount, (e) => {
-			this.emit(EvDocument.LinesCount, e);
-		});
-
-		this._session.on(EvSearch.Finished, () => {
-			this.emit(EvSearch.Finished, undefined);
-		});
+		// eslint-disable-next-line @typescript-eslint/unbound-method
+		this._docSession.on(EvDocument.Edited, this._onDocumentEdit);
+		// eslint-disable-next-line @typescript-eslint/unbound-method
+		this._docSession.on(EvTokenizer.Finished, this._onTokenizerFinished);
+		// eslint-disable-next-line @typescript-eslint/unbound-method
+		this._session.on(EvSelection.Changed, this._onSelectionChanged);
+		// eslint-disable-next-line @typescript-eslint/unbound-method
+		this._docSession.on(EvDocument.LinesCount, this._onLinesCountChanged);
+		// eslint-disable-next-line @typescript-eslint/unbound-method
+		this._session.on(EvSearch.Finished, this._onSearchFinished);
 	}
 
-	private _clearSessionEventListeners(): void {}
+	private _clearSessionEventListeners(): void {
+		// eslint-disable-next-line @typescript-eslint/unbound-method
+		this._docSession.off(EvDocument.Edited, this._onDocumentEdit);
+		// eslint-disable-next-line @typescript-eslint/unbound-method
+		this._docSession.off(EvTokenizer.Finished, this._onTokenizerFinished);
+		// eslint-disable-next-line @typescript-eslint/unbound-method
+		this._session.off(EvSelection.Changed, this._onSelectionChanged);
+		// eslint-disable-next-line @typescript-eslint/unbound-method
+		this._docSession.off(EvDocument.LinesCount, this._onLinesCountChanged);
+		// eslint-disable-next-line @typescript-eslint/unbound-method
+		this._session.off(EvSearch.Finished, this._onSearchFinished);
+	}
+
+	private _onDocumentEdit(): void {
+		const selections = this._session.getSelctions();
+		const lastSel = selections[selections.length - 1];
+		const editPoint = lastSel.type === SelectionType.L ? lastSel.start : lastSel.end;
+		const isVisible = this._isCursorVisible(editPoint);
+		if (!isVisible) {
+			this._scrollToLine(
+				editPoint.line - Math.round(this._visibleLinesCount / 2),
+				'editor-view',
+			);
+		}
+		this.emit(EvDocument.Edited, undefined);
+	}
+
+	private _onTokenizerFinished(): void {
+		this.update();
+		this.emit(EvTokenizer.Finished, undefined);
+	}
+
+	private _onSelectionChanged(): void {
+		this.emit(EvSelection.Changed, undefined);
+	}
+
+	private _onLinesCountChanged(e: { linesCount: number }): void {
+		this.emit(EvDocument.LinesCount, e);
+	}
+
+	private _onSearchFinished(): void {
+		this.emit(EvSearch.Finished, undefined);
+	}
 
 	private _onPaste(e: ClipboardEvent): void {
 		if (e.clipboardData) {
