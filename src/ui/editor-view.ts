@@ -180,6 +180,18 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 		this._sessionId = id;
 	}
 
+	public setDocument(id: string, newSession: boolean = true): void {
+		if (newSession) {
+			this._sessionId = this._editor.createSession(id);
+			this._session = this._editor.getSession(this._sessionId);
+			this._docSession = this._editor.getDocumentSession(id);
+		} else {
+			this._session = this._editor.getEditSessionForDocument(id);
+			this._docSession = this._session.documentSession;
+			this._sessionId = this._session.id;
+		}
+	}
+
 	public update(): void {
 		this._updateEditorSize();
 	}
