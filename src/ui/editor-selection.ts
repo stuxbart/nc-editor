@@ -10,6 +10,7 @@ import { EventEmitter } from '../events';
 import { SelectionType } from '../selection/selection';
 import EditSession from '../edit-session/edit-session';
 import { EvSearch, EvSelection } from '../edit-session/events';
+import { EvDocument } from '../document-session/events';
 
 export default class SelectionLayer extends EventEmitter<SelectionLayerEvents> {
 	private _emitterName: string = 'selection-layer';
@@ -110,10 +111,13 @@ export default class SelectionLayer extends EventEmitter<SelectionLayerEvents> {
 			this.update();
 		});
 
-		this._session.on(EvSelection.Changed, () => {
+		this._view.on(EvSelection.Changed, () => {
 			this.update();
 		});
-		this._session.on(EvSearch.Finished, () => {
+		this._view.on(EvSearch.Finished, () => {
+			this.update();
+		});
+		this._view.on(EvDocument.Set, () => {
 			this.update();
 		});
 

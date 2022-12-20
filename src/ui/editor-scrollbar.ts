@@ -96,8 +96,13 @@ export default class ScrollBar extends EventEmitter<ScrollBarEvents> {
 			this.update();
 		});
 
-		this._session.documentSession.on(EvDocument.LinesCount, (e) => {
+		this._view.on(EvDocument.LinesCount, (e) => {
 			this.setTotalLinesCount(e.linesCount);
+		});
+
+		this._view.on(EvDocument.Set, () => {
+			const linesCount = this._session.reader.getTotalLinesCount();
+			this.setTotalLinesCount(linesCount);
 		});
 	}
 

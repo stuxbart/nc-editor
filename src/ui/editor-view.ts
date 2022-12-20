@@ -29,6 +29,7 @@ import { Document } from '../document';
 import { EvDocument, EvTokenizer } from '../document-session/events';
 import DocumentReader from '../document-reader/document-reader';
 import DocumentWriter from '../document-writer/document-writer';
+import { EvSearch, EvSelection } from '../edit-session/events';
 
 const MAX_LINES_PADDING = 10;
 
@@ -178,9 +179,12 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 		this._session = this._editor.getSession(id);
 		this._docSession = this._session.documentSession;
 		this._sessionId = id;
+		this._clearSessionEventListeners();
+		this._initSessionEventListeners();
+		this.emit(EvDocument.Set, undefined);
 	}
 
-	public setDocument(id: string, newSession: boolean = true): void {
+	public setDocument(id: string, newSession: boolean = false): void {
 		if (newSession) {
 			this._sessionId = this._editor.createSession(id);
 			this._session = this._editor.getSession(this._sessionId);
@@ -190,6 +194,9 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 			this._docSession = this._session.documentSession;
 			this._sessionId = this._session.id;
 		}
+		this._clearSessionEventListeners();
+		this._initSessionEventListeners();
+		this.emit(EvDocument.Set, undefined);
 	}
 
 	public update(): void {
@@ -270,22 +277,6 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 			this._editorContainer.addEventListener('paste', (e) => this._onPaste(e));
 		}
 
-		this._docSession.on(EvDocument.Edited, () => {
-			const selections = this._session.getSelctions();
-			const lastSel = selections[selections.length - 1];
-			const editPoint = lastSel.type === SelectionType.L ? lastSel.start : lastSel.end;
-			const isVisible = this._isCursorVisible(editPoint);
-			if (!isVisible) {
-				this._scrollToLine(
-					editPoint.line - Math.round(this._visibleLinesCount / 2),
-					'editor-view',
-				);
-			}
-		});
-		this._docSession.on(EvTokenizer.Finished, () => {
-			this.update();
-		});
-
 		if (this._scrollBar) {
 			this._scrollBar.on(EvScroll.Changed, (e) => {
 				this._scrollToLine(e.firstVisibleLine, e.emitterName);
@@ -314,7 +305,40 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 				this._setFocus(true);
 			});
 		}
+		this._initSessionEventListeners();
 	}
+
+	private _initSessionEventListeners(): void {
+		this._docSession.on(EvDocument.Edited, () => {
+			const selections = this._session.getSelctions();
+			const lastSel = selections[selections.length - 1];
+			const editPoint = lastSel.type === SelectionType.L ? lastSel.start : lastSel.end;
+			const isVisible = this._isCursorVisible(editPoint);
+			if (!isVisible) {
+				this._scrollToLine(
+					editPoint.line - Math.round(this._visibleLinesCount / 2),
+					'editor-view',
+				);
+			}
+			this.emit(EvDocument.Edited, undefined);
+		});
+		this._docSession.on(EvTokenizer.Finished, () => {
+			this.update();
+			this.emit(EvTokenizer.Finished, undefined);
+		});
+		this._session.on(EvSelection.Changed, () => {
+			this.emit(EvSelection.Changed, undefined);
+		});
+		this._docSession.on(EvDocument.LinesCount, (e) => {
+			this.emit(EvDocument.LinesCount, e);
+		});
+
+		this._session.on(EvSearch.Finished, () => {
+			this.emit(EvSearch.Finished, undefined);
+		});
+	}
+
+	private _clearSessionEventListeners(): void {}
 
 	private _onPaste(e: ClipboardEvent): void {
 		if (e.clipboardData) {

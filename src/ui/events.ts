@@ -1,3 +1,10 @@
+import {
+	IDocumentEditedEvent,
+	IDocumentLinesCountChanged,
+	IDocumentSet,
+	ITokenizerEvent,
+} from '../document-session/events';
+import { ISearchFinishedEvent, ISelectionChangedEvent } from '../edit-session/events';
 import { Theme } from './themes';
 
 /*
@@ -100,6 +107,12 @@ export interface EditorViewEvents
 		ILetterWidthEvent,
 		IViewInitializedEvent,
 		IKeyEvnets,
-		ISearchUiVisibilityEvents {}
+		ISearchUiVisibilityEvents,
+		IDocumentEditedEvent,
+		ITokenizerEvent,
+		ISelectionChangedEvent,
+		IDocumentLinesCountChanged,
+		ISearchFinishedEvent,
+		IDocumentSet {}
 export interface SelectionLayerEvents extends IScrollEvent {}
 export interface SearchUiEvents extends ISearchUiVisibilityEvents {}

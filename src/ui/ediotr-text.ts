@@ -45,15 +45,17 @@ class TextLayer extends EventEmitter<TextLayerEvents> {
 			this.setFirstVisibleLine(e.firstVisibleLine);
 			this.update();
 		});
-
-		this._session.documentSession.on(EvDocument.Edited, () => {
+		this._view.on(EvDocument.Edited, () => {
 			this.update();
 		});
-		this._session.documentSession.on(EvTokenizer.Finished, () => {
+		this._view.on(EvTokenizer.Finished, () => {
 			this.update();
 		});
-		this._session.on(EvSelection.Changed, () => {
+		this._view.on(EvSelection.Changed, () => {
 			this._updateActiveLines();
+		});
+		this._view.on(EvDocument.Set, () => {
+			this.update();
 		});
 	}
 

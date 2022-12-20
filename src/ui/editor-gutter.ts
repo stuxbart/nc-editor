@@ -74,9 +74,15 @@ class EditorGutter extends EventEmitter<EditorGutterEvents> {
 			this.setFirstVisibleLine(e.firstVisibleLine);
 			this.update();
 		});
-		this._session.documentSession.on(EvDocument.LinesCount, (e) => {
+		this._view.on(EvDocument.LinesCount, (e) => {
 			this.setTotalLinesCount(e.linesCount);
 			this.setWidthForLinesCount(e.linesCount);
+			this.update();
+		});
+		this._view.on(EvDocument.Set, () => {
+			const linesCount = this._session.reader.getTotalLinesCount();
+			this.setTotalLinesCount(linesCount);
+			this.setWidthForLinesCount(linesCount);
 			this.update();
 		});
 	}

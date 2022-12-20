@@ -5,6 +5,7 @@ import { EvSearchUi, SearchUiEvents } from './events';
 import { CSSClasses } from '../styles/css';
 import EditSession from '../edit-session/edit-session';
 import { EvSearch } from '../edit-session/events';
+import { EvDocument } from '../document-session/events';
 
 class EditorSearch extends EventEmitter<SearchUiEvents> {
 	private _view: EdiotrView;
@@ -59,9 +60,14 @@ class EditorSearch extends EventEmitter<SearchUiEvents> {
 			this.update();
 		});
 
-		this._session.on(EvSearch.Finished, () => {
+		this._view.on(EvSearch.Finished, () => {
 			this._seatchMatchesCount = this._session.getSearchMatchCount();
 			this.update();
+		});
+		this._view.on(EvDocument.Set, () => {
+			if (this._input && this._searchPhrase) {
+				this._session.search(this._searchPhrase);
+			}
 		});
 
 		if (this._closeButton) {
