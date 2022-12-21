@@ -232,12 +232,12 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
 	}
 
 	public undo(): void {
-		this._selectionHistory.undo();
 		this._documentSession.undo();
+		this._selectionHistory.undo();
 	}
 
 	public redo(): void {
-		this._selectionHistory.redo();
 		this._documentSession.redo();
+		this._selectionHistory.redo();
 	}
 }
