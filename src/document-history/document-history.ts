@@ -1,5 +1,5 @@
 import DocumentSession from '../document-session/document-session';
-import { Point } from '../selection';
+import { Point, Range } from '../selection';
 import HistoryOperation, { HisotryOperations } from './history-operation';
 import HistoryVersion from './history-version';
 
@@ -50,7 +50,7 @@ export default class DocumentHistory {
 		if (nextV === undefined) {
 			return;
 		}
-		this._applyChanges(nextV.reverseOperations);
+		this._applyChanges(nextV.operations);
 		this._undo.push(nextV);
 	}
 
@@ -65,13 +65,20 @@ export default class DocumentHistory {
 
 	private _applyChanges(ops: HistoryOperation[]): void {
 		for (const op of ops) {
-			switch (op.type) {
-				case HisotryOperations.Insert:
-					break;
-				case HisotryOperations.Delete:
-					break;
-				default:
-					break;
+			if (op.type === HisotryOperations.Insert) {
+				const line = op.pos.line;
+				const offset = op.pos.offset;
+				this._documentSession.document.insert(op.text, line, offset);
+				this._documentSession.updateLinesTokens(line);
+				this._documentSession.emitLinesCountChanged(1);
+				this._documentSession.emitEditEvent();
+			} else {
+				this._documentSession.document.remove(
+					new Range(op.pos.line, op.pos.offset, op.endPos.line, op.endPos.offset),
+				);
+				this._documentSession.updateLinesTokens(op.pos.line);
+				this._documentSession.emitLinesCountChanged(1);
+				this._documentSession.emitEditEvent();
 			}
 		}
 	}

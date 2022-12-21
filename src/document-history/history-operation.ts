@@ -17,4 +17,19 @@ export default class HistoryOperation {
 		this.endPos = endPos;
 		this.text = text ? text : '';
 	}
+
+	public getReverse(): HistoryOperation {
+		if (this.type === HisotryOperations.Insert) {
+			const op = new HistoryOperation(HisotryOperations.Delete, this.pos, this.endPos, '');
+			return op;
+		} else {
+			const op = new HistoryOperation(
+				HisotryOperations.Insert,
+				this.pos,
+				this.endPos,
+				this.text,
+			);
+			return op;
+		}
+	}
 }

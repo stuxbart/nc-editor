@@ -8,7 +8,7 @@ export default class HistoryVersion {
 	}
 
 	public get reverseOperations(): HistoryOperation[] {
-		return this._operations;
+		return this._operations.map((op) => op.getReverse()).reverse();
 	}
 
 	public get operations(): HistoryOperation[] {
