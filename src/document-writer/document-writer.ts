@@ -23,6 +23,7 @@ export default class DocumentWriter {
 		const docSession = this._documentSession;
 		const selections = editSession.selections.getSelections();
 		docSession.history.startTransaction();
+		editSession.history.createSnapshot();
 
 		for (const sel of selections) {
 			if (sel.isCollapsed) {
@@ -66,6 +67,7 @@ export default class DocumentWriter {
 		const docSession = this._documentSession;
 		const selections = editSession.selections.getSelections();
 		docSession.history.startTransaction();
+		editSession.history.createSnapshot();
 
 		let text: string = '';
 		for (const sel of selections) {
@@ -173,6 +175,8 @@ export default class DocumentWriter {
 		const docSession = this._documentSession;
 		const selections = editSession.selections.getSelections();
 		docSession.history.startTransaction();
+		editSession.history.createSnapshot();
+
 		if (selections.length !== 1) {
 			return;
 		}
@@ -201,6 +205,8 @@ export default class DocumentWriter {
 		const docSession = this._documentSession;
 		const selections = editSession.selections.getSelections();
 		docSession.history.startTransaction();
+		editSession.history.createSnapshot();
+
 		if (selections.length !== 1) {
 			return;
 		}
@@ -230,6 +236,8 @@ export default class DocumentWriter {
 		const docSession = this._documentSession;
 		const selectedLines = editSession.getActiveLinesNumbers();
 		docSession.history.startTransaction();
+		editSession.history.createSnapshot();
+
 		if (selectedLines.size < 2) {
 			return;
 		}
@@ -249,6 +257,8 @@ export default class DocumentWriter {
 		const docSession = this._documentSession;
 		const selectedLines = editSession.getActiveLinesNumbers();
 		docSession.history.startTransaction();
+		editSession.history.createSnapshot();
+
 		for (const lineNumber of selectedLines) {
 			const line = document.getLine(lineNumber);
 			if (!line.startsWith(indentString)) {

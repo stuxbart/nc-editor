@@ -534,7 +534,7 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 			}
 			case 'KeyZ': {
 				if (this._isCtrlHold) {
-					this._docSession.undo();
+					this._session.undo();
 					e.preventDefault();
 					e.stopPropagation();
 				}
@@ -542,7 +542,7 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 			}
 			case 'KeyY': {
 				if (this._isCtrlHold) {
-					this._docSession.redo();
+					this._session.redo();
 					e.preventDefault();
 					e.stopPropagation();
 				}

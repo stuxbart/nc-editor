@@ -7,6 +7,7 @@ import { HighlighterSchema } from '../highlighter';
 import { getMode } from '../modes';
 import { SerachResults } from '../search';
 import { Point, Selection } from '../selection';
+import SelectionHistory from '../selection/selection-history';
 import SelectionManager from '../selection/selection-manager';
 import { randomId } from '../utils';
 import { EditSessionEvents, EvSearch, EvSelection } from './events';
@@ -17,6 +18,7 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
 	private _highlightingSchema: HighlighterSchema;
 	private _searchResults: SerachResults;
 	private _selectionManager: SelectionManager;
+	private _selectionHistory: SelectionHistory;
 	private _reader: DocumentReader;
 	private _writer: DocumentWriter;
 
@@ -30,6 +32,7 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
 		this._highlightingSchema = getMode(documentSession.modeName).schema;
 
 		this._selectionManager = new SelectionManager(this._document);
+		this._selectionHistory = new SelectionHistory(this);
 		this._searchResults = new SerachResults();
 		this._reader = new DocumentReader(this._documentSession, this);
 		this._writer = new DocumentWriter(this._documentSession, this);
@@ -49,6 +52,10 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
 
 	public get selections(): SelectionManager {
 		return this._selectionManager;
+	}
+
+	public get history(): SelectionHistory {
+		return this._selectionHistory;
 	}
 
 	public get searchResults(): SerachResults {
@@ -222,5 +229,15 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
 
 	private _emitSelectionChangedEvent(): void {
 		this.emit(EvSelection.Changed, undefined);
+	}
+
+	public undo(): void {
+		this._selectionHistory.undo();
+		this._documentSession.undo();
+	}
+
+	public redo(): void {
+		this._selectionHistory.redo();
+		this._documentSession.redo();
 	}
 }

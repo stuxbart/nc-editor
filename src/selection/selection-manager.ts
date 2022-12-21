@@ -93,6 +93,10 @@ export default class SelectionManager {
 		this._selections = [selection];
 	}
 
+	public setSelections(selection: Selection[]): void {
+		this._selections = selection;
+	}
+
 	public addSelection(selection: Selection): void {
 		this._selections.push(selection);
 		this._removeOverlappingSelections();
