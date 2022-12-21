@@ -73,7 +73,7 @@ export enum EvSearchUi {
 	Close = 'search.CLose',
 }
 export interface ISearchUiVisibilityEvents {
-	[EvSearchUi.Open]: undefined;
+	[EvSearchUi.Open]: { phrase: string | null };
 	[EvSearchUi.Close]: undefined;
 }
 /*

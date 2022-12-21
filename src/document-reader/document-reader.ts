@@ -59,4 +59,12 @@ export default class DocumentReader {
 	public getTotalLinesCount(): number {
 		return this._document.linesCount;
 	}
+
+	public getSelectedText(): string {
+		let text = '';
+		for (const sel of this._editSession.selections.getSelections()) {
+			text += this._document.getText(sel);
+		}
+		return text;
+	}
 }

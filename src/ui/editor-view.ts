@@ -525,7 +525,8 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 			}
 			case 'KeyF': {
 				if (this._isCtrlHold) {
-					this.emit(EvSearchUi.Open, undefined);
+					const phrase = this._session.reader.getSelectedText();
+					this.emit(EvSearchUi.Open, { phrase: phrase ? phrase : null });
 					e.preventDefault();
 					e.stopPropagation();
 				}

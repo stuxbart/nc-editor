@@ -33,6 +33,11 @@ class EditorSearch extends EventEmitter<SearchUiEvents> {
 		if (this._resultsContainer) {
 			this._resultsContainer.textContent = `Results: ${this._seatchMatchesCount}`;
 		}
+		if (this._input) {
+			if (this._input.value !== this._searchPhrase) {
+				this._input.value = this._searchPhrase;
+			}
+		}
 	}
 
 	public show(): void {
@@ -55,7 +60,14 @@ class EditorSearch extends EventEmitter<SearchUiEvents> {
 	}
 
 	private _initEventListeners(): void {
-		this._view.on(EvSearchUi.Open, () => {
+		this._view.on(EvSearchUi.Open, ({ phrase }) => {
+			if (phrase !== null) {
+				if (!this._input) {
+					return;
+				}
+				this._searchPhrase = phrase;
+				this._session.search(this._searchPhrase);
+			}
 			this.show();
 			this.update();
 		});
