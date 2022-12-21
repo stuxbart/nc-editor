@@ -532,6 +532,22 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 				}
 				break;
 			}
+			case 'KeyZ': {
+				if (this._isCtrlHold) {
+					this._docSession.undo();
+					e.preventDefault();
+					e.stopPropagation();
+				}
+				break;
+			}
+			case 'KeyY': {
+				if (this._isCtrlHold) {
+					this._docSession.redo();
+					e.preventDefault();
+					e.stopPropagation();
+				}
+				break;
+			}
 			default:
 				break;
 		}
