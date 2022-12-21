@@ -32,6 +32,26 @@ export default class DocumentHistory {
 		this._latestVersion.push(op);
 	}
 
+	public swappedLinesUp(line: number): void {
+		const op = new HistoryOperation(
+			HisotryOperations.SwapLines,
+			new Point(line - 1, 0),
+			new Point(line, 0),
+			'',
+		);
+		this._latestVersion.push(op);
+	}
+
+	public swappedLinesDown(line: number): void {
+		const op = new HistoryOperation(
+			HisotryOperations.SwapLines,
+			new Point(line, 0),
+			new Point(line + 1, 0),
+			'',
+		);
+		this._latestVersion.push(op);
+	}
+
 	public startTransaction(): void {
 		this._transaction = true;
 		this._undo.push(new HistoryVersion());
@@ -70,20 +90,35 @@ export default class DocumentHistory {
 
 	private _applyChanges(ops: HistoryOperation[]): void {
 		for (const op of ops) {
-			if (op.type === HisotryOperations.Insert) {
-				const line = op.pos.line;
-				const offset = op.pos.offset;
-				this._documentSession.document.insert(op.text, line, offset);
-				this._documentSession.updateLinesTokens(line);
-				this._documentSession.emitLinesCountChanged(1);
-				this._documentSession.emitEditEvent();
-			} else {
-				this._documentSession.document.remove(
-					new Range(op.pos.line, op.pos.offset, op.endPos.line, op.endPos.offset),
-				);
-				this._documentSession.updateLinesTokens(op.pos.line);
-				this._documentSession.emitLinesCountChanged(1);
-				this._documentSession.emitEditEvent();
+			switch (op.type) {
+				case HisotryOperations.Insert: {
+					const line = op.pos.line;
+					const offset = op.pos.offset;
+					this._documentSession.document.insert(op.text, line, offset);
+					this._documentSession.updateLinesTokens(line);
+					this._documentSession.emitLinesCountChanged(1);
+					this._documentSession.emitEditEvent();
+					break;
+				}
+				case HisotryOperations.Delete: {
+					this._documentSession.document.remove(
+						new Range(op.pos.line, op.pos.offset, op.endPos.line, op.endPos.offset),
+					);
+					this._documentSession.updateLinesTokens(op.pos.line);
+					this._documentSession.emitLinesCountChanged(1);
+					this._documentSession.emitEditEvent();
+					break;
+				}
+				case HisotryOperations.SwapLines: {
+					this._documentSession.document.swapLineWithNext(op.pos.line);
+					this._documentSession.updateLinesTokens(op.pos.line);
+					this._documentSession.emitLinesCountChanged(1);
+					this._documentSession.emitEditEvent();
+					break;
+				}
+				default:
+					throw new Error('Invalid operation type.');
+					break;
 			}
 		}
 	}

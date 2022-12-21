@@ -3,6 +3,7 @@ import { Point } from '../selection';
 export enum HisotryOperations {
 	Insert,
 	Delete,
+	SwapLines,
 }
 
 export default class HistoryOperation {
@@ -19,22 +20,36 @@ export default class HistoryOperation {
 	}
 
 	public getReverse(): HistoryOperation {
-		if (this.type === HisotryOperations.Insert) {
-			const op = new HistoryOperation(
-				HisotryOperations.Delete,
-				this.pos,
-				this.endPos,
-				this.text,
-			);
-			return op;
-		} else {
-			const op = new HistoryOperation(
-				HisotryOperations.Insert,
-				this.pos,
-				this.endPos,
-				this.text,
-			);
-			return op;
+		switch (this.type) {
+			case HisotryOperations.Insert: {
+				const op = new HistoryOperation(
+					HisotryOperations.Delete,
+					this.pos,
+					this.endPos,
+					this.text,
+				);
+				return op;
+			}
+			case HisotryOperations.Delete: {
+				const op = new HistoryOperation(
+					HisotryOperations.Insert,
+					this.pos,
+					this.endPos,
+					this.text,
+				);
+				return op;
+			}
+			case HisotryOperations.SwapLines: {
+				const op = new HistoryOperation(
+					HisotryOperations.SwapLines,
+					this.pos,
+					this.endPos,
+					'',
+				);
+				return op;
+			}
+			default:
+				throw new Error('Invalid operation type.');
 		}
 	}
 }

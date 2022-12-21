@@ -172,6 +172,7 @@ export default class DocumentWriter {
 		const editSession = this._editSession;
 		const docSession = this._documentSession;
 		const selections = editSession.selections.getSelections();
+		docSession.history.startTransaction();
 		if (selections.length !== 1) {
 			return;
 		}
@@ -182,12 +183,14 @@ export default class DocumentWriter {
 		let line = sel.start.line;
 		while (line < sel.end.line + 1) {
 			document.swapLineWithPrevious(line);
+			docSession.history.swappedLinesUp(line);
 			line++;
 		}
 
 		docSession.updateLinesTokens(sel.start.line - 1);
 		sel.start.line -= 1;
 		sel.end.line -= 1;
+		docSession.history.closeTransaction();
 		editSession.emitSelectionChangedEvent();
 		docSession.emitEditEvent();
 	}
@@ -197,6 +200,7 @@ export default class DocumentWriter {
 		const editSession = this._editSession;
 		const docSession = this._documentSession;
 		const selections = editSession.selections.getSelections();
+		docSession.history.startTransaction();
 		if (selections.length !== 1) {
 			return;
 		}
@@ -208,12 +212,14 @@ export default class DocumentWriter {
 		let line = sel.end.line;
 		while (line > sel.start.line - 1) {
 			document.swapLineWithNext(line);
+			docSession.history.swappedLinesDown(line);
 			line--;
 		}
 
 		docSession.updateLinesTokens(sel.start.line);
 		sel.start.line += 1;
 		sel.end.line += 1;
+		docSession.history.closeTransaction();
 		editSession.emitSelectionChangedEvent();
 		docSession.emitEditEvent();
 	}
