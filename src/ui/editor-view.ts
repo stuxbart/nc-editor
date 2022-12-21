@@ -188,6 +188,12 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 		this._clearSessionEventListeners();
 		this._initSessionEventListeners();
 		this.emit(EvDocument.Set, undefined);
+		const selections = this._session.selections.getSelections();
+		if (selections.length > 0) {
+			this.scrollToLine(selections[selections.length - 1].end.line);
+		} else {
+			this.scrollToLine(0);
+		}
 	}
 
 	public setDocument(id: string, newSession: boolean = false): void {
@@ -203,6 +209,12 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 		this._clearSessionEventListeners();
 		this._initSessionEventListeners();
 		this.emit(EvDocument.Set, undefined);
+		const selections = this._session.selections.getSelections();
+		if (selections.length > 0) {
+			this.scrollToLine(selections[selections.length - 1].end.line);
+		} else {
+			this.scrollToLine(0);
+		}
 	}
 
 	public update(): void {
