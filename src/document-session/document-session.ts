@@ -80,6 +80,7 @@ export default class DocumentSession extends EventEmitter<DocumentSessionEvents>
 	public updateLinesTokens(firstLine: number): void {
 		if (this._updateTokensAfterEdit) {
 			this._mode.tokenizer.updateTokens(this._document, this._tokenizerData, firstLine);
+			this._mode.tokenizer.updateTokens(this._document, this._tokenizerData, firstLine + 1);
 		}
 	}
 
