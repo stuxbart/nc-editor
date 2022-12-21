@@ -55,6 +55,7 @@ export default class DocumentHistory {
 	public startTransaction(): void {
 		this._transaction = true;
 		this._undo.push(new HistoryVersion());
+		this.clearRedo();
 	}
 
 	public closeTransaction(): void {
