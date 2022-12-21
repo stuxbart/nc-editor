@@ -223,15 +223,17 @@ export default class DocumentWriter {
 		const editSession = this._editSession;
 		const docSession = this._documentSession;
 		const selectedLines = editSession.getActiveLinesNumbers();
+		docSession.history.startTransaction();
 		if (selectedLines.size < 2) {
 			return;
 		}
 		for (const lineNumber of selectedLines) {
 			document.insert(indentString, lineNumber, 0);
+			docSession.history.inserted(new Point(lineNumber, 0), indentString);
 			docSession.updateLinesTokens(lineNumber);
 			editSession.updateSelctions(lineNumber, 0, 0, 1);
 		}
-
+		docSession.history.closeTransaction();
 		docSession.emitEditEvent();
 	}
 
@@ -240,17 +242,22 @@ export default class DocumentWriter {
 		const editSession = this._editSession;
 		const docSession = this._documentSession;
 		const selectedLines = editSession.getActiveLinesNumbers();
-
+		docSession.history.startTransaction();
 		for (const lineNumber of selectedLines) {
 			const line = document.getLine(lineNumber);
 			if (!line.startsWith(indentString)) {
 				continue;
 			}
 			document.remove(new Range(lineNumber, 0, lineNumber, indentString.length));
+			docSession.history.deleted(
+				new Point(lineNumber, 0),
+				new Point(lineNumber, indentString.length),
+				indentString,
+			);
 			docSession.updateLinesTokens(lineNumber);
 			editSession.updateSelctions(lineNumber, 0, 0, 1);
 		}
-
+		docSession.history.closeTransaction();
 		docSession.emitEditEvent();
 	}
 }
