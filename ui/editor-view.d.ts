@@ -75,6 +75,7 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
     private _onKeyUp;
     private _onDocumentClick;
     scrollToLine(lineNumber: number): void;
+    scrollTolastSelection(): void;
     private _setFocus;
     private _scrollToLine;
     private _isCursorVisible;

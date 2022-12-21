@@ -10,4 +10,5 @@ export default class DocumentReader {
     getFirstLine(): Line | null;
     getLastLine(): Line | null;
     getTotalLinesCount(): number;
+    getSelectedText(): string;
 }
