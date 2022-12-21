@@ -2,7 +2,7 @@ import DocumentSession from '../document-session/document-session';
 import Document from '../document/document';
 import EditSession from '../edit-session/edit-session';
 import { Point, Range } from '../selection';
-import { getWordAfter, getWordBefore } from '../text-utils';
+import { getWordAfter, getWordBefore, removeAccents } from '../text-utils';
 
 export default class DocumentWriter {
 	private _documentSession: DocumentSession;
@@ -127,7 +127,7 @@ export default class DocumentWriter {
 			if (!sel.isCollapsed) {
 				continue;
 			}
-			const line = document.getLine(sel.start.line);
+			const line = removeAccents(document.getLine(sel.start.line));
 			const word = getWordBefore(line, sel.start.offset);
 			sel.start.offset -= word.length;
 		}
@@ -142,7 +142,7 @@ export default class DocumentWriter {
 			if (!sel.isCollapsed) {
 				continue;
 			}
-			const line = document.getLine(sel.start.line);
+			const line = removeAccents(document.getLine(sel.start.line));
 			const word = getWordAfter(line, sel.start.offset);
 			sel.end.offset += word.length;
 		}
