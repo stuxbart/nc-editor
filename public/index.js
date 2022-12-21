@@ -21,6 +21,8 @@ cut \t\t\t\t\t Ctrl + X
 paste \t\t\t\t\t Ctrl + V
 copy \t\t\t\t\t Ctrl + C
 find \t\t\t\t\t Ctrl + F
+undo \t\t\t\t\t Ctrl + Z
+redo \t\t\t\t\t Ctrl + Y
 
 `;
 
@@ -39,25 +41,25 @@ const doc1 = new nc.Document(text);
 const doc2 = new nc.Document(textCode);
 const doc3 = new nc.Document('');
 const documents = [
-	{ doc: doc1, name: 'shortcuts.txt', mode: 'Text' },
-	{ doc: doc2, name: 'index.js', mode: 'JavaScript' },
-	{ doc: doc3, name: 'test.js', mode: 'JavaScript' },
+	{ doc: doc1, name: 'shortcuts.txt', mode: 'Text', id: '' },
+	{ doc: doc2, name: 'index.js', mode: 'JavaScript', id: '' },
+	{ doc: doc3, name: 'test.js', mode: 'JavaScript', id: '' },
 ];
 
 for (let i = 0; i < documents.length; i++) {
 	const doc = documents[i];
-	editor.addDocument(doc.doc, doc.name, doc.mode);
+	doc.id = editor.addDocument(doc.doc, doc.name, doc.mode);
 	const button = document.createElement('button');
 	button.textContent = doc.name;
 	button.className = 'editor-header-button';
 	button.addEventListener('click', () => {
-		editor.changeSession(doc.name);
+		editorView.setDocument(doc.id);
 		setActive(i);
 	});
 	header.appendChild(button);
 }
 
-editor.changeSession(documents[0].name);
+editorView.setDocument(documents[0].id);
 setActive(0);
 
 `;
