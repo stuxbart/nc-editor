@@ -13,6 +13,7 @@ export default class SelectionManager {
     disableUpdatingSelections(): void;
     update(line: number, offset: number, lineDiff: number, offsetDiff: number): void;
     setSelection(selection: Selection): void;
+    setSelections(selection: Selection[]): void;
     addSelection(selection: Selection): void;
     extendLastSelection(point: Point): void;
     selectAll(): void;

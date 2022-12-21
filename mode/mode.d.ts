@@ -3,7 +3,9 @@ import { Tokenizer } from '../tokenizer/tokenizer';
 export default class Mode {
     private _tokenizer;
     private _highlighterSchema;
-    constructor(tokenizer: Tokenizer, highlighterSchema: HighlighterSchema);
+    private _name;
+    constructor(tokenizer: Tokenizer, highlighterSchema: HighlighterSchema, name: string);
     get schema(): HighlighterSchema;
     get tokenizer(): Tokenizer;
+    get name(): string;
 }

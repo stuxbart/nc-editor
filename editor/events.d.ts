@@ -32,5 +32,5 @@ export declare enum EvSearch {
 export interface ISearchFinishedEvent {
     [EvSearch.Finished]: undefined;
 }
-export interface EditorEvents extends ITokenizerEvent, IDocumentEditedEvent, IDocumentSetEvent, IDocumentLinesCountChanged, ISelectionChangedEvent, ISearchFinishedEvent {
+export interface EditorEvents extends IDocumentSetEvent {
 }

@@ -1,3 +1,5 @@
+import { IDocumentEditedEvent, IDocumentLinesCountChanged, IDocumentSet, ITokenizerEvent } from '../document-session/events';
+import { ISearchFinishedEvent, ISelectionChangedEvent } from '../edit-session/events';
 import { Theme } from './themes';
 export declare enum EvView {
     Initialized = "view.Initialized"
@@ -76,7 +78,7 @@ export interface ScrollBarEvents extends IScrollEvent {
 }
 export interface TextLayerEvents extends ILetterWidthEvent {
 }
-export interface EditorViewEvents extends IScrollEvent, IFocusEvent, IThemeEvent, ILetterWidthEvent, IViewInitializedEvent, IKeyEvnets, ISearchUiVisibilityEvents {
+export interface EditorViewEvents extends IScrollEvent, IFocusEvent, IThemeEvent, ILetterWidthEvent, IViewInitializedEvent, IKeyEvnets, ISearchUiVisibilityEvents, IDocumentEditedEvent, ITokenizerEvent, ISelectionChangedEvent, IDocumentLinesCountChanged, ISearchFinishedEvent, IDocumentSet {
 }
 export interface SelectionLayerEvents extends IScrollEvent {
 }

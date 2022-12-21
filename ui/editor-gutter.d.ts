@@ -1,9 +1,7 @@
-import { Editor } from '../editor';
 import { EventEmitter } from '../events';
 import EdiotrView from './editor-view';
 import { EditorGutterEvents } from './events';
 declare class EditorGutter extends EventEmitter<EditorGutterEvents> {
-    private _editor;
     private _view;
     private _mountPoint;
     private _gutterContainer;
@@ -11,7 +9,8 @@ declare class EditorGutter extends EventEmitter<EditorGutterEvents> {
     private _visibleLinesCount;
     private _totalLinesCount;
     private _gutterWidth;
-    constructor(editor: Editor, view: EdiotrView);
+    constructor(view: EdiotrView);
+    private get _session();
     update(): void;
     setWidth(width: number): void;
     setWidthForLinesCount(linesCount: number): number;

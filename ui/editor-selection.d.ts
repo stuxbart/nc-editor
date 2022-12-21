@@ -1,10 +1,8 @@
-import { Editor } from '../editor';
 import EdiotrView from './editor-view';
 import { SelectionLayerEvents } from './events';
 import { EventEmitter } from '../events';
 export default class SelectionLayer extends EventEmitter<SelectionLayerEvents> {
     private _emitterName;
-    private _editor;
     private _view;
     private _mountPoint;
     private _selectionContainer;
@@ -22,7 +20,8 @@ export default class SelectionLayer extends EventEmitter<SelectionLayerEvents> {
     private _lastTouchTime;
     private _lastTouchPosition;
     private _showSearchResults;
-    constructor(editor: Editor, view: EdiotrView);
+    constructor(view: EdiotrView);
+    private get _session();
     setFirstVisibleLine(firstLine: number): void;
     setVisibleLinesCount(linesCount: number): void;
     update(): void;
