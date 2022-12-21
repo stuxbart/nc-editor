@@ -188,12 +188,7 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 		this._clearSessionEventListeners();
 		this._initSessionEventListeners();
 		this.emit(EvDocument.Set, undefined);
-		const selections = this._session.selections.getSelections();
-		if (selections.length > 0) {
-			this.scrollToLine(selections[selections.length - 1].end.line);
-		} else {
-			this.scrollToLine(0);
-		}
+		this.scrollTolastSelection();
 	}
 
 	public setDocument(id: string, newSession: boolean = false): void {
@@ -209,12 +204,7 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 		this._clearSessionEventListeners();
 		this._initSessionEventListeners();
 		this.emit(EvDocument.Set, undefined);
-		const selections = this._session.selections.getSelections();
-		if (selections.length > 0) {
-			this.scrollToLine(selections[selections.length - 1].end.line);
-		} else {
-			this.scrollToLine(0);
-		}
+		this.scrollTolastSelection();
 	}
 
 	public update(): void {
@@ -353,16 +343,6 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 	}
 
 	private _onDocumentEdit(): void {
-		const selections = this._session.getSelctions();
-		const lastSel = selections[selections.length - 1];
-		const editPoint = lastSel.type === SelectionType.L ? lastSel.start : lastSel.end;
-		const isVisible = this._isCursorVisible(editPoint);
-		if (!isVisible) {
-			this._scrollToLine(
-				editPoint.line - Math.round(this._visibleLinesCount / 2),
-				'editor-view',
-			);
-		}
 		this.emit(EvDocument.Edited, undefined);
 	}
 
@@ -372,6 +352,13 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 	}
 
 	private _onSelectionChanged(): void {
+		const selections = this._session.getSelctions();
+		const lastSel = selections[selections.length - 1];
+		const editPoint = lastSel.type === SelectionType.L ? lastSel.start : lastSel.end;
+		const isVisible = this._isCursorVisible(editPoint);
+		if (!isVisible) {
+			this.scrollTolastSelection();
+		}
 		this.emit(EvSelection.Changed, undefined);
 	}
 
@@ -606,6 +593,22 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 		this._scrollToLine(lineNumber, this._emitterName);
 	}
 
+	public scrollTolastSelection(): void {
+		const selections = this._session.selections.getSelections();
+		if (selections.length === 0) {
+			this.scrollToLine(0);
+			return;
+		}
+
+		const sel = selections[selections.length - 1];
+
+		if (sel.type === SelectionType.L) {
+			this.scrollToLine(sel.start.line);
+		} else {
+			this.scrollToLine(sel.end.line);
+		}
+	}
+
 	private _setFocus(focus: boolean): void {
 		this._isFocused = focus;
 		this.emit(EvFocus.Changed, { focused: focus });
@@ -637,7 +640,7 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 		if (cursorPos.line < this._firstVisibleLine) {
 			return false;
 		}
-		if (cursorPos.line > this._firstVisibleLine + this._visibleLinesCount) {
+		if (cursorPos.line >= this._firstVisibleLine + this._visibleLinesCount) {
 			return false;
 		}
 		return true;
