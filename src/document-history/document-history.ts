@@ -17,13 +17,18 @@ export default class DocumentHistory {
 		return this._undo[this._undo.length - 1];
 	}
 
-	public inserted(pos: Point, endPos: Point): void {
-		const op = new HistoryOperation(HisotryOperations.Insert, pos, endPos, '');
+	public inserted(pos: Point, text: string): void {
+		const lines = text.split(/\r?\n|\r/g);
+		const endPos = new Point(
+			pos.line + lines.length - 1,
+			lines.length > 1 ? lines[lines.length - 1].length : pos.offset + lines[0].length,
+		);
+		const op = new HistoryOperation(HisotryOperations.Insert, pos, endPos, text);
 		this._latestVersion.push(op);
 	}
 
 	public deleted(pos: Point, endPos: Point, text: string): void {
-		const op = new HistoryOperation(HisotryOperations.Insert, pos, endPos, text);
+		const op = new HistoryOperation(HisotryOperations.Delete, pos, endPos, text);
 		this._latestVersion.push(op);
 	}
 

@@ -20,7 +20,12 @@ export default class HistoryOperation {
 
 	public getReverse(): HistoryOperation {
 		if (this.type === HisotryOperations.Insert) {
-			const op = new HistoryOperation(HisotryOperations.Delete, this.pos, this.endPos, '');
+			const op = new HistoryOperation(
+				HisotryOperations.Delete,
+				this.pos,
+				this.endPos,
+				this.text,
+			);
 			return op;
 		} else {
 			const op = new HistoryOperation(

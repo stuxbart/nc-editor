@@ -1,7 +1,7 @@
 import DocumentSession from '../document-session/document-session';
 import Document from '../document/document';
 import EditSession from '../edit-session/edit-session';
-import { Range } from '../selection';
+import { Point, Range } from '../selection';
 import { getWordAfter, getWordBefore } from '../text-utils';
 
 export default class DocumentWriter {
@@ -22,12 +22,18 @@ export default class DocumentWriter {
 		const editSession = this._editSession;
 		const docSession = this._documentSession;
 		const selections = editSession.selections.getSelections();
+		docSession.history.startTransaction();
 
 		for (const sel of selections) {
 			if (sel.isCollapsed) {
 				continue;
 			}
 			const removedText = document.remove(sel);
+			docSession.history.deleted(
+				new Point(sel.start.line, sel.start.offset),
+				new Point(sel.end.line, sel.end.offset),
+				removedText,
+			);
 			const removedLines = removedText.split('\n');
 			docSession.updateLinesTokens(sel.start.line);
 			editSession.updateLinesSearchResults(sel.start.line);
@@ -44,10 +50,12 @@ export default class DocumentWriter {
 			const line = sel.start.line;
 			const offset = sel.start.offset;
 			const insertedLines = document.insert(str, line, offset);
+			docSession.history.inserted(new Point(sel.start.line, sel.start.offset), str);
 			docSession.updateLinesTokens(line);
 			editSession.updateLinesSearchResults(line);
 			editSession.updateSelctions(line, offset, insertedLines[0], insertedLines[1]);
 		}
+		docSession.history.closeTransaction();
 		docSession.emitLinesCountChanged(1);
 		docSession.emitEditEvent();
 	}
@@ -57,6 +65,7 @@ export default class DocumentWriter {
 		const editSession = this._editSession;
 		const docSession = this._documentSession;
 		const selections = editSession.selections.getSelections();
+		docSession.history.startTransaction();
 
 		let text: string = '';
 		for (const sel of selections) {
@@ -86,6 +95,11 @@ export default class DocumentWriter {
 				}
 			}
 			const removedText = document.remove(sel);
+			docSession.history.deleted(
+				new Point(sel.start.line, sel.start.offset),
+				new Point(sel.end.line, sel.end.offset),
+				removedText,
+			);
 			const removedLines = removedText.split('\n');
 			docSession.updateLinesTokens(sel.start.line);
 			editSession.updateLinesSearchResults(sel.start.line);
@@ -98,6 +112,7 @@ export default class DocumentWriter {
 			);
 			text += removedText;
 		}
+		docSession.history.closeTransaction();
 		docSession.emitEditEvent();
 		return text;
 	}

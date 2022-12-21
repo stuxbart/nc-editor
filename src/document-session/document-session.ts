@@ -1,3 +1,4 @@
+import DocumentHistory from '../document-history/document-history';
 import Document from '../document/document';
 import { EventEmitter } from '../events';
 import { Mode } from '../mode';
@@ -13,6 +14,7 @@ export default class DocumentSession extends EventEmitter<DocumentSessionEvents>
 	private _tokenizerData: TokenizerData;
 	private _mode: Mode;
 	private _search: Search;
+	private _documentHistory: DocumentHistory;
 
 	private _updateTokensAfterEdit: boolean = true;
 	private _shouldEmitLinesCountChangeEvent: boolean = true;
@@ -40,6 +42,7 @@ export default class DocumentSession extends EventEmitter<DocumentSessionEvents>
 		}
 
 		this._search = new NaiveSearch();
+		this._documentHistory = new DocumentHistory(this);
 	}
 
 	public get id(): string {
@@ -68,6 +71,10 @@ export default class DocumentSession extends EventEmitter<DocumentSessionEvents>
 
 	public get modeName(): string {
 		return this._mode.name;
+	}
+
+	public get history(): DocumentHistory {
+		return this._documentHistory;
 	}
 
 	public updateLinesTokens(firstLine: number): void {
@@ -132,5 +139,13 @@ export default class DocumentSession extends EventEmitter<DocumentSessionEvents>
 			linesCount: document.linesCount,
 		});
 		this.emit(EvTokenizer.Finished, undefined);
+	}
+
+	public undo(): void {
+		this._documentHistory.undo();
+	}
+
+	public redo(): void {
+		this._documentHistory.redo();
 	}
 }
