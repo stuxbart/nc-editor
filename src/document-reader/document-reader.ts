@@ -72,6 +72,14 @@ export default class DocumentReader extends Reader {
 		}
 	}
 
+	public getFirstRowForLine(lineNumber: number): number {
+		if (this._editSession.isWrapEnabled) {
+			return this._editSession.wrapData.getFirstRowForLine(lineNumber);
+		} else {
+			return lineNumber;
+		}
+	}
+
 	public getSelectedText(): string {
 		let text = '';
 		for (const sel of this._editSession.selections.getSelections()) {

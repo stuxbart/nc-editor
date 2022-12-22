@@ -27,7 +27,7 @@ export default class WrapData {
 	}
 
 	public updateLineData(data: LineWrapData, lineNumber: number): void {
-		const line = this._getNodeByLineNumber(this._rootNode, lineNumber);
+		const [, line] = this._getNodeByLineNumber(this._rootNode, lineNumber);
 		if (line === null) {
 			return;
 		}
@@ -54,7 +54,8 @@ export default class WrapData {
 	}
 
 	public getLineData(lineNumber: number): LineWrapData {
-		return this._getNodeByLineNumber(this._rootNode, lineNumber)?.data ?? { data: [] };
+		const [, node] = this._getNodeByLineNumber(this._rootNode, lineNumber);
+		return node?.data ?? { data: [] };
 	}
 
 	public getFirstLineData(): LineWrapData {
@@ -66,7 +67,7 @@ export default class WrapData {
 	}
 
 	public removeLine(lineNumber: number): void {
-		const lineToRemove = this._getNodeByLineNumber(this._rootNode, lineNumber);
+		const [, lineToRemove] = this._getNodeByLineNumber(this._rootNode, lineNumber);
 		this._rootNode = this._removeLine(
 			this._rootNode,
 			lineNumber,
@@ -76,7 +77,7 @@ export default class WrapData {
 	}
 
 	public swapLineWithNext(lineNumber: number): void {
-		const firstLine = this._getNodeByLineNumber(this._rootNode, lineNumber);
+		const [, firstLine] = this._getNodeByLineNumber(this._rootNode, lineNumber);
 		if (firstLine === null) {
 			return;
 		}
@@ -106,6 +107,11 @@ export default class WrapData {
 
 	public swapLineWithPrevious(lineNumber: number): void {
 		return this.swapLineWithNext(lineNumber - 1);
+	}
+
+	public getFirstRowForLine(linenumber: number): number {
+		const [row] = this._getNodeByLineNumber(this._rootNode, linenumber);
+		return row;
 	}
 
 	private _removeLine(
@@ -225,7 +231,7 @@ export default class WrapData {
 		if (node === null) {
 			return;
 		}
-		let currentNode = this._getNodeByLineNumber(node, firstLineNumber);
+		let [, currentNode] = this._getNodeByLineNumber(node, firstLineNumber);
 
 		while (currentNode !== null && linesArr.length < linesCount) {
 			linesArr.push(currentNode.data);
@@ -271,17 +277,25 @@ export default class WrapData {
 		return current;
 	}
 
-	private _getNodeByLineNumber(node: WrapNode | null, lineNumber: number): WrapNode | null {
+	private _getNodeByLineNumber(
+		node: WrapNode | null,
+		lineNumber: number,
+		rowOffset: number = 0,
+	): [number, WrapNode | null] {
 		if (node === null) {
-			return node;
+			return [rowOffset, node];
 		}
 
 		if (lineNumber === node.leftSubTreeSize) {
-			return node;
+			return [rowOffset + node.leftSubTreeRows, node];
 		} else if (lineNumber < node.leftSubTreeSize) {
-			return this._getNodeByLineNumber(node.left, lineNumber);
+			return this._getNodeByLineNumber(node.left, lineNumber, rowOffset);
 		} else {
-			return this._getNodeByLineNumber(node.right, lineNumber - node.leftSubTreeSize - 1);
+			return this._getNodeByLineNumber(
+				node.right,
+				lineNumber - node.leftSubTreeSize - 1,
+				rowOffset + node.leftSubTreeRows + node.data.data.length,
+			);
 		}
 	}
 

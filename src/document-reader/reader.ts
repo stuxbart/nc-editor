@@ -28,5 +28,7 @@ export default abstract class Reader {
 
 	public abstract getTotalRowsCount(): number;
 
+	public abstract getFirstRowForLine(lineNumber: number): number;
+
 	public abstract getSelectedText(): string;
 }
