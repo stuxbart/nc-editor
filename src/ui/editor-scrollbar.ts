@@ -37,7 +37,6 @@ export default class ScrollBar extends EventEmitter<ScrollBarEvents> {
 	}
 
 	public setTotalRowsCount(rowsCount: number): void {
-		console.log(rowsCount);
 		this._totalRowsCount = rowsCount;
 		this._updateScale();
 		if (this._scrollableDiv) {
