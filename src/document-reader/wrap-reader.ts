@@ -20,38 +20,61 @@ export default class WrapReader extends Reader {
 		return lines;
 	}
 
-	public getRows(firstLine: number, count: number): Row[] {
+	public getRows(firstRow: number, count: number): Row[] {
 		const document = this._document;
 		const tokenizerData = this._documentSession.tokenizerData;
 		const searchResults = this._editSession.searchResults;
 		const wrapData = this._editSession.wrapData;
-		const rowsWrapData = wrapData.getRows(firstLine, count);
+
+		const rowsWrapData = wrapData.getRows(firstRow, count);
 		const lineNumbers = rowsWrapData.map((w) => w.line);
 		const firstLineIndex = Math.min(...lineNumbers);
 		const lastLineIndex = Math.max(...lineNumbers);
 		const rawLines = document.getLineNodes(firstLineIndex, lastLineIndex - firstLineIndex + 1);
+
 		const rows: Row[] = [];
 		let off = 0;
+		let prevLineNumber = -1;
+
+		if (rowsWrapData[0].ord !== 0) {
+			const prevRowData = wrapData.getRows(firstRow - 1, 1)[0];
+			off = prevRowData.offset;
+			prevLineNumber = prevRowData.line;
+		}
 
 		for (const row of rowsWrapData) {
-			const lineTokens: Token[] = tokenizerData.getLineTokens(
-				rawLines[row.line - firstLineIndex],
-			);
+			if (rawLines.length < row.line - firstLineIndex) {
+				break;
+			}
+			if (prevLineNumber !== row.line) {
+				off = 0;
+			}
+			prevLineNumber = row.line;
+			const line = rawLines[row.line - firstLineIndex];
+			const lineTokens: Token[] = tokenizerData.getLineTokens(line);
 			const rowTokens: Token[] = [];
-			for (const token of lineTokens) {
+
+			for (let i = 0; i < lineTokens.length; i++) {
+				const token = lineTokens[i];
 				if (token.startIndex < off) {
-					continue;
-				}
-				if (token.startIndex < row.offset) {
+					if (i + 1 === lineTokens.length) {
+						continue;
+					}
+					const nextToken = lineTokens[i + 1];
+					if (nextToken.startIndex <= off) {
+						continue;
+					}
+					rowTokens.push({ startIndex: 0, type: token.type });
+				} else if (token.startIndex < row.offset) {
 					rowTokens.push({ startIndex: token.startIndex - off, type: token.type });
 				} else {
 					break;
 				}
 			}
-			const lineSearchResults: number[] = searchResults.getLineResutls(
-				rawLines[row.line - firstLineIndex],
-			).matches;
+
+			const lineSearchResults: number[] = searchResults.getLineResutls(line).matches;
 			const rowSearchResults: number[] = [];
+
 			for (const searchResult of lineSearchResults) {
 				if (searchResult < off) {
 					continue;
@@ -62,11 +85,12 @@ export default class WrapReader extends Reader {
 					break;
 				}
 			}
+
 			rows.push({
 				line: row.line,
 				ord: row.ord,
 				offset: off,
-				text: rawLines[row.line - firstLineIndex].text.substring(off, row.offset),
+				text: line.text.slice(off, row.offset),
 				tokens: rowTokens,
 				searchResults: rowSearchResults,
 			});
