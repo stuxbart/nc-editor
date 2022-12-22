@@ -17,6 +17,7 @@ import {
 	EditorViewEvents,
 	EvKey,
 	EvSearchUi,
+	EvWrap,
 } from './events';
 import { EDITOR_FONT_FAMILY } from './config';
 import { CSSClasses } from '../styles/css';
@@ -50,8 +51,8 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 	private _input: EditorInput | null = null;
 	private _search: EditorSearch | null = null;
 
-	private _firstVisibleLine: number = 0;
-	private _visibleLinesCount: number = 0;
+	private _firstVisibleRow: number = 0;
+	private _visibleRowsCount: number = 0;
 	private _scrollHeight: number = 0;
 	private _scrollWidth: number = 0;
 	private _scrollLeft: number = 0;
@@ -83,6 +84,7 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 		this._onSelectionChanged = this._onSelectionChanged.bind(this);
 		this._onLinesCountChanged = this._onLinesCountChanged.bind(this);
 		this._onSearchFinished = this._onSearchFinished.bind(this);
+		this._onWrapChanged = this._onWrapChanged.bind(this);
 
 		this._editor = editor;
 
@@ -128,8 +130,8 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 		return this._session.writer;
 	}
 
-	public get visibleLinesCount(): number {
-		return this._visibleLinesCount;
+	public get visibleRowsCount(): number {
+		return this._visibleRowsCount;
 	}
 
 	public mount(parent: HTMLElement | string): number {
@@ -224,7 +226,7 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 
 	private _scrollBarInitialConfig(): void {
 		if (this._scrollBar) {
-			this._scrollBar.setMaxLinesPadding(MAX_LINES_PADDING);
+			this._scrollBar.setMaxRowsPadding(MAX_LINES_PADDING);
 		}
 	}
 
@@ -259,19 +261,19 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 		}
 		this._height = this._editorContainer.clientHeight;
 		this._width = this._editorContainer.clientWidth;
-		this._visibleLinesCount = Math.ceil(this._height / this._lineHeight);
+		this._visibleRowsCount = Math.ceil(this._height / this._lineHeight);
 
 		if (this._gutter) {
-			this._gutter.setVisibleRowsCount(this._visibleLinesCount);
+			this._gutter.setVisibleRowsCount(this._visibleRowsCount);
 		}
 		if (this._textLayer) {
-			this._textLayer.setVisibleLinesCount(this._visibleLinesCount);
+			this._textLayer.setVisibleLinesCount(this._visibleRowsCount);
 		}
 		if (this._scrollBar) {
-			this._scrollBar.setVisibleLinesCount(this._visibleLinesCount);
+			this._scrollBar.setVisibleRowsCount(this._visibleRowsCount);
 		}
 		if (this._selectionLayer) {
-			this._selectionLayer.setVisibleLinesCount(this._visibleLinesCount);
+			this._selectionLayer.setVisibleLinesCount(this._visibleRowsCount);
 		}
 	}
 
@@ -290,7 +292,7 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 
 		if (this._scrollBar) {
 			this._scrollBar.on(EvScroll.Changed, (e) => {
-				this._scrollToLine(e.firstVisibleLine, e.emitterName);
+				this._scrollToRow(e.firstVisibleRow, e.emitterName);
 			});
 		}
 		if (this._textLayer) {
@@ -307,7 +309,7 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 		}
 		if (this._selectionLayer) {
 			this._selectionLayer.on(EvScroll.Changed, (e) => {
-				this._scrollToLine(e.firstVisibleLine, e.emitterName);
+				this._scrollToRow(e.firstVisibleRow, e.emitterName);
 			});
 		}
 		if (this._search) {
@@ -330,6 +332,8 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 		this._docSession.on(EvDocument.LinesCount, this._onLinesCountChanged);
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		this._session.on(EvSearch.Finished, this._onSearchFinished);
+		// eslint-disable-next-line @typescript-eslint/unbound-method
+		this._session.on(EvWrap.Changed, this._onWrapChanged);
 	}
 
 	private _clearSessionEventListeners(): void {
@@ -343,6 +347,13 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 		this._docSession.off(EvDocument.LinesCount, this._onLinesCountChanged);
 		// eslint-disable-next-line @typescript-eslint/unbound-method
 		this._session.off(EvSearch.Finished, this._onSearchFinished);
+		// eslint-disable-next-line @typescript-eslint/unbound-method
+		this._session.off(EvWrap.Changed, this._onWrapChanged);
+	}
+
+	private _onWrapChanged({ enabled }: { enabled: boolean }): void {
+		this.emit(EvWrap.Changed, { enabled: enabled });
+		this._scrollToLine(this._firstVisibleRow);
 	}
 
 	private _onDocumentEdit(): void {
@@ -387,8 +398,8 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 	}
 
 	private _onMouseWheel(e: WheelEvent): void {
-		const lineDelta = Math.round((e.deltaY / Math.abs(e.deltaY)) * 3);
-		this._scrollToLine(this._firstVisibleLine + lineDelta, this._emitterName);
+		const rowDelta = Math.round((e.deltaY / Math.abs(e.deltaY)) * 3);
+		this._scrollToRow(this._firstVisibleRow + rowDelta, this._emitterName);
 		e.preventDefault();
 		e.stopPropagation();
 	}
@@ -618,22 +629,43 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 		this.emit(EvFocus.Changed, { focused: focus });
 	}
 
+	private _scrollToRow(rowNumber: number, emitterName: string = this._emitterName): void {
+		let totalRows = this.reader.getTotalRowsCount();
+		totalRows = totalRows < 0 ? 0 : totalRows;
+
+		if (rowNumber < 0) {
+			this._firstVisibleRow = 0;
+		} else if (totalRows - this._visibleRowsCount < 0) {
+			this._firstVisibleRow = 0;
+		} else if (rowNumber > totalRows - this._visibleRowsCount + MAX_LINES_PADDING) {
+			this._firstVisibleRow = totalRows - this._visibleRowsCount + MAX_LINES_PADDING;
+		} else {
+			this._firstVisibleRow = rowNumber;
+		}
+		this.emit(EvScroll.Changed, {
+			firstVisibleRow: this._firstVisibleRow,
+			emitterName: emitterName,
+		});
+
+		this.update();
+	}
+
 	private _scrollToLine(lineNumber: number, emitterName: string = this._emitterName): void {
 		let totalLines = this.reader.getTotalLinesCount();
 		totalLines = totalLines < 0 ? 0 : totalLines;
 
 		if (lineNumber < 0) {
-			this._firstVisibleLine = 0;
-		} else if (totalLines - this._visibleLinesCount < 0) {
-			this._firstVisibleLine = 0;
-		} else if (lineNumber > totalLines - this._visibleLinesCount + MAX_LINES_PADDING) {
-			this._firstVisibleLine = totalLines - this._visibleLinesCount + MAX_LINES_PADDING;
-		} else {
-			this._firstVisibleLine = lineNumber;
+			lineNumber = 0;
+		} else if (totalLines - 5 < 0) {
+			lineNumber = 0;
+		} else if (lineNumber > totalLines - 5 + MAX_LINES_PADDING) {
+			lineNumber = totalLines - 5 + MAX_LINES_PADDING;
 		}
 
+		this._firstVisibleRow = this.reader.getFirstRowForLine(lineNumber);
+
 		this.emit(EvScroll.Changed, {
-			firstVisibleLine: this._firstVisibleLine,
+			firstVisibleRow: this._firstVisibleRow,
 			emitterName: emitterName,
 		});
 
@@ -641,10 +673,10 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 	}
 
 	private _isCursorVisible(cursorPos: Point): boolean {
-		if (cursorPos.line < this._firstVisibleLine) {
+		if (cursorPos.line < this._firstVisibleRow) {
 			return false;
 		}
-		if (cursorPos.line >= this._firstVisibleLine + this._visibleLinesCount) {
+		if (cursorPos.line >= this._firstVisibleRow + this._visibleRowsCount) {
 			return false;
 		}
 		return true;

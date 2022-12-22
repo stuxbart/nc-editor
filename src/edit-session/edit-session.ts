@@ -11,6 +11,7 @@ import { SerachResults } from '../search';
 import { Point, Selection } from '../selection';
 import SelectionHistory from '../selection/selection-history';
 import SelectionManager from '../selection/selection-manager';
+import { EvWrap } from '../ui/events';
 import { randomId } from '../utils';
 import WrapData from '../wrapper/wrap-data';
 import Wrapper from '../wrapper/wrapper';
@@ -272,10 +273,12 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
 		this._useWrapData = true;
 		this._wrapper.wrap();
 		this._reader = new WrapReader(this.documentSession, this);
+		this.emit(EvWrap.Changed, { enabled: true });
 	}
 
 	public disableWrap(): void {
 		this._useWrapData = false;
 		this._reader = new DocumentReader(this.documentSession, this);
+		this.emit(EvWrap.Changed, { enabled: false });
 	}
 }

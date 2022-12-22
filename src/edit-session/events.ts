@@ -1,3 +1,5 @@
+import { IWrapEvents } from '../ui/events';
+
 /*
  * Selection events
  */
@@ -17,4 +19,7 @@ export interface ISearchFinishedEvent {
 	[EvSearch.Finished]: undefined;
 }
 
-export interface EditSessionEvents extends ISelectionChangedEvent, ISearchFinishedEvent {}
+export interface EditSessionEvents
+	extends ISelectionChangedEvent,
+		ISearchFinishedEvent,
+		IWrapEvents {}

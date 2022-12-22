@@ -1,7 +1,7 @@
 import { createDiv, px } from './dom-utils';
 import { EventEmitter } from '../events';
 import EdiotrView from './editor-view';
-import { EvScroll, ScrollBarEvents } from './events';
+import { EvScroll, EvWrap, ScrollBarEvents } from './events';
 
 import { MAX_LINES_COUNT_ON_DEFAULT_SCROLL_SCALE } from './config';
 import { CSSClasses } from '../styles/css';
@@ -14,10 +14,10 @@ export default class ScrollBar extends EventEmitter<ScrollBarEvents> {
 	private _emitterName: string = 'scroll-bar';
 	private _scrollBarContainer: HTMLDivElement | null = null;
 	private _scrollableDiv: HTMLDivElement | null = null;
-	private _firstVisibleLine: number = 0;
-	private _visibleLinesCount: number = 0;
-	private _totalLinesCount: number = 50;
-	private _maxLinesPadding: number = 10;
+	private _firstVisibleRow: number = 0;
+	private _visibleRowsCount: number = 0;
+	private _totalRowsCount: number = 50;
+	private _maxRowsPadding: number = 10;
 	private _scale: number = 20;
 
 	constructor(view: EdiotrView) {
@@ -36,28 +36,29 @@ export default class ScrollBar extends EventEmitter<ScrollBarEvents> {
 		this._updateScrollPosition();
 	}
 
-	public setTotalLinesCount(linesCount: number): void {
-		this._totalLinesCount = linesCount;
+	public setTotalRowsCount(rowsCount: number): void {
+		console.log(rowsCount);
+		this._totalRowsCount = rowsCount;
 		this._updateScale();
 		if (this._scrollableDiv) {
-			let height = (linesCount + this._maxLinesPadding) * this._scale;
-			if (this._totalLinesCount > MAX_LINES_COUNT_ON_DEFAULT_SCROLL_SCALE) {
+			let height = (rowsCount + this._maxRowsPadding) * this._scale;
+			if (this._totalRowsCount > MAX_LINES_COUNT_ON_DEFAULT_SCROLL_SCALE) {
 				height *= 1.01;
 			}
 			this._scrollableDiv.style.height = px(height);
 		}
 	}
 
-	public setFirstVisibleLine(firstLine: number): void {
-		this._firstVisibleLine = firstLine;
+	public setFirstVisibleRow(firstRow: number): void {
+		this._firstVisibleRow = firstRow;
 	}
 
-	public setVisibleLinesCount(linesCount: number): void {
-		this._visibleLinesCount = linesCount;
+	public setVisibleRowsCount(rowsCount: number): void {
+		this._visibleRowsCount = rowsCount;
 	}
 
-	public setMaxLinesPadding(linesCount: number): void {
-		this._maxLinesPadding = linesCount;
+	public setMaxRowsPadding(rowsCount: number): void {
+		this._maxRowsPadding = rowsCount;
 	}
 
 	private _createScrollContainer(): void {
@@ -75,7 +76,7 @@ export default class ScrollBar extends EventEmitter<ScrollBarEvents> {
 		if (this._scrollBarContainer === null) {
 			return;
 		}
-		this._scrollBarContainer.scrollTop = Math.ceil(this._firstVisibleLine * this._scale);
+		this._scrollBarContainer.scrollTop = Math.ceil(this._firstVisibleRow * this._scale);
 	}
 
 	private _initEventListeners(): void {
@@ -92,17 +93,28 @@ export default class ScrollBar extends EventEmitter<ScrollBarEvents> {
 			if (e.emitterName === this._emitterName) {
 				return;
 			}
-			this.setFirstVisibleLine(e.firstVisibleLine);
+			this.setFirstVisibleRow(e.firstVisibleRow);
 			this.update();
 		});
 
-		this._view.on(EvDocument.LinesCount, (e) => {
-			this.setTotalLinesCount(e.linesCount);
+		this._view.on(EvDocument.Edited, () => {
+			const rowsCount = this._session.reader.getTotalRowsCount();
+			this.setTotalRowsCount(rowsCount);
+		});
+
+		this._view.on(EvDocument.LinesCount, () => {
+			const rowsCount = this._session.reader.getTotalRowsCount();
+			this.setTotalRowsCount(rowsCount);
 		});
 
 		this._view.on(EvDocument.Set, () => {
-			const linesCount = this._session.reader.getTotalLinesCount();
-			this.setTotalLinesCount(linesCount);
+			const rowsCount = this._session.reader.getTotalRowsCount();
+			this.setTotalRowsCount(rowsCount);
+		});
+
+		this._view.on(EvWrap.Changed, () => {
+			const rowsCount = this._session.reader.getTotalRowsCount();
+			this.setTotalRowsCount(rowsCount);
 		});
 	}
 
@@ -110,11 +122,11 @@ export default class ScrollBar extends EventEmitter<ScrollBarEvents> {
 		if (this._scrollBarContainer === null) {
 			return;
 		}
-		const newLineNumber = Math.ceil(this._scrollBarContainer.scrollTop / this._scale);
+		const newRowNumber = Math.ceil(this._scrollBarContainer.scrollTop / this._scale);
 
-		this._firstVisibleLine = newLineNumber;
+		this._firstVisibleRow = newRowNumber;
 		this.emit(EvScroll.Changed, {
-			firstVisibleLine: newLineNumber,
+			firstVisibleRow: newRowNumber,
 			emitterName: this._emitterName,
 		});
 	};
@@ -132,7 +144,7 @@ export default class ScrollBar extends EventEmitter<ScrollBarEvents> {
 	}
 
 	private _updateScale(): void {
-		if (this._totalLinesCount > MAX_LINES_COUNT_ON_DEFAULT_SCROLL_SCALE) {
+		if (this._totalRowsCount > MAX_LINES_COUNT_ON_DEFAULT_SCROLL_SCALE) {
 			this._scale = 0.1;
 		} else {
 			this._scale = 20;

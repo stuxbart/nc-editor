@@ -24,7 +24,7 @@ export enum EvScroll {
 }
 export interface IScrollEvent {
 	[EvScroll.Changed]: {
-		firstVisibleLine: number;
+		firstVisibleRow: number;
 		emitterName: string;
 	};
 }
@@ -77,6 +77,15 @@ export interface ISearchUiVisibilityEvents {
 	[EvSearchUi.Close]: undefined;
 }
 /*
+ * Wrap events
+ */
+export enum EvWrap {
+	Changed = 'wrap.Changed',
+}
+export interface IWrapEvents {
+	[EvWrap.Changed]: { enabled: boolean };
+}
+/*
  * Key events
  */
 export enum EvKey {
@@ -113,6 +122,7 @@ export interface EditorViewEvents
 		ISelectionChangedEvent,
 		IDocumentLinesCountChanged,
 		ISearchFinishedEvent,
-		IDocumentSet {}
+		IDocumentSet,
+		IWrapEvents {}
 export interface SelectionLayerEvents extends IScrollEvent {}
 export interface SearchUiEvents extends ISearchUiVisibilityEvents {}

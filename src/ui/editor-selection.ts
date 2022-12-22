@@ -77,7 +77,7 @@ export default class SelectionLayer extends EventEmitter<SelectionLayerEvents> {
 
 	private _initEventListeners(): void {
 		this._view.on(EvScroll.Changed, (e) => {
-			this.setFirstVisibleLine(e.firstVisibleLine);
+			this.setFirstVisibleLine(e.firstVisibleRow);
 			this.update();
 		});
 		this._view.on(EvFont.LetterWidth, (e) => {
@@ -325,7 +325,7 @@ export default class SelectionLayer extends EventEmitter<SelectionLayerEvents> {
 						? Math.min(Math.round(diffY / 4), 2)
 						: Math.max(Math.round(diffY / 4), -2);
 				this.emit(EvScroll.Changed, {
-					firstVisibleLine: lineDiff + this._firstVisibleLine,
+					firstVisibleRow: lineDiff + this._firstVisibleLine,
 					emitterName: this._emitterName,
 				});
 			}

@@ -22,7 +22,7 @@ class EditorGutter extends EventEmitter<EditorGutterEvents> {
 		this._createGutterContainer();
 		this._initEventListeners();
 		this._totalRowsCount = this._session.reader.getTotalRowsCount();
-		this._visibleRowsCount = this._view.visibleLinesCount;
+		this._visibleRowsCount = this._view.visibleRowsCount;
 		this.update();
 	}
 
@@ -71,7 +71,7 @@ class EditorGutter extends EventEmitter<EditorGutterEvents> {
 
 	private _initEventListeners(): void {
 		this._view.on(EvScroll.Changed, (e) => {
-			this.setFirstVisibleRow(e.firstVisibleLine);
+			this.setFirstVisibleRow(e.firstVisibleRow);
 			this.update();
 		});
 		this._view.on(EvDocument.Edited, () => {
@@ -104,7 +104,6 @@ class EditorGutter extends EventEmitter<EditorGutterEvents> {
 	}
 
 	private _renderLinesNumbers(): void {
-		console.log(this._totalRowsCount);
 		if (this._gutterContainer === null) {
 			return;
 		}

@@ -42,7 +42,7 @@ class TextLayer extends EventEmitter<TextLayerEvents> {
 
 	private _initEventListeners(): void {
 		this._view.on(EvScroll.Changed, (e) => {
-			this.setFirstVisibleLine(e.firstVisibleLine);
+			this.setFirstVisibleLine(e.firstVisibleRow);
 			this.update();
 		});
 		this._view.on(EvDocument.Edited, () => {
