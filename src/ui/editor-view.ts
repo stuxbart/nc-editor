@@ -95,6 +95,7 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 
 		this._sessionId = editor.createSession(docId);
 		this._session = editor.getSession(this._sessionId);
+		this._session.wrapper.wrap();
 		this._docSession = editor.getDocumentSession(docId);
 
 		this.mount(mountPoint);
@@ -185,6 +186,7 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 		this._session = this._editor.getSession(id);
 		this._docSession = this._session.documentSession;
 		this._sessionId = id;
+		this._session.wrapper.wrap();
 		this._clearSessionEventListeners();
 		this._initSessionEventListeners();
 		this.emit(EvDocument.Set, undefined);
@@ -201,6 +203,7 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 			this._docSession = this._session.documentSession;
 			this._sessionId = this._session.id;
 		}
+		this._session.wrapper.wrap();
 		this._clearSessionEventListeners();
 		this._initSessionEventListeners();
 		this.emit(EvDocument.Set, undefined);
