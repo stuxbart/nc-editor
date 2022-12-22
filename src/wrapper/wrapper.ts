@@ -13,6 +13,7 @@ export default class Wrapper {
 	}
 
 	public wrap(): void {
+		this._wrapData.clear();
 		const document = this._editSession.documentSession.document;
 		this.insertNewLines(0, document.linesCount);
 		this.updateLines(0, document.linesCount);
