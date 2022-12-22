@@ -1,21 +1,7 @@
-import DocumentSession from '../document-session/document-session';
-import Document from '../document/document';
-import Line from '../document/line';
-import EditSession from '../edit-session/edit-session';
+import Line, { Row } from '../document/line';
+import Reader from './reader';
 
-export default class DocumentReader {
-	private _documentSession: DocumentSession;
-	private _editSession: EditSession;
-
-	constructor(documentSesion: DocumentSession, editSession: EditSession) {
-		this._documentSession = documentSesion;
-		this._editSession = editSession;
-	}
-
-	private get _document(): Document {
-		return this._documentSession.document;
-	}
-
+export default class DocumentReader extends Reader {
 	public getLines(firstLine: number, count: number): Line[] {
 		const document = this._document;
 		const tokenizerData = this._documentSession.tokenizerData;
@@ -31,6 +17,24 @@ export default class DocumentReader {
 			});
 		}
 		return lines;
+	}
+
+	public getRows(firstRow: number, count: number): Row[] {
+		const lines = this.getLines(firstRow, count);
+		const rows: Row[] = [];
+		let i = 0;
+		for (const line of lines) {
+			rows.push({
+				line: firstRow + i,
+				ord: 0,
+				offset: 0,
+				text: line.rawText,
+				tokens: line.tokens,
+				searchResults: line.searchResults,
+			});
+			i++;
+		}
+		return rows;
 	}
 
 	public getFirstLine(): Line | null {
