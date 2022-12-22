@@ -1,10 +1,11 @@
-import Line from '../document/line';
+import { Row } from '../document/line';
 import { Token } from '../tokenizer';
 import { CSSClasses } from '../styles/css';
 import { createElement, createNodeFromTemplate, px } from './dom-utils';
 import { HighlighterSchema } from '../highlighter';
 
 export default class EditorLineElement {
+	private _line: number = 0;
 	private _text: string = '';
 	private _isActive: boolean = false;
 	private _isHovered: boolean = false;
@@ -12,8 +13,9 @@ export default class EditorLineElement {
 	private _tokens: Token[] = [];
 	private _highlighterSchema: HighlighterSchema;
 
-	constructor(line: Line, active: boolean = false, highlighterSchema: HighlighterSchema = {}) {
-		this._text = line.rawText;
+	constructor(line: Row, active: boolean = false, highlighterSchema: HighlighterSchema = {}) {
+		this._line = line.line;
+		this._text = line.text;
 		this._tokens = line.tokens;
 		this._highlighterSchema = highlighterSchema;
 		this._domElement = createNodeFromTemplate(
@@ -29,15 +31,19 @@ export default class EditorLineElement {
 		this._renderTokens();
 	}
 
+	public get line(): number {
+		return this._line;
+	}
+
 	public getNode(): ChildNode | null {
 		return this._domElement;
 	}
 
-	public setData(line: Line): void {
-		if (line.rawText === this._text && this._tokens.length > 0) {
+	public setData(line: Row): void {
+		if (line.text === this._text && this._tokens.length > 0) {
 			return;
 		}
-		this._text = line.rawText;
+		this._text = line.text;
 		this._tokens = line.tokens;
 	}
 

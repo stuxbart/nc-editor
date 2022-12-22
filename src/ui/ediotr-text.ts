@@ -1,7 +1,7 @@
 import { EventEmitter } from '../events';
 import { createDiv } from './dom-utils';
 import EditorLineElement from './editor-line-element';
-import Line from '../document/line';
+import { Row } from '../document/line';
 import EdiotrView from './editor-view';
 import { EvFont, EvScroll, TextLayerEvents } from './events';
 import { notEmpty } from '../utils';
@@ -17,7 +17,7 @@ class TextLayer extends EventEmitter<TextLayerEvents> {
 	private _textContainer: HTMLDivElement | null = null;
 	private _firstVisibleLine: number = 0;
 	private _visibleLinesCount: number = 20;
-	private _visibleLines: EditorLineElement[] = [];
+	private _visibleRows: EditorLineElement[] = [];
 	private _activeLineNumber: number = 0;
 	private _hoveredLineNumber: number = 0;
 	private _lineHeight: number = 20;
@@ -52,7 +52,7 @@ class TextLayer extends EventEmitter<TextLayerEvents> {
 			this.update();
 		});
 		this._view.on(EvSelection.Changed, () => {
-			this._updateActiveLines();
+			this._updateActiveRows();
 		});
 		this._view.on(EvDocument.Set, () => {
 			this.update();
@@ -77,32 +77,30 @@ class TextLayer extends EventEmitter<TextLayerEvents> {
 	}
 
 	public update(): void {
-		this._renderLines();
+		this._renderRows();
 	}
 
 	public measureLetterWidth(): void {
 		return this._measureLetterWidth();
 	}
 
-	private _updateActiveLines(): void {
+	public _updateActiveRows(): void {
 		if (this._textContainer == null) {
 			return;
 		}
-		const lines = this._session.reader.getLines(
-			this._firstVisibleLine,
-			this._visibleLinesCount,
-		);
+		const rows = this._session.reader.getRows(this._firstVisibleLine, this._visibleLinesCount);
+		const lineNumbers = rows.map((row) => row.line);
+		const firstVisibleLine = Math.min(...lineNumbers);
+		const lastVisibleLine = Math.max(...lineNumbers);
 		const activeLines = this._session.getActiveLinesNumbers(
-			this._firstVisibleLine,
-			this._visibleLinesCount,
+			firstVisibleLine,
+			lastVisibleLine - firstVisibleLine + 1,
 		);
-		if (this._visibleLines.length !== lines.length) {
+		if (this._visibleRows.length !== rows.length) {
 			return;
 		}
-		let lineNumber = 0;
-		for (const line of this._visibleLines) {
-			line.setActive(activeLines.has(this._firstVisibleLine + lineNumber));
-			lineNumber++;
+		for (const row of this._visibleRows) {
+			row.setActive(activeLines.has(row.line));
 		}
 	}
 
@@ -121,50 +119,33 @@ class TextLayer extends EventEmitter<TextLayerEvents> {
 		this.emit(EvFont.LetterWidth, { width: this._letterWidth });
 	}
 
-	private _renderLines(): void {
+	private _renderRows(): void {
 		if (this._textContainer === null) {
 			return;
 		}
-		const lines = this._session.reader.getLines(
-			this._firstVisibleLine,
-			this._visibleLinesCount,
-		);
+		const rows = this._session.reader.getRows(this._firstVisibleLine, this._visibleLinesCount);
+		const lineNumbers = rows.map((row) => row.line);
+		const firstVisibleLine = Math.min(...lineNumbers);
+		const lastVisibleLine = Math.max(...lineNumbers);
 		const activeLines = this._session.getActiveLinesNumbers(
-			this._firstVisibleLine,
-			this._visibleLinesCount,
+			firstVisibleLine,
+			lastVisibleLine - firstVisibleLine + 1,
 		);
-		if (this._visibleLines.length === lines.length) {
-			let lineNumber = 0;
-			for (const line of lines) {
-				this._visibleLines[lineNumber].setSchema(this._highlighterSchema);
-				this._visibleLines[lineNumber].setData(line);
-				this._visibleLines[lineNumber].setActive(
-					activeLines.has(this._firstVisibleLine + lineNumber),
-				);
-				this._visibleLines[lineNumber].render();
-				lineNumber++;
-			}
-		} else {
-			this._visibleLines = [];
-			let lineNumber = 0;
-			for (const line of lines) {
-				this._renderLine(this._visibleLines, line, this._firstVisibleLine + lineNumber);
-				this._visibleLines[lineNumber].setActive(
-					activeLines.has(this._firstVisibleLine + lineNumber),
-				);
-				lineNumber++;
-			}
-			const domElements = this._visibleLines.map((el) => el.getNode()).filter(notEmpty);
-			this._textContainer.replaceChildren(...domElements);
+
+		this._visibleRows = [];
+		let rowNumber = 0;
+		for (const row of rows) {
+			this._renderRow(this._visibleRows, row, row.line === this._activeLineNumber);
+			this._visibleRows[rowNumber].setActive(activeLines.has(row.line));
+			rowNumber++;
 		}
+
+		const domElements = this._visibleRows.map((el) => el.getNode()).filter(notEmpty);
+		this._textContainer.replaceChildren(...domElements);
 	}
 
-	private _renderLine(parent: EditorLineElement[], line: Line, lineNumber: number): void {
-		const lineElement = new EditorLineElement(
-			line,
-			lineNumber === this._activeLineNumber,
-			this._highlighterSchema,
-		);
+	private _renderRow(parent: EditorLineElement[], row: Row, active: boolean): void {
+		const lineElement = new EditorLineElement(row, active, this._highlighterSchema);
 		parent.push(lineElement);
 	}
 }
