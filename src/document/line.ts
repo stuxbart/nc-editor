@@ -18,3 +18,14 @@ export default class Line {
 		this.searchResults = searchResults;
 	}
 }
+
+export class Row {
+	constructor(
+		public line: number,
+		public ord: number,
+		public offset: number,
+		public text: string,
+		public tokens: Token[],
+		public searchResults: number[],
+	) {}
+}
