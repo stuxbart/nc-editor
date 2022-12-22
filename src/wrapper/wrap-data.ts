@@ -15,6 +15,12 @@ export default class WrapData {
 		return this._rowsCount;
 	}
 
+	public clear(): void {
+		this._rootNode = null;
+		this._linesCount = 0;
+		this._rowsCount = 0;
+	}
+
 	public insertLine(data: LineWrapData, lineNumber: number): void {
 		const newNode = new WrapNode(data);
 		this._rootNode = this._insertLine(this._rootNode, newNode, lineNumber, data.data.length);
@@ -31,7 +37,7 @@ export default class WrapData {
 			this._rootNode,
 			new WrapNode(data),
 			lineNumber,
-			prevData.data.length,
+			data.data.length,
 		);
 	}
 
@@ -193,11 +199,13 @@ export default class WrapData {
 		if (node === null) {
 			return;
 		}
-		let [lineNumber, currentNode] = this._getNodeByRowNumber(node, firstRowNumber, 0);
+		const nodeData = this._getNodeByRowNumber(node, firstRowNumber, 0, 0);
+		const rowNumber = nodeData[1];
+		let lineNumber = nodeData[0];
+		let currentNode = nodeData[2];
 		while (currentNode !== null && rowsArr.length < rowsCount) {
 			const lineBreaks = currentNode.data.data;
-			const startIndex =
-				rowsArr.length === 0 ? firstRowNumber - currentNode.leftSubTreeRows : 0;
+			const startIndex = rowsArr.length === 0 ? firstRowNumber - rowNumber : 0;
 			for (let i = startIndex; i < lineBreaks.length && rowsArr.length < rowsCount; i++) {
 				const rowData = new RowWrapData(lineNumber, i, lineBreaks[i]);
 				rowsArr.push(rowData);
@@ -281,23 +289,25 @@ export default class WrapData {
 		node: WrapNode | null,
 		rowNumber: number,
 		lineOffset: number,
-	): [number, WrapNode | null] {
+		rowOffset: number,
+	): [number, number, WrapNode | null] {
 		if (node === null) {
-			return [lineOffset, node];
+			return [lineOffset, rowOffset, node];
 		}
 
 		if (
 			rowNumber >= node.leftSubTreeRows &&
 			rowNumber < node.leftSubTreeRows + node.data.data.length
 		) {
-			return [lineOffset + node.leftSubTreeSize, node];
+			return [lineOffset + node.leftSubTreeSize, rowOffset + node.leftSubTreeRows, node];
 		} else if (rowNumber < node.leftSubTreeRows) {
-			return this._getNodeByRowNumber(node.left, rowNumber, lineOffset);
+			return this._getNodeByRowNumber(node.left, rowNumber, lineOffset, rowOffset);
 		} else {
 			return this._getNodeByRowNumber(
 				node.right,
 				rowNumber - node.leftSubTreeRows - node.data.data.length,
 				lineOffset + node.leftSubTreeSize + 1,
+				rowOffset + node.leftSubTreeRows + node.data.data.length,
 			);
 		}
 	}
@@ -383,7 +393,7 @@ export default class WrapData {
 		y.height = Math.max(nodeHeight(y.left), nodeHeight(y.right)) + 1;
 
 		y.leftSubTreeSize = y.leftSubTreeSize + node.leftSubTreeSize + 1;
-		y.leftSubTreeRows = y.leftSubTreeRows + node.leftSubTreeRows + y.data.data.length;
+		y.leftSubTreeRows = y.leftSubTreeRows + node.leftSubTreeRows + node.data.data.length;
 		y.parent = node.parent;
 		node.parent = y;
 		if (N2 !== null) {
