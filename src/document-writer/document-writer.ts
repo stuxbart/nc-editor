@@ -37,6 +37,8 @@ export default class DocumentWriter {
 			);
 			const removedLines = removedText.split('\n');
 			docSession.updateLinesTokens(sel.start.line);
+			editSession.wrapper.removeLines(sel.start.line + 1, removedLines.length - 1);
+			editSession.wrapper.updateLines(sel.start.line, removedLines.length + 1);
 			editSession.updateLinesSearchResults(sel.start.line);
 			docSession.emitLinesCountChanged(sel.end.line - sel.start.line);
 			editSession.updateSelctions(
@@ -52,6 +54,8 @@ export default class DocumentWriter {
 			const offset = sel.start.offset;
 			const insertedLines = document.insert(str, line, offset);
 			docSession.history.inserted(new Point(sel.start.line, sel.start.offset), str);
+			editSession.wrapper.insertNewLines(sel.start.line + 1, insertedLines[0]);
+			editSession.wrapper.updateLines(sel.start.line, insertedLines[0] + 1);
 			docSession.updateLinesTokens(line);
 			editSession.updateLinesSearchResults(line);
 			editSession.updateSelctions(line, offset, insertedLines[0], insertedLines[1]);
@@ -104,6 +108,8 @@ export default class DocumentWriter {
 			);
 			const removedLines = removedText.split('\n');
 			docSession.updateLinesTokens(sel.start.line);
+			editSession.wrapper.removeLines(sel.start.line + 1, removedLines.length - 1);
+			editSession.wrapper.updateLines(sel.start.line, removedLines.length + 1);
 			editSession.updateLinesSearchResults(sel.start.line);
 			docSession.emitLinesCountChanged(sel.end.line - sel.start.line);
 			editSession.updateSelctions(
@@ -190,7 +196,7 @@ export default class DocumentWriter {
 			docSession.history.swappedLinesUp(line);
 			line++;
 		}
-
+		editSession.wrapper.updateLines(sel.start.line - 1, 2);
 		docSession.updateLinesTokens(sel.start.line - 1);
 		sel.start.line -= 1;
 		sel.end.line -= 1;
@@ -221,7 +227,7 @@ export default class DocumentWriter {
 			docSession.history.swappedLinesDown(line);
 			line--;
 		}
-
+		editSession.wrapper.updateLines(sel.start.line, 2);
 		docSession.updateLinesTokens(sel.start.line);
 		sel.start.line += 1;
 		sel.end.line += 1;
@@ -245,6 +251,7 @@ export default class DocumentWriter {
 			document.insert(indentString, lineNumber, 0);
 			docSession.history.inserted(new Point(lineNumber, 0), indentString);
 			docSession.updateLinesTokens(lineNumber);
+			editSession.wrapper.updateLines(lineNumber, 1);
 			editSession.updateSelctions(lineNumber, 0, 0, 1);
 		}
 		docSession.history.closeTransaction();
@@ -271,6 +278,7 @@ export default class DocumentWriter {
 				indentString,
 			);
 			docSession.updateLinesTokens(lineNumber);
+			editSession.wrapper.updateLines(lineNumber, 1);
 			editSession.updateSelctions(lineNumber, 0, 0, 1);
 		}
 		docSession.history.closeTransaction();
