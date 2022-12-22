@@ -262,7 +262,7 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 		this._visibleLinesCount = Math.ceil(this._height / this._lineHeight);
 
 		if (this._gutter) {
-			this._gutter.setVisibleLinesCount(this._visibleLinesCount);
+			this._gutter.setVisibleRowsCount(this._visibleLinesCount);
 		}
 		if (this._textLayer) {
 			this._textLayer.setVisibleLinesCount(this._visibleLinesCount);

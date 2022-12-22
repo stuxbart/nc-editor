@@ -10,9 +10,9 @@ class EditorGutter extends EventEmitter<EditorGutterEvents> {
 	private _view: EdiotrView;
 	private _mountPoint: HTMLElement | null = null;
 	private _gutterContainer: HTMLDivElement | null = null;
-	private _firstVisibleLine: number = 0;
-	private _visibleLinesCount: number = 0;
-	private _totalLinesCount: number = 50;
+	private _firstVisibleRow: number = 0;
+	private _visibleRowsCount: number = 0;
+	private _totalRowsCount: number = 50;
 	private _gutterWidth: number = 50;
 
 	constructor(view: EdiotrView) {
@@ -21,8 +21,8 @@ class EditorGutter extends EventEmitter<EditorGutterEvents> {
 		this._mountPoint = view.getDOMElement();
 		this._createGutterContainer();
 		this._initEventListeners();
-		this._totalLinesCount = this._session.reader.getTotalLinesCount();
-		this._visibleLinesCount = this._view.visibleLinesCount;
+		this._totalRowsCount = this._session.reader.getTotalRowsCount();
+		this._visibleRowsCount = this._view.visibleLinesCount;
 		this.update();
 	}
 
@@ -38,11 +38,11 @@ class EditorGutter extends EventEmitter<EditorGutterEvents> {
 		this._gutterWidth = width;
 	}
 
-	public setWidthForLinesCount(linesCount: number): number {
+	public setWidthForRowsCount(rowsCount: number): number {
 		if (this._gutterContainer === null) {
 			return this._gutterWidth;
 		}
-		const chars = linesCount.toString().length;
+		const chars = rowsCount.toString().length;
 		let gutterWidth = chars * 10;
 		if (gutterWidth < 50) {
 			gutterWidth = 50;
@@ -57,32 +57,39 @@ class EditorGutter extends EventEmitter<EditorGutterEvents> {
 		return this._gutterWidth;
 	}
 
-	public setFirstVisibleLine(firstLine: number): void {
-		this._firstVisibleLine = firstLine;
+	public setFirstVisibleRow(firstRow: number): void {
+		this._firstVisibleRow = firstRow;
 	}
 
-	public setVisibleLinesCount(linesCount: number): void {
-		this._visibleLinesCount = linesCount;
+	public setVisibleRowsCount(rowsCount: number): void {
+		this._visibleRowsCount = rowsCount;
 	}
 
-	public setTotalLinesCount(linesCount: number): void {
-		this._totalLinesCount = linesCount;
+	public setTotalRowsCount(rowsCount: number): void {
+		this._totalRowsCount = rowsCount;
 	}
 
 	private _initEventListeners(): void {
 		this._view.on(EvScroll.Changed, (e) => {
-			this.setFirstVisibleLine(e.firstVisibleLine);
+			this.setFirstVisibleRow(e.firstVisibleLine);
 			this.update();
 		});
-		this._view.on(EvDocument.LinesCount, (e) => {
-			this.setTotalLinesCount(e.linesCount);
-			this.setWidthForLinesCount(e.linesCount);
+		this._view.on(EvDocument.Edited, () => {
+			const rowsCount = this._session.reader.getTotalRowsCount();
+			this.setTotalRowsCount(rowsCount);
+			this.setWidthForRowsCount(rowsCount);
+			this.update();
+		});
+		this._view.on(EvDocument.LinesCount, () => {
+			const rowsCount = this._session.reader.getTotalRowsCount();
+			this.setTotalRowsCount(rowsCount);
+			this.setWidthForRowsCount(rowsCount);
 			this.update();
 		});
 		this._view.on(EvDocument.Set, () => {
-			const linesCount = this._session.reader.getTotalLinesCount();
-			this.setTotalLinesCount(linesCount);
-			this.setWidthForLinesCount(linesCount);
+			const rowsCount = this._session.reader.getTotalRowsCount();
+			this.setTotalRowsCount(rowsCount);
+			this.setWidthForRowsCount(rowsCount);
 			this.update();
 		});
 	}
@@ -97,19 +104,26 @@ class EditorGutter extends EventEmitter<EditorGutterEvents> {
 	}
 
 	private _renderLinesNumbers(): void {
+		console.log(this._totalRowsCount);
 		if (this._gutterContainer === null) {
 			return;
 		}
 
+		const rows = this._session.reader.getRows(this._firstVisibleRow, this._visibleRowsCount);
 		const lines = [];
-		for (let i = 0; i < this._visibleLinesCount; i++) {
-			if (i + this._firstVisibleLine > this._totalLinesCount - 1) {
-				break;
+
+		for (const row of rows) {
+			if (row.ord === 0 || lines.length === 0) {
+				const numberDiv = createDiv(CSSClasses.GUTTER_NUMBER);
+				numberDiv.innerText = `${row.line + 1}`;
+				lines.push(numberDiv);
+			} else {
+				const numberDiv = createDiv(CSSClasses.GUTTER_NUMBER);
+				numberDiv.innerHTML = `&nbsp;`;
+				lines.push(numberDiv);
 			}
-			const numberDiv = createDiv(CSSClasses.GUTTER_NUMBER);
-			numberDiv.innerText = `${i + this._firstVisibleLine + 1}`;
-			lines.push(numberDiv);
 		}
+
 		this._gutterContainer.replaceChildren(...lines);
 	}
 }

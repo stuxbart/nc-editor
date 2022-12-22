@@ -26,5 +26,7 @@ export default abstract class Reader {
 
 	public abstract getTotalLinesCount(): number;
 
+	public abstract getTotalRowsCount(): number;
+
 	public abstract getSelectedText(): string;
 }

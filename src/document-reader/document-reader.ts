@@ -64,6 +64,14 @@ export default class DocumentReader extends Reader {
 		return this._document.linesCount;
 	}
 
+	public getTotalRowsCount(): number {
+		if (this._editSession.isWrapEnabled) {
+			return this._editSession.wrapData.rowsCount;
+		} else {
+			return this._document.linesCount;
+		}
+	}
+
 	public getSelectedText(): string {
 		let text = '';
 		for (const sel of this._editSession.selections.getSelections()) {

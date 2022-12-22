@@ -89,6 +89,10 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
 		return this._wrapData;
 	}
 
+	public get isWrapEnabled(): boolean {
+		return this._useWrapData;
+	}
+
 	public get maxLineWidth(): number {
 		return this._maxLineWidth;
 	}
