@@ -1,5 +1,7 @@
 import { Document } from '../document';
 import DocumentReader from '../document-reader/document-reader';
+import Reader from '../document-reader/reader';
+import WrapReader from '../document-reader/wrap-reader';
 import DocumentSession from '../document-session/document-session';
 import DocumentWriter from '../document-writer/document-writer';
 import { EventEmitter } from '../events';
@@ -10,6 +12,8 @@ import { Point, Selection } from '../selection';
 import SelectionHistory from '../selection/selection-history';
 import SelectionManager from '../selection/selection-manager';
 import { randomId } from '../utils';
+import WrapData from '../wrapper/wrap-data';
+import Wrapper from '../wrapper/wrapper';
 import { EditSessionEvents, EvSearch, EvSelection } from './events';
 
 export default class EditSession extends EventEmitter<EditSessionEvents> {
@@ -19,11 +23,16 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
 	private _searchResults: SerachResults;
 	private _selectionManager: SelectionManager;
 	private _selectionHistory: SelectionHistory;
-	private _reader: DocumentReader;
+	private _reader: Reader;
 	private _writer: DocumentWriter;
+	private _wrapper: Wrapper;
+	private _wrapData: WrapData;
 
 	private _searchAfterEdit: boolean = true;
 	private _shouldUpdateSelections: boolean = true;
+
+	private _useWrapData: boolean = false;
+	private _maxLineWidth: number = 150;
 
 	constructor(documentSession: DocumentSession) {
 		super();
@@ -36,13 +45,15 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
 		this._searchResults = new SerachResults();
 		this._reader = new DocumentReader(this._documentSession, this);
 		this._writer = new DocumentWriter(this._documentSession, this);
+		this._wrapper = new Wrapper(this);
+		this._wrapData = new WrapData();
 	}
 
 	public get id(): string {
 		return this._id;
 	}
 
-	public get reader(): DocumentReader {
+	public get reader(): Reader {
 		return this._reader;
 	}
 
@@ -68,6 +79,18 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
 
 	public get highlightingSchema(): HighlighterSchema {
 		return this._highlightingSchema;
+	}
+
+	public get wrapper(): Wrapper {
+		return this._wrapper;
+	}
+
+	public get wrapData(): WrapData {
+		return this._wrapData;
+	}
+
+	public get maxLineWidth(): number {
+		return this._maxLineWidth;
 	}
 
 	private get _document(): Document {
@@ -239,5 +262,16 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
 	public redo(): void {
 		this._documentSession.redo();
 		this._selectionHistory.redo();
+	}
+
+	public enableWrap(): void {
+		this._useWrapData = true;
+		this._wrapper.wrap();
+		this._reader = new WrapReader(this.documentSession, this);
+	}
+
+	public disableWrap(): void {
+		this._useWrapData = false;
+		this._reader = new DocumentReader(this.documentSession, this);
 	}
 }
