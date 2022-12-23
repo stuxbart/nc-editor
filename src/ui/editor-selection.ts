@@ -165,36 +165,58 @@ export default class SelectionLayer extends EventEmitter<SelectionLayerEvents> {
 			return [];
 		}
 		const selections = this._session.getSelctions();
-		const lines = this._session.reader.getLines(
-			this._firstVisibleLine,
-			this._visibleLinesCount,
-		);
+		const rows = this._session.reader.getRows(this._firstVisibleLine, this._visibleLinesCount);
 		const cursorElements: HTMLElement[] = [];
 
+		const firstVisibleLine = rows[0].line;
+		const lastVisibleLine = rows[rows.length - 1].line;
 		for (const sel of selections) {
-			let i = 0;
-			let offset = 0;
+			let cursorPos: Point = new Point(0, 0);
 			if (sel.type === SelectionType.L) {
-				i = sel.start.line - this._firstVisibleLine;
-				offset = sel.start.offset;
+				cursorPos = sel.start;
 			} else {
-				i = sel.end.line - this._firstVisibleLine;
-				offset = sel.end.offset;
+				cursorPos = sel.end;
 			}
-			if (i >= lines.length || i < 0) {
+
+			if (cursorPos.line < firstVisibleLine) {
 				continue;
 			}
-			const lineContent = lines[i];
+			if (cursorPos.line === firstVisibleLine && cursorPos.offset < rows[0].offset) {
+				continue;
+			}
+			if (cursorPos.line > lastVisibleLine) {
+				continue;
+			}
+			if (
+				cursorPos.line === lastVisibleLine &&
+				cursorPos.offset > rows[rows.length - 1].offset
+			) {
+				continue;
+			}
+			let rowNumber = -1;
+			let rowOffset = -1;
 
-			const left = offsetToColumn(lineContent.rawText, offset) * this._letterWidth;
-			const top = i * this._lineHeight;
+			for (rowNumber = 0; rowNumber < rows.length; rowNumber++) {
+				const row = rows[rowNumber];
+				if (row.line !== cursorPos.line) {
+					continue;
+				}
+				if (
+					row.offset <= cursorPos.offset &&
+					row.offset + row.text.length >= cursorPos.offset
+				) {
+					rowOffset = cursorPos.offset - row.offset;
+					break;
+				}
+			}
+			const left = offsetToColumn(rows[rowNumber].text, rowOffset) * this._letterWidth;
+			const top = rowNumber * this._lineHeight;
 			const cursor = new EditorCursor(left, top);
 			const cursorElement = cursor.getDOMElment();
 			if (cursorElement) {
 				cursorElements.push(cursorElement);
 			}
 		}
-
 		return cursorElements;
 	}
 
