@@ -51,6 +51,9 @@ export default class WrapReader extends Reader {
 			}
 			prevLineNumber = row.line;
 			const line = rawLines[row.line - firstLineIndex];
+			if (rawLines.length <= row.line - firstLineIndex) {
+				break;
+			}
 			const lineTokens: Token[] = tokenizerData.getLineTokens(line);
 			const rowTokens: Token[] = [];
 

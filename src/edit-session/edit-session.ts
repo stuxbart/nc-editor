@@ -262,12 +262,18 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
 
 	public undo(): void {
 		this._documentSession.undo();
+		this._wrapper.wrap();
 		this._selectionHistory.undo();
+		this._documentSession.emitEditEvent();
+		this.emitSelectionChangedEvent();
 	}
 
 	public redo(): void {
 		this._documentSession.redo();
+		this._wrapper.wrap();
 		this._selectionHistory.redo();
+		this._documentSession.emitEditEvent();
+		this.emitSelectionChangedEvent();
 	}
 
 	public enableWrap(): void {

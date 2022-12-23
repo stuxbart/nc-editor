@@ -215,6 +215,9 @@ export default class SelectionLayer extends EventEmitter<SelectionLayerEvents> {
 					break;
 				}
 			}
+			if (rowNumber === rows.length) {
+				continue;
+			}
 			const left = offsetToColumn(rows[rowNumber].text, rowOffset) * this._letterWidth;
 			const top = rowNumber * this._lineHeight;
 			const cursor = new EditorCursor(left, top);
