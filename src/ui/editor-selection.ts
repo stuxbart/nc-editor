@@ -224,20 +224,20 @@ export default class SelectionLayer extends EventEmitter<SelectionLayerEvents> {
 		if (this._selectionContainer === null || !this._showSearchResults) {
 			return [];
 		}
-		const lines = this._session.reader.getLines(
-			this._firstVisibleLine,
-			this._visibleLinesCount,
-		);
+		const rows = this._session.reader.getRows(this._firstVisibleLine, this._visibleLinesCount);
 		const searchPhraseLength = this._session.getSearchPhrase().length;
 		const searchResultElements: HTMLElement[] = [];
 
-		let i = 0;
-		for (const line of lines) {
-			for (const match of line.searchResults) {
+		for (let i = 0; i < rows.length; i++) {
+			const row = rows[i];
+			if (row.searchResults.length < 1) {
+				continue;
+			}
+			for (const match of row.searchResults) {
 				const resultElement = createDiv(CSSClasses.SELECTION_SEARCH);
-				const left = offsetToColumn(line.rawText, match) * this._letterWidth;
+				const left = offsetToColumn(row.text, match) * this._letterWidth;
 				const right =
-					offsetToColumn(line.rawText, match + searchPhraseLength) * this._letterWidth;
+					offsetToColumn(row.text, match + searchPhraseLength) * this._letterWidth;
 				const top = i * this._lineHeight;
 				resultElement.style.top = px(top);
 				resultElement.style.left = px(left);
@@ -245,7 +245,6 @@ export default class SelectionLayer extends EventEmitter<SelectionLayerEvents> {
 				resultElement.style.height = px(this._lineHeight);
 				searchResultElements.push(resultElement);
 			}
-			i++;
 		}
 
 		return searchResultElements;
