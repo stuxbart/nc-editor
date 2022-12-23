@@ -137,21 +137,13 @@ export default class SelectionLayer extends EventEmitter<SelectionLayerEvents> {
 			return [];
 		}
 		const selections = this._session.getSelctions();
-		const lines = this._session.reader.getLines(
-			this._firstVisibleLine,
-			this._visibleLinesCount,
-		);
+		const rows = this._session.reader.getRows(this._firstVisibleLine, this._visibleLinesCount);
 		const selectionElements: HTMLElement[] = [];
 		if (selections.length === this._visibleSelections.length) {
 			for (let i = 0; i < selections.length; i++) {
 				this._visibleSelections[i].setSelection(selections[i]);
 				selectionElements.push(
-					...this._visibleSelections[i].render(
-						this._firstVisibleLine,
-						this._visibleLinesCount,
-						lines,
-						this._letterWidth,
-					),
+					...this._visibleSelections[i].render(rows, this._letterWidth),
 				);
 			}
 		} else {
@@ -160,12 +152,7 @@ export default class SelectionLayer extends EventEmitter<SelectionLayerEvents> {
 				const newSelectionElement = new EditorSelectionElement(selections[i]);
 				this._visibleSelections.push(newSelectionElement);
 				selectionElements.push(
-					...this._visibleSelections[i].render(
-						this._firstVisibleLine,
-						this._visibleLinesCount,
-						lines,
-						this._letterWidth,
-					),
+					...this._visibleSelections[i].render(rows, this._letterWidth),
 				);
 			}
 		}
