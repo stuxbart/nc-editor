@@ -37,10 +37,16 @@ class TextLayer extends EventEmitter<TextLayerEvents> {
 			if (this._textContainer === null) {
 				return;
 			}
+			const row = this._session.reader.getRows(this._firstVisibleLine, 1);
 			const rect = this._textContainer.getBoundingClientRect();
 			const padding = this._rightPadding;
 			const visibleChars = Math.floor((rect.width - padding) / this._letterWidth);
 			this._session.setVisibleColumnsCount(visibleChars);
+			if (row.length > 0) {
+				this._view.scrollToLine(row[0].line);
+			} else {
+				this._view.scrollTolastSelection();
+			}
 		});
 
 		if (this._textContainer) {

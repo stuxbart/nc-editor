@@ -139,6 +139,9 @@ export default class SelectionLayer extends EventEmitter<SelectionLayerEvents> {
 		const selections = this._session.getSelctions();
 		const rows = this._session.reader.getRows(this._firstVisibleLine, this._visibleLinesCount);
 		const selectionElements: HTMLElement[] = [];
+		if (rows.length === 0) {
+			return [];
+		}
 		if (selections.length === this._visibleSelections.length) {
 			for (let i = 0; i < selections.length; i++) {
 				this._visibleSelections[i].setSelection(selections[i]);
@@ -168,6 +171,9 @@ export default class SelectionLayer extends EventEmitter<SelectionLayerEvents> {
 		const rows = this._session.reader.getRows(this._firstVisibleLine, this._visibleLinesCount);
 		const cursorElements: HTMLElement[] = [];
 
+		if (rows.length === 0) {
+			return [];
+		}
 		const firstVisibleLine = rows[0].line;
 		const lastVisibleLine = rows[rows.length - 1].line;
 		for (const sel of selections) {
