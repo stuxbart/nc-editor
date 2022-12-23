@@ -653,7 +653,6 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 	private _scrollToLine(lineNumber: number, emitterName: string = this._emitterName): void {
 		let totalLines = this.reader.getTotalLinesCount();
 		totalLines = totalLines < 0 ? 0 : totalLines;
-
 		if (lineNumber < 0) {
 			lineNumber = 0;
 		} else if (totalLines - 5 < 0) {
@@ -673,10 +672,11 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 	}
 
 	private _isCursorVisible(cursorPos: Point): boolean {
-		if (cursorPos.line < this._firstVisibleRow) {
+		const cursorRow = this.reader.getFirstRowForLine(cursorPos.line);
+		if (cursorRow < this._firstVisibleRow) {
 			return false;
 		}
-		if (cursorPos.line >= this._firstVisibleRow + this._visibleRowsCount) {
+		if (cursorRow >= this._firstVisibleRow + this._visibleRowsCount) {
 			return false;
 		}
 		return true;
