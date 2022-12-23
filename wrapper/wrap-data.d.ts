@@ -1,0 +1,33 @@
+import WrapNode, { LineWrapData, RowWrapData } from './wrap-node';
+export declare const nodeHeight: (node: WrapNode | null) => number;
+export default class WrapData {
+    private _rootNode;
+    private _linesCount;
+    private _rowsCount;
+    get linesCount(): number;
+    get rowsCount(): number;
+    clear(): void;
+    insertLine(data: LineWrapData, lineNumber: number): void;
+    updateLineData(data: LineWrapData, lineNumber: number): void;
+    getDataForLines(firstLine: number, linesCount: number): LineWrapData[];
+    getRows(firstRow: number, rowsCount: number): RowWrapData[];
+    getLineData(lineNumber: number): LineWrapData;
+    getFirstLineData(): LineWrapData;
+    getLastLineData(): LineWrapData;
+    removeLine(lineNumber: number): void;
+    swapLineWithNext(lineNumber: number): void;
+    swapLineWithPrevious(lineNumber: number): void;
+    getFirstRowForLine(linenumber: number): number;
+    private _removeLine;
+    private _getRows;
+    private _getLines;
+    private _getNextLine;
+    private _getFirstLine;
+    private _getLastLine;
+    private _getNodeByLineNumber;
+    private _getNodeByRowNumber;
+    private _insertLine;
+    private _getBalanceFactor;
+    private _rotateLeft;
+    private _rotateRight;
+}

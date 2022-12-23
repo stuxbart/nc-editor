@@ -19,8 +19,8 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
     private _selectionLayer;
     private _input;
     private _search;
-    private _firstVisibleLine;
-    private _visibleLinesCount;
+    private _firstVisibleRow;
+    private _visibleRowsCount;
     private _scrollHeight;
     private _scrollWidth;
     private _scrollLeft;
@@ -44,7 +44,7 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
     get session(): EditSession;
     get reader(): DocumentReader;
     get writer(): DocumentWriter;
-    get visibleLinesCount(): number;
+    get visibleRowsCount(): number;
     mount(parent: HTMLElement | string): number;
     unmount(): void;
     setTheme(_theme: string | Theme): number;
@@ -61,6 +61,7 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
     private _initEventListeners;
     private _initSessionEventListeners;
     private _clearSessionEventListeners;
+    private _onWrapChanged;
     private _onDocumentEdit;
     private _onTokenizerFinished;
     private _onSelectionChanged;
@@ -77,6 +78,7 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
     scrollToLine(lineNumber: number): void;
     scrollTolastSelection(): void;
     private _setFocus;
+    private _scrollToRow;
     private _scrollToLine;
     private _isCursorVisible;
 }

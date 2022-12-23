@@ -1,4 +1,4 @@
-import DocumentReader from '../document-reader/document-reader';
+import Reader from '../document-reader/reader';
 import DocumentSession from '../document-session/document-session';
 import DocumentWriter from '../document-writer/document-writer';
 import { EventEmitter } from '../events';
@@ -7,6 +7,8 @@ import { SerachResults } from '../search';
 import { Point, Selection } from '../selection';
 import SelectionHistory from '../selection/selection-history';
 import SelectionManager from '../selection/selection-manager';
+import WrapData from '../wrapper/wrap-data';
+import Wrapper from '../wrapper/wrapper';
 import { EditSessionEvents } from './events';
 export default class EditSession extends EventEmitter<EditSessionEvents> {
     private _id;
@@ -17,17 +19,26 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
     private _selectionHistory;
     private _reader;
     private _writer;
+    private _wrapper;
+    private _wrapData;
     private _searchAfterEdit;
     private _shouldUpdateSelections;
+    private _useWrapData;
+    private _visibleColumnsCount;
+    letterWidth: number;
     constructor(documentSession: DocumentSession);
     get id(): string;
-    get reader(): DocumentReader;
+    get reader(): Reader;
     get writer(): DocumentWriter;
     get selections(): SelectionManager;
     get history(): SelectionHistory;
     get searchResults(): SerachResults;
     get documentSession(): DocumentSession;
     get highlightingSchema(): HighlighterSchema;
+    get wrapper(): Wrapper;
+    get wrapData(): WrapData;
+    get isWrapEnabled(): boolean;
+    get visibleColumnsCount(): number;
     private get _document();
     updateLinesSearchResults(firstLine: number): void;
     updateSelctions(line: number, offset: number, lineDiff: number, offsetDiff: number): void;
@@ -61,4 +72,7 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
     private _emitSelectionChangedEvent;
     undo(): void;
     redo(): void;
+    enableWrap(): void;
+    disableWrap(): void;
+    setVisibleColumnsCount(count: number): void;
 }
