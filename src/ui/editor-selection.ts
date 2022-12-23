@@ -343,11 +343,12 @@ export default class SelectionLayer extends EventEmitter<SelectionLayerEvents> {
 	}
 
 	private _getLineAndOffsetAtPosition(x: number, y: number): [number, number] {
-		let line = Math.floor(y / this._lineHeight) + this._firstVisibleLine;
+		const rowNumber = Math.floor(y / this._lineHeight) + this._firstVisibleLine;
 		let offset = 0;
-		const linesData = this._session.reader.getLines(line, 1);
+		let line = 0;
+		const rows = this._session.reader.getRows(rowNumber, 1);
 
-		if (linesData.length === 0) {
+		if (rows.length === 0) {
 			const lineContent = this._session.reader.getLastLine();
 			if (lineContent === null) {
 				return [0, 0];
@@ -355,10 +356,13 @@ export default class SelectionLayer extends EventEmitter<SelectionLayerEvents> {
 			offset = columnToOffset(lineContent.rawText, Infinity);
 			line = this._session.reader.getTotalLinesCount() - 1;
 		} else {
-			const lineContent = linesData[0];
+			const row = rows[0];
 			const column = Math.round(x / this._letterWidth);
-			offset = columnToOffset(lineContent.rawText, column);
+			offset = columnToOffset(row.text, column);
+			offset += row.offset;
+			line = row.line;
 		}
+
 		return [line, offset];
 	}
 }
