@@ -22,6 +22,8 @@ class TextLayer extends EventEmitter<TextLayerEvents> {
 	private _hoveredLineNumber: number = 0;
 	private _lineHeight: number = 20;
 	private _letterWidth: number = 0;
+	private _rightPadding: number = 20;
+	private _resizeObserver: ResizeObserver;
 
 	constructor(view: EdiotrView) {
 		super();
@@ -30,6 +32,20 @@ class TextLayer extends EventEmitter<TextLayerEvents> {
 		this._createTextContainer();
 		this._initEventListeners();
 		this._measureLetterWidth();
+
+		this._resizeObserver = new ResizeObserver(() => {
+			if (this._textContainer === null) {
+				return;
+			}
+			const rect = this._textContainer.getBoundingClientRect();
+			const padding = this._rightPadding;
+			const visibleChars = Math.floor((rect.width - padding) / this._letterWidth);
+			this._session.setVisibleColumnsCount(visibleChars);
+		});
+
+		if (this._textContainer) {
+			this._resizeObserver.observe(this._textContainer);
+		}
 	}
 
 	private get _session(): EditSession {
@@ -116,6 +132,8 @@ class TextLayer extends EventEmitter<TextLayerEvents> {
 		this._textContainer.appendChild(testDiv);
 		this._letterWidth = testDiv.offsetWidth / 20;
 		this._textContainer.removeChild(testDiv);
+		this._session.letterWidth = this._letterWidth;
+
 		this.emit(EvFont.LetterWidth, { width: this._letterWidth });
 	}
 

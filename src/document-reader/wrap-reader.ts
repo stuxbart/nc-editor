@@ -36,7 +36,7 @@ export default class WrapReader extends Reader {
 		let off = 0;
 		let prevLineNumber = -1;
 
-		if (rowsWrapData[0].ord !== 0) {
+		if (rowsWrapData.length > 0 && rowsWrapData[0].ord !== 0) {
 			const prevRowData = wrapData.getRows(firstRow - 1, 1)[0];
 			off = prevRowData.offset;
 			prevLineNumber = prevRowData.line;

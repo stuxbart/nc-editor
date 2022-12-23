@@ -40,7 +40,7 @@ export default class Wrapper {
 	}
 
 	private _wrapLine(text: string): number[] {
-		const maxWidth = this._editSession.maxLineWidth;
+		const maxWidth = this._editSession.visibleColumnsCount;
 		const offsets = [];
 		let i = 1;
 		while (i * maxWidth < text.length) {

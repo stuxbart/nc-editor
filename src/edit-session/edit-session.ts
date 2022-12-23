@@ -33,7 +33,8 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
 	private _shouldUpdateSelections: boolean = true;
 
 	private _useWrapData: boolean = false;
-	private _maxLineWidth: number = 150;
+	private _visibleColumnsCount: number = 150;
+	public letterWidth: number = 0;
 
 	constructor(documentSession: DocumentSession) {
 		super();
@@ -94,8 +95,8 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
 		return this._useWrapData;
 	}
 
-	public get maxLineWidth(): number {
-		return this._maxLineWidth;
+	public get visibleColumnsCount(): number {
+		return this._visibleColumnsCount;
 	}
 
 	private get _document(): Document {
@@ -280,5 +281,13 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
 		this._useWrapData = false;
 		this._reader = new DocumentReader(this.documentSession, this);
 		this.emit(EvWrap.Changed, { enabled: false });
+	}
+
+	public setVisibleColumnsCount(count: number): void {
+		this._visibleColumnsCount = count;
+		if (this._useWrapData) {
+			this._wrapper.wrap();
+			this.emit(EvWrap.Changed, { enabled: true });
+		}
 	}
 }
