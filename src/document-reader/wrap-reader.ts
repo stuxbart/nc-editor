@@ -6,15 +6,18 @@ export default class WrapReader extends Reader {
 	public getLines(firstLine: number, count: number): Line[] {
 		const document = this._document;
 		const tokenizerData = this._documentSession.tokenizerData;
-		const searchResults = this._editSession.searchResults;
-		const rawLines = document.getLineNodes(firstLine, count);
+		// const searchResults = this._editSession.searchResults;
+		const rawLines = document.getLines(firstLine, count);
+		const linesTokens = tokenizerData.getLinesData(firstLine, count);
 		const lines: Line[] = [];
-		for (const line of rawLines) {
+
+		for (let i = 0; i < count; i++) {
 			lines.push({
-				rawText: line.text,
-				tokens: tokenizerData.getLineTokens(line),
+				rawText: rawLines[i],
+				tokens: linesTokens[i].tokens,
 				lineBreaks: [],
-				searchResults: searchResults.getLineResutls(line).matches,
+				searchResults: [],
+				// searchResults: [],searchResults.getLineResutls(line).matches,
 			});
 		}
 		return lines;
@@ -23,14 +26,18 @@ export default class WrapReader extends Reader {
 	public getRows(firstRow: number, count: number): Row[] {
 		const document = this._document;
 		const tokenizerData = this._documentSession.tokenizerData;
-		const searchResults = this._editSession.searchResults;
+		// const searchResults = this._editSession.searchResults;
 		const wrapData = this._editSession.wrapData;
 
 		const rowsWrapData = wrapData.getRows(firstRow, count);
 		const lineNumbers = rowsWrapData.map((w) => w.line);
 		const firstLineIndex = Math.min(...lineNumbers);
 		const lastLineIndex = Math.max(...lineNumbers);
-		const rawLines = document.getLineNodes(firstLineIndex, lastLineIndex - firstLineIndex + 1);
+		const rawLines = document.getLines(firstLineIndex, lastLineIndex - firstLineIndex + 1);
+		const linesTokens = tokenizerData.getLinesData(
+			firstLineIndex,
+			lastLineIndex - firstLineIndex + 1,
+		);
 
 		const rows: Row[] = [];
 		let off = 0;
@@ -46,15 +53,15 @@ export default class WrapReader extends Reader {
 			if (rawLines.length < row.line - firstLineIndex) {
 				break;
 			}
+			if (rawLines.length <= row.line - firstLineIndex) {
+				break;
+			}
 			if (prevLineNumber !== row.line) {
 				off = 0;
 			}
 			prevLineNumber = row.line;
 			const line = rawLines[row.line - firstLineIndex];
-			if (rawLines.length <= row.line - firstLineIndex) {
-				break;
-			}
-			const lineTokens: Token[] = tokenizerData.getLineTokens(line);
+			const lineTokens: Token[] = linesTokens[row.line - firstLineIndex].tokens;
 			const rowTokens: Token[] = [];
 
 			for (let i = 0; i < lineTokens.length; i++) {
@@ -75,7 +82,7 @@ export default class WrapReader extends Reader {
 				}
 			}
 
-			const lineSearchResults: number[] = searchResults.getLineResutls(line).matches;
+			const lineSearchResults: number[] = []; //searchResults.getLineResutls(line).matches;
 			const rowSearchResults: number[] = [];
 
 			for (const searchResult of lineSearchResults) {
@@ -93,7 +100,7 @@ export default class WrapReader extends Reader {
 				line: row.line,
 				ord: row.ord,
 				offset: off,
-				text: line.text.slice(off, row.offset),
+				text: line.slice(off, row.offset),
 				tokens: rowTokens,
 				searchResults: rowSearchResults,
 			});
@@ -107,23 +114,16 @@ export default class WrapReader extends Reader {
 	public getFirstLine(): Line | null {
 		const document = this._document;
 		const tokenizerData = this._documentSession.tokenizerData;
-		const firstLine = document.getFirstLineNode();
-		if (firstLine === null) {
-			return null;
-		}
-		const line = new Line(firstLine.text, tokenizerData.getLineTokens(firstLine), []);
+		const firstLine = document.getFirstLine();
+		const line = new Line(firstLine, tokenizerData.getLineTokens(0), []);
 		return line;
 	}
 
 	public getLastLine(): Line | null {
 		const document = this._document;
 		const tokenizerData = this._documentSession.tokenizerData;
-		const lastLine = document.getLastLineNode();
-		if (lastLine === null) {
-			return null;
-		}
-
-		const line = new Line(lastLine.text, tokenizerData.getLineTokens(lastLine), []);
+		const lastLine = document.getLastLine();
+		const line = new Line(lastLine, tokenizerData.getLineTokens(document.linesCount - 1), []);
 		return line;
 	}
 

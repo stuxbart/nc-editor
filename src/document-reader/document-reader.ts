@@ -5,15 +5,18 @@ export default class DocumentReader extends Reader {
 	public getLines(firstLine: number, count: number): Line[] {
 		const document = this._document;
 		const tokenizerData = this._documentSession.tokenizerData;
-		const searchResults = this._editSession.searchResults;
-		const rawLines = document.getLineNodes(firstLine, count);
+		// const searchResults = this._editSession.searchResults;
+		const rawLines = document.getLines(firstLine, count);
+		const linesTokens = tokenizerData.getLinesData(firstLine, count);
 		const lines: Line[] = [];
-		for (const line of rawLines) {
+
+		for (let i = 0; i < count; i++) {
 			lines.push({
-				rawText: line.text,
-				tokens: tokenizerData.getLineTokens(line),
+				rawText: rawLines[i],
+				tokens: linesTokens[i].tokens,
 				lineBreaks: [],
-				searchResults: searchResults.getLineResutls(line).matches,
+				searchResults: [],
+				// searchResults: [],searchResults.getLineResutls(line).matches,
 			});
 		}
 		return lines;
@@ -40,23 +43,16 @@ export default class DocumentReader extends Reader {
 	public getFirstLine(): Line | null {
 		const document = this._document;
 		const tokenizerData = this._documentSession.tokenizerData;
-		const firstLine = document.getFirstLineNode();
-		if (firstLine === null) {
-			return null;
-		}
-		const line = new Line(firstLine.text, tokenizerData.getLineTokens(firstLine), []);
+		const firstLine = document.getFirstLine();
+		const line = new Line(firstLine, tokenizerData.getLineTokens(0), []);
 		return line;
 	}
 
 	public getLastLine(): Line | null {
 		const document = this._document;
 		const tokenizerData = this._documentSession.tokenizerData;
-		const lastLine = document.getLastLineNode();
-		if (lastLine === null) {
-			return null;
-		}
-
-		const line = new Line(lastLine.text, tokenizerData.getLineTokens(lastLine), []);
+		const lastLine = document.getLastLine();
+		const line = new Line(lastLine, tokenizerData.getLineTokens(document.linesCount - 1), []);
 		return line;
 	}
 
