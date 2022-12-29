@@ -16,6 +16,11 @@ export default class Tree<T> {
 		return this._rootNode === null;
 	}
 
+	public clear(): void {
+		this._nodesCount = 0;
+		this._rootNode = null;
+	}
+
 	public getNodesData(firstNodeNumber: number, nodesCount: number): T[] {
 		const dataArr: T[] = [];
 		this._getNodesData(this._rootNode, firstNodeNumber, nodesCount, dataArr);
