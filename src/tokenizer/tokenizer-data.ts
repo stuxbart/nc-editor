@@ -1,4 +1,4 @@
-import DocumentNode from '../document/document-node';
+import Tree from '../tree/tree';
 import { Token } from './token';
 
 export interface TokenizerLineState {
@@ -12,29 +12,45 @@ export interface TokenizerLineData {
 }
 
 export default class TokenizerData {
-	private _data: WeakMap<DocumentNode, TokenizerLineData>;
+	private _tree: Tree<TokenizerLineData>;
 
 	constructor() {
-		this._data = new WeakMap<DocumentNode, TokenizerLineData>();
+		this._tree = new Tree<TokenizerLineData>();
 	}
 
-	public get data(): WeakMap<DocumentNode, TokenizerLineData> {
-		return this._data;
-	}
-
-	public getLineData(lineNode: DocumentNode): TokenizerLineData {
-		const lineData = this._data.get(lineNode);
-		if (lineData !== undefined) {
+	public getLineData(lineNumber: number): TokenizerLineData {
+		const lineData = this._tree.getData(lineNumber);
+		if (lineData !== null) {
 			return lineData;
 		}
 		return { tokens: [], state: { scope: '' }, length: 0 };
 	}
 
-	public getLineTokens(lineNode: DocumentNode): Token[] {
-		const lineData = this._data.get(lineNode);
-		if (lineData !== undefined) {
+	public getLinesData(firstLine: number, linesCount: number): TokenizerLineData[] {
+		return this._tree.getNodesData(firstLine, linesCount);
+	}
+
+	public setLineData(lineNumber: number, data: TokenizerLineData): void {
+		const ndoe = this._tree.getNode(lineNumber);
+		if (ndoe === null) {
+			return;
+		}
+		ndoe.data = data;
+	}
+
+	public getLineTokens(lineNumber: number): Token[] {
+		const lineData = this._tree.getData(lineNumber);
+		if (lineData !== null) {
 			return lineData.tokens;
 		}
 		return [];
+	}
+
+	public clear(): void {
+		this._tree.clear();
+	}
+
+	public insertLine(data: TokenizerLineData, lineNumber: number): void {
+		this._tree.insert(data, lineNumber);
 	}
 }
