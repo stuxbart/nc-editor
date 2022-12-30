@@ -195,7 +195,7 @@ export default class SelectionLayer extends EventEmitter<SelectionLayerEvents> {
 			}
 			if (
 				cursorPos.line === lastVisibleLine &&
-				cursorPos.offset > rows[rows.length - 1].offset
+				cursorPos.offset > rows[rows.length - 1].offset + rows[rows.length - 1].text.length
 			) {
 				continue;
 			}
