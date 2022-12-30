@@ -38,10 +38,12 @@ export default class TokenizerData {
 		} catch (err: any) {
 			linesData = [];
 		} finally {
-			for (let i = 0; i < linesCount - linesData.length; i++) {
+			const missingLines = linesCount - linesData.length;
+			for (let i = 0; i < missingLines; i++) {
 				linesData.push({ tokens: [], state: { scope: '' }, length: 0 });
 			}
 		}
+
 		return linesData;
 	}
 
