@@ -355,21 +355,21 @@ export default class SelectionLayer extends EventEmitter<SelectionLayerEvents> {
 		const rowNumber = Math.floor(y / this._lineHeight) + this._firstVisibleLine;
 		let offset = 0;
 		let line = 0;
-		const rows = this._session.reader.getRows(rowNumber, 1);
 
-		if (rows.length === 0) {
+		try {
+			const rows = this._session.reader.getRows(rowNumber, 1);
+			const row = rows[0];
+			const column = Math.round(x / this._letterWidth);
+			offset = columnToOffset(row.text, column);
+			offset += row.offset;
+			line = row.line;
+		} catch (err: any) {
 			const lineContent = this._session.reader.getLastLine();
 			if (lineContent === null) {
 				return [0, 0];
 			}
 			offset = columnToOffset(lineContent.rawText, Infinity);
 			line = this._session.reader.getTotalLinesCount() - 1;
-		} else {
-			const row = rows[0];
-			const column = Math.round(x / this._letterWidth);
-			offset = columnToOffset(row.text, column);
-			offset += row.offset;
-			line = row.line;
 		}
 
 		return [line, offset];
