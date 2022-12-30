@@ -18,6 +18,10 @@ export default class TokenizerData {
 		this._tree = new Tree<TokenizerLineData>();
 	}
 
+	public get linesCount(): number {
+		return this._tree.nodesCount;
+	}
+
 	public getLineData(lineNumber: number): TokenizerLineData {
 		const lineData = this._tree.getData(lineNumber);
 		if (lineData !== null) {
