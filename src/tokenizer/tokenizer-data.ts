@@ -23,15 +23,26 @@ export default class TokenizerData {
 	}
 
 	public getLineData(lineNumber: number): TokenizerLineData {
-		const lineData = this._tree.getData(lineNumber);
-		if (lineData !== null) {
+		try {
+			const lineData = this._tree.getData(lineNumber);
 			return lineData;
+		} catch (err: any) {
+			return { tokens: [], state: { scope: '' }, length: 0 };
 		}
-		return { tokens: [], state: { scope: '' }, length: 0 };
 	}
 
 	public getLinesData(firstLine: number, linesCount: number): TokenizerLineData[] {
-		return this._tree.getNodesData(firstLine, linesCount);
+		let linesData: TokenizerLineData[] = [];
+		try {
+			linesData = this._tree.getNodesData(firstLine, linesCount);
+		} catch (err: any) {
+			linesData = [];
+		} finally {
+			for (let i = 0; i < linesCount - linesData.length; i++) {
+				linesData.push({ tokens: [], state: { scope: '' }, length: 0 });
+			}
+		}
+		return linesData;
 	}
 
 	public setLineData(lineNumber: number, data: TokenizerLineData): void {
@@ -43,11 +54,17 @@ export default class TokenizerData {
 	}
 
 	public getLineTokens(lineNumber: number): Token[] {
-		const lineData = this._tree.getData(lineNumber);
-		if (lineData !== null) {
+		try {
+			const lineData = this._tree.getData(lineNumber);
 			return lineData.tokens;
+		} catch (err: any) {
+			return [];
 		}
-		return [];
+	}
+
+	public getLinesTokens(firstLine: number, linesCount: number): Token[][] {
+		const linesData = this.getLinesData(firstLine, linesCount);
+		return linesData.map((data) => data.tokens);
 	}
 
 	public clear(): void {
