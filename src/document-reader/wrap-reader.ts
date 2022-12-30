@@ -1,6 +1,5 @@
 import Line, { Row } from '../document/line';
 import { Token } from '../tokenizer';
-import { TokenizerLineData } from '../tokenizer/tokenizer-data';
 import Reader from './reader';
 
 export default class WrapReader extends Reader {
@@ -15,20 +14,13 @@ export default class WrapReader extends Reader {
 		const tokenizerData = this._documentSession.tokenizerData;
 		// const searchResults = this._editSession.searchResults;
 		const rawLines = document.getLines(firstLine, count);
-		let linesTokens: TokenizerLineData[] = [];
-		try {
-			linesTokens = tokenizerData.getLinesData(firstLine, count);
-		} catch (err: any) {
-			for (let i = 0; i < count; i++) {
-				linesTokens.push({ tokens: [], state: { scope: '' }, length: 0 });
-			}
-		}
+		const linesTokens: Token[][] = tokenizerData.getLinesTokens(firstLine, count);
 		const lines: Line[] = [];
 
 		for (let i = 0; i < count; i++) {
 			lines.push({
 				rawText: rawLines[i],
-				tokens: linesTokens[i].tokens,
+				tokens: linesTokens[i],
 				lineBreaks: [],
 				searchResults: [],
 				// searchResults: [],searchResults.getLineResutls(line).matches,
@@ -54,17 +46,10 @@ export default class WrapReader extends Reader {
 		const firstLineIndex = Math.min(...lineNumbers);
 		const lastLineIndex = Math.max(...lineNumbers);
 		const rawLines = document.getLines(firstLineIndex, lastLineIndex - firstLineIndex + 1);
-		let linesTokens: TokenizerLineData[] = [];
-		try {
-			linesTokens = tokenizerData.getLinesData(
-				firstLineIndex,
-				lastLineIndex - firstLineIndex + 1,
-			);
-		} catch (err: any) {
-			for (let i = firstLineIndex; i < lastLineIndex + 1; i++) {
-				linesTokens.push({ tokens: [], state: { scope: '' }, length: 0 });
-			}
-		}
+		const linesTokens: Token[][] = tokenizerData.getLinesTokens(
+			firstLineIndex,
+			lastLineIndex - firstLineIndex + 1,
+		);
 
 		const rows: Row[] = [];
 		let off = 0;
@@ -88,7 +73,7 @@ export default class WrapReader extends Reader {
 			}
 			prevLineNumber = row.line;
 			const line = rawLines[row.line - firstLineIndex];
-			const lineTokens: Token[] = linesTokens[row.line - firstLineIndex]?.tokens ?? [];
+			const lineTokens: Token[] = linesTokens[row.line - firstLineIndex];
 			const rowTokens: Token[] = [];
 
 			for (let i = 0; i < lineTokens.length; i++) {

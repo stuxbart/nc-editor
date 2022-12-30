@@ -1,5 +1,5 @@
 import Line, { Row } from '../document/line';
-import { TokenizerLineData } from '../tokenizer/tokenizer-data';
+import { Token } from '../tokenizer';
 import Reader from './reader';
 
 export default class DocumentReader extends Reader {
@@ -14,20 +14,13 @@ export default class DocumentReader extends Reader {
 		const tokenizerData = this._documentSession.tokenizerData;
 		// const searchResults = this._editSession.searchResults;
 		const rawLines = document.getLines(firstLine, count);
-		let linesTokens: TokenizerLineData[] = [];
-		try {
-			linesTokens = tokenizerData.getLinesData(firstLine, count);
-		} catch (err: any) {
-			for (let i = 0; i < count; i++) {
-				linesTokens.push({ tokens: [], state: { scope: '' }, length: 0 });
-			}
-		}
+		const linesTokens: Token[][] = tokenizerData.getLinesTokens(firstLine, count);
 		const lines: Line[] = [];
 
 		for (let i = 0; i < count; i++) {
 			lines.push({
 				rawText: rawLines[i],
-				tokens: linesTokens[i].tokens,
+				tokens: linesTokens[i],
 				lineBreaks: [],
 				searchResults: [],
 				// searchResults: [],searchResults.getLineResutls(line).matches,
