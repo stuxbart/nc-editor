@@ -26,6 +26,10 @@ export default class Wrapper {
 	}
 
 	public updateLines(lineNumber: number, linesCount: number): void {
+		const document = this._editSession.documentSession.document;
+		if (lineNumber + linesCount > document.linesCount) {
+			linesCount = document.linesCount - lineNumber;
+		}
 		for (let i = lineNumber; i < lineNumber + linesCount; i++) {
 			const line = this._editSession.documentSession.document.getLine(i);
 			const wrap = this._wrapLine(line);
