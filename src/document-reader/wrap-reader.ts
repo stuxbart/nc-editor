@@ -54,10 +54,17 @@ export default class WrapReader extends Reader {
 		const firstLineIndex = Math.min(...lineNumbers);
 		const lastLineIndex = Math.max(...lineNumbers);
 		const rawLines = document.getLines(firstLineIndex, lastLineIndex - firstLineIndex + 1);
-		const linesTokens = tokenizerData.getLinesData(
-			firstLineIndex,
-			lastLineIndex - firstLineIndex + 1,
-		);
+		let linesTokens: TokenizerLineData[] = [];
+		try {
+			linesTokens = tokenizerData.getLinesData(
+				firstLineIndex,
+				lastLineIndex - firstLineIndex + 1,
+			);
+		} catch (err: any) {
+			for (let i = firstLineIndex; i < lastLineIndex + 1; i++) {
+				linesTokens.push({ tokens: [], state: { scope: '' }, length: 0 });
+			}
+		}
 
 		const rows: Row[] = [];
 		let off = 0;
@@ -81,7 +88,7 @@ export default class WrapReader extends Reader {
 			}
 			prevLineNumber = row.line;
 			const line = rawLines[row.line - firstLineIndex];
-			const lineTokens: Token[] = linesTokens[row.line - firstLineIndex].tokens;
+			const lineTokens: Token[] = linesTokens[row.line - firstLineIndex]?.tokens ?? [];
 			const rowTokens: Token[] = [];
 
 			for (let i = 0; i < lineTokens.length; i++) {
