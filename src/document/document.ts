@@ -134,7 +134,7 @@ export default class Document {
 	}
 
 	public getLine(lineNumber: number): string {
-		return this._tree.getData(lineNumber) ?? '';
+		return this._tree.getData(lineNumber);
 	}
 
 	public getFirstLine(): string {
