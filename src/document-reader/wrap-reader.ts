@@ -1,14 +1,28 @@
 import Line, { Row } from '../document/line';
 import { Token } from '../tokenizer';
+import { TokenizerLineData } from '../tokenizer/tokenizer-data';
 import Reader from './reader';
 
 export default class WrapReader extends Reader {
 	public getLines(firstLine: number, count: number): Line[] {
 		const document = this._document;
+		if (firstLine >= document.linesCount) {
+			return [];
+		}
+		if (firstLine + count >= document.linesCount) {
+			count = document.linesCount - firstLine;
+		}
 		const tokenizerData = this._documentSession.tokenizerData;
 		// const searchResults = this._editSession.searchResults;
 		const rawLines = document.getLines(firstLine, count);
-		const linesTokens = tokenizerData.getLinesData(firstLine, count);
+		let linesTokens: TokenizerLineData[] = [];
+		try {
+			linesTokens = tokenizerData.getLinesData(firstLine, count);
+		} catch (err: any) {
+			for (let i = 0; i < count; i++) {
+				linesTokens.push({ tokens: [], state: { scope: '' }, length: 0 });
+			}
+		}
 		const lines: Line[] = [];
 
 		for (let i = 0; i < count; i++) {
@@ -28,6 +42,12 @@ export default class WrapReader extends Reader {
 		const tokenizerData = this._documentSession.tokenizerData;
 		// const searchResults = this._editSession.searchResults;
 		const wrapData = this._editSession.wrapData;
+		if (firstRow > wrapData.rowsCount) {
+			return [];
+		}
+		if (firstRow + count > wrapData.rowsCount) {
+			count = wrapData.rowsCount - firstRow;
+		}
 
 		const rowsWrapData = wrapData.getRows(firstRow, count);
 		const lineNumbers = rowsWrapData.map((w) => w.line);
