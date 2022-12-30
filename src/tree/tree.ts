@@ -30,7 +30,10 @@ export default class Tree<T> {
 	public getNodes(firstNodeNumber: number, nodesCount: number): TreeNode<T>[] {
 		const nodes: TreeNode<T>[] = [];
 
-		let currentNode = this._getNodeByNumber(this._rootNode, firstNodeNumber);
+		let currentNode: TreeNode<T> | null = this._getNodeByNumber(
+			this._rootNode,
+			firstNodeNumber,
+		);
 
 		while (currentNode !== null && nodes.length < nodesCount) {
 			nodes.push(currentNode);
@@ -43,8 +46,8 @@ export default class Tree<T> {
 		return this._getNodeByNumber(this._rootNode, nodeNumber);
 	}
 
-	public getData(nodeNumber: number): T | null {
-		return this._getNodeByNumber(this._rootNode, nodeNumber)?.data ?? null;
+	public getData(nodeNumber: number): T {
+		return this._getNodeByNumber(this._rootNode, nodeNumber).data;
 	}
 
 	public getFirstNodeData(): T | null {
@@ -76,9 +79,7 @@ export default class Tree<T> {
 
 	public swapNodeWithNext(nodeNumber: number): void {
 		const firstNodeNumber = this._getNodeByNumber(this._rootNode, nodeNumber);
-		if (firstNodeNumber === null) {
-			return;
-		}
+
 		const nextNode = this._getNextNode(firstNodeNumber);
 		if (nextNode === null) {
 			return;
@@ -172,7 +173,7 @@ export default class Tree<T> {
 		if (node === null) {
 			return;
 		}
-		let currentNode = this._getNodeByNumber(node, firstNodeNumber);
+		let currentNode: TreeNode<T> | null = this._getNodeByNumber(node, firstNodeNumber);
 
 		while (currentNode !== null && dataArr.length < nodesCount) {
 			dataArr.push(currentNode.data);
@@ -218,9 +219,9 @@ export default class Tree<T> {
 		return current;
 	}
 
-	private _getNodeByNumber(node: TreeNode<T> | null, nodeNumber: number): TreeNode<T> | null {
+	private _getNodeByNumber(node: TreeNode<T> | null, nodeNumber: number): TreeNode<T> {
 		if (node === null) {
-			return node;
+			throw new Error("Node with given number doesn't exist.");
 		}
 
 		if (nodeNumber === node.leftSubTreeSize) {
