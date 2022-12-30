@@ -353,7 +353,7 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 
 	private _onWrapChanged({ enabled }: { enabled: boolean }): void {
 		this.emit(EvWrap.Changed, { enabled: enabled });
-		this._scrollToLine(this._firstVisibleRow);
+		this._scrollToRow(this._firstVisibleRow);
 	}
 
 	private _onDocumentEdit(): void {
