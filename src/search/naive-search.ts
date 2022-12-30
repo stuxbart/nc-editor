@@ -1,20 +1,16 @@
 import { Document } from '../document';
-import DocumentNode from '../document/document-node';
 import { Search } from './search';
 import SearchResults, { SearchLineResults } from './search-results';
 
 export default class NaiveSearch extends Search {
 	public search(phrase: string, document: Document, searchResults: SearchResults): void {
 		searchResults.clearResults();
-		let line: DocumentNode | null = document.getFirstLineNode();
-		let i = 1;
 		let totalMatches = 0;
-		while (line !== null) {
-			const lineResults = this._searchInLine(phrase, line.text);
+		for (let i = 0; i < document.linesCount; i++) {
+			const line = document.getLine(i);
+			const lineResults = this._searchInLine(phrase, line);
 			totalMatches += lineResults.count;
-			searchResults.results.set(line, lineResults);
-			line = document.getLineNode(i);
-			i++;
+			searchResults.results.set(i, lineResults);
 		}
 		searchResults.matchCount = totalMatches;
 		searchResults.phrase = phrase;
@@ -25,18 +21,21 @@ export default class NaiveSearch extends Search {
 		searchResults: SearchResults,
 		lineNumber: number,
 	): void {
-		const line: DocumentNode | null = document.getLineNode(lineNumber);
-		if (line === null) {
+		let line: string;
+		try {
+			line = document.getLine(lineNumber);
+		} catch (err) {
 			return;
 		}
-		const prevResults = searchResults.results.get(line);
+
+		const prevResults = searchResults.results.get(lineNumber);
 		if (prevResults) {
 			searchResults.matchCount -= prevResults.count;
-			searchResults.results.delete(line);
+			searchResults.results.delete(lineNumber);
 		}
-		const lineResults = this._searchInLine(searchResults.phrase, line.text);
+		const lineResults = this._searchInLine(searchResults.phrase, line);
 		searchResults.matchCount += lineResults.count;
-		searchResults.results.set(line, lineResults);
+		searchResults.results.set(lineNumber, lineResults);
 	}
 
 	private _searchInLine(phrase: string, text: string): SearchLineResults {

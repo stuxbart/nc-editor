@@ -12,7 +12,7 @@ export default class DocumentReader extends Reader {
 			count = document.linesCount - firstLine;
 		}
 		const tokenizerData = this._documentSession.tokenizerData;
-		// const searchResults = this._editSession.searchResults;
+		const searchResults = this._editSession.searchResults;
 		const rawLines = document.getLines(firstLine, count);
 		const linesTokens: Token[][] = tokenizerData.getLinesTokens(firstLine, count);
 		const lines: Line[] = [];
@@ -22,8 +22,7 @@ export default class DocumentReader extends Reader {
 				rawText: rawLines[i],
 				tokens: linesTokens[i],
 				lineBreaks: [],
-				searchResults: [],
-				// searchResults: [],searchResults.getLineResutls(line).matches,
+				searchResults: searchResults.getLineResutls(firstLine + i).matches,
 			});
 		}
 		return lines;

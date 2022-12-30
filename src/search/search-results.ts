@@ -1,20 +1,18 @@
-import DocumentNode from '../document/document-node';
-
 export interface SearchLineResults {
 	matches: number[];
 	count: number;
 }
 
 export default class SerachResults {
-	private _results: WeakMap<DocumentNode, SearchLineResults>;
+	private _results: Map<number, SearchLineResults>;
 	private _totalResults: number = 0;
 	private _searchPhrase: string = '';
 
 	constructor() {
-		this._results = new WeakMap<DocumentNode, SearchLineResults>();
+		this._results = new Map<number, SearchLineResults>();
 	}
 
-	public get results(): WeakMap<DocumentNode, SearchLineResults> {
+	public get results(): Map<number, SearchLineResults> {
 		return this._results;
 	}
 
@@ -26,7 +24,7 @@ export default class SerachResults {
 		this._totalResults = value;
 	}
 
-	public getLineResutls(lineNode: DocumentNode): SearchLineResults {
+	public getLineResutls(lineNode: number): SearchLineResults {
 		const lineResults = this._results.get(lineNode);
 		if (lineResults !== undefined) {
 			return lineResults;
@@ -35,7 +33,7 @@ export default class SerachResults {
 	}
 
 	public clearResults(): void {
-		this._results = new WeakMap<DocumentNode, SearchLineResults>();
+		this._results = new Map<number, SearchLineResults>();
 	}
 
 	public get phrase(): string {
