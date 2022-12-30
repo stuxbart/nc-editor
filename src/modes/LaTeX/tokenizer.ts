@@ -1,67 +1,63 @@
 import { Document } from '../../document';
-import DocumentNode from '../../document/document-node';
 import { isAlpha, isAlphaNumeric, isWhiteSpaceChar, removeAccents } from '../../text-utils';
 import { Token } from '../../tokenizer';
 import { LaTeXTokens } from './tokens';
 import { Tokenizer } from '../../tokenizer/tokenizer';
 import TokenizerData, {
-	compareLineData,
 	TokenizerLineData,
 	TokenizerLineState,
 } from '../../tokenizer/tokenizer-data';
+import { compareLineData } from '../../tokenizer/utils';
 
 export default class LaTeXTokenizer extends Tokenizer {
 	public tokenize(document: Document, tokenizerData: TokenizerData): void {
-		let line: DocumentNode | null = document.getFirstLineNode();
-		let i = 1;
+		tokenizerData.clear();
 		let prevState: TokenizerLineState = { scope: '' };
-		while (line !== null) {
+
+		for (let i = 0; i < document.linesCount; i++) {
+			const line = document.getLine(i);
 			const lineData = this._makeLineData(line, prevState);
-			tokenizerData.data.set(line, lineData);
+			tokenizerData.insertLine(lineData, i);
 			prevState = lineData.state;
-			line = document.getLineNode(i);
-			i++;
 		}
 	}
 
 	public updateTokens(
 		document: Document,
 		tokenizerData: TokenizerData,
-		lineNumber: number,
+		firstLineNumber: number,
 	): void {
-		let line: DocumentNode | null;
-		let i = lineNumber;
-		let prevLineState: TokenizerLineState | undefined;
+		if (document.linesCount !== tokenizerData.linesCount) {
+			const diff = document.linesCount - tokenizerData.linesCount;
+			for (let i = 0; i < diff; i++) {
+				tokenizerData.insertLine(
+					{ tokens: [], state: { scope: '' }, length: 0 },
+					firstLineNumber + i,
+				);
+			}
+		}
+		let line: string;
+		let i = firstLineNumber;
+		let prevLineState: TokenizerLineState = tokenizerData.getLineData(i - 1).state;
 		let lineData: TokenizerLineData;
-		let prevData: TokenizerLineData | undefined;
+		let prevData: TokenizerLineData;
 		do {
-			line = document.getLineNode(lineNumber - 1);
-			if (line === null) {
-				prevLineState = { scope: '' };
-			} else {
-				prevLineState = tokenizerData.data.get(line)?.state ?? { scope: '' };
-			}
-			line = document.getLineNode(i);
-			if (line === null) {
-				break;
-			}
-			prevData = tokenizerData.data.get(line);
+			line = document.getLine(i);
+			prevData = tokenizerData.getLineData(i);
 			lineData = this._makeLineData(line, prevLineState);
-			tokenizerData.data.set(line, lineData);
+			tokenizerData.setLineData(i, lineData);
+			prevLineState = { scope: '' };
 			i++;
-		} while (!prevData || !compareLineData(prevData, lineData));
+		} while (!compareLineData(prevData, lineData));
 	}
 
-	private _makeLineData(
-		line: DocumentNode,
-		prevLineState: TokenizerLineState,
-	): TokenizerLineData {
-		if (line.text.length === 0) {
+	private _makeLineData(line: string, prevLineState: TokenizerLineState): TokenizerLineData {
+		if (line.length === 0) {
 			return { tokens: [], state: { ...prevLineState }, length: 0 };
 		}
 
 		const tokens: Token[] = [];
-		const text = removeAccents(line.text);
+		const text = removeAccents(line);
 
 		let i = 0;
 		while (i < text.length) {
