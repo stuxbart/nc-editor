@@ -48,7 +48,7 @@ export default class TextTokenizer extends Tokenizer {
 			tokenizerData.setLineData(i, lineData);
 			prevLineState = { scope: '' };
 			i++;
-		} while (!compareLineData(prevData, lineData));
+		} while (i < document.linesCount && !compareLineData(prevData, lineData));
 	}
 
 	private _makeLineData(line: string, prevLineState: TokenizerLineState): TokenizerLineData {
