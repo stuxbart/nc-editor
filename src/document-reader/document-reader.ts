@@ -1,5 +1,4 @@
 import Line, { Row } from '../document/line';
-import { Token } from '../tokenizer';
 import Reader from './reader';
 
 export default class DocumentReader extends Reader {
@@ -14,7 +13,8 @@ export default class DocumentReader extends Reader {
 		const tokenizerData = this._documentSession.tokenizerData;
 		const searchResults = this._editSession.searchResults;
 		const rawLines = document.getLines(firstLine, count);
-		const linesTokens: Token[][] = tokenizerData.getLinesTokens(firstLine, count);
+		const linesTokens = tokenizerData.getLinesTokens(firstLine, count);
+		const linesSearchResults = searchResults.getLinesResutls(firstLine, count);
 		const lines: Line[] = [];
 
 		for (let i = 0; i < count; i++) {
@@ -22,7 +22,8 @@ export default class DocumentReader extends Reader {
 				rawText: rawLines[i],
 				tokens: linesTokens[i],
 				lineBreaks: [],
-				searchResults: searchResults.getLineResutls(firstLine + i).matches,
+				searchResults: linesSearchResults[i].matches,
+				activeSearchRes: linesSearchResults[i].activeSearchRes,
 			});
 		}
 		return lines;
@@ -40,6 +41,7 @@ export default class DocumentReader extends Reader {
 				text: line.rawText,
 				tokens: line.tokens,
 				searchResults: line.searchResults,
+				activeSearchRes: line.activeSearchRes,
 			});
 			i++;
 		}

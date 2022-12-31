@@ -15,6 +15,7 @@ export default class WrapReader extends Reader {
 		const searchResults = this._editSession.searchResults;
 		const rawLines = document.getLines(firstLine, count);
 		const linesTokens: Token[][] = tokenizerData.getLinesTokens(firstLine, count);
+		const linesSearchResults = searchResults.getLinesResutls(firstLine, count);
 		const lines: Line[] = [];
 
 		for (let i = 0; i < count; i++) {
@@ -22,7 +23,8 @@ export default class WrapReader extends Reader {
 				rawText: rawLines[i],
 				tokens: linesTokens[i],
 				lineBreaks: [],
-				searchResults: searchResults.getLineResutls(firstLine + i).matches,
+				searchResults: linesSearchResults[i].matches,
+				activeSearchRes: linesSearchResults[i].activeSearchRes,
 			});
 		}
 		return lines;
@@ -44,12 +46,10 @@ export default class WrapReader extends Reader {
 		const lineNumbers = rowsWrapData.map((w) => w.line);
 		const firstLineIndex = Math.min(...lineNumbers);
 		const lastLineIndex = Math.max(...lineNumbers);
-		const rawLines = document.getLines(firstLineIndex, lastLineIndex - firstLineIndex + 1);
-		const linesTokens: Token[][] = tokenizerData.getLinesTokens(
-			firstLineIndex,
-			lastLineIndex - firstLineIndex + 1,
-		);
-
+		const linesCount = lastLineIndex - firstLineIndex + 1;
+		const rawLines = document.getLines(firstLineIndex, linesCount);
+		const linesTokens = tokenizerData.getLinesTokens(firstLineIndex, linesCount);
+		const linesSearchResults = searchResults.getLinesResutls(firstLineIndex, linesCount);
 		const rows: Row[] = [];
 		let off = 0;
 		let prevLineNumber = -1;
@@ -61,18 +61,19 @@ export default class WrapReader extends Reader {
 		}
 
 		for (const row of rowsWrapData) {
-			if (rawLines.length < row.line - firstLineIndex) {
+			const lineIndex = row.line - firstLineIndex;
+			if (rawLines.length < lineIndex) {
 				break;
 			}
-			if (rawLines.length <= row.line - firstLineIndex) {
+			if (rawLines.length <= lineIndex) {
 				break;
 			}
 			if (prevLineNumber !== row.line) {
 				off = 0;
 			}
 			prevLineNumber = row.line;
-			const line = rawLines[row.line - firstLineIndex];
-			const lineTokens: Token[] = linesTokens[row.line - firstLineIndex];
+			const line = rawLines[lineIndex];
+			const lineTokens: Token[] = linesTokens[lineIndex];
 			const rowTokens: Token[] = [];
 
 			for (let i = 0; i < lineTokens.length; i++) {
@@ -93,15 +94,21 @@ export default class WrapReader extends Reader {
 				}
 			}
 
-			const lineSearchResults: number[] = searchResults.getLineResutls(row.line).matches;
+			const lineSearchResults: number[] = linesSearchResults[lineIndex].matches;
 			const rowSearchResults: number[] = [];
+			let rowActiveSearchRes = -1;
 
-			for (const searchResult of lineSearchResults) {
+			for (let j = 0; j < lineSearchResults.length; j++) {
+				const searchResult = lineSearchResults[j];
+
 				if (searchResult < off) {
 					continue;
 				}
 				if (searchResult < row.offset) {
 					rowSearchResults.push(searchResult - off);
+					if (j === linesSearchResults[lineIndex].activeSearchRes) {
+						rowActiveSearchRes = j;
+					}
 				} else {
 					break;
 				}
@@ -114,11 +121,11 @@ export default class WrapReader extends Reader {
 				text: line.slice(off, row.offset),
 				tokens: rowTokens,
 				searchResults: rowSearchResults,
+				activeSearchRes: rowActiveSearchRes,
 			});
 
 			off = row.offset;
 		}
-
 		return rows;
 	}
 
