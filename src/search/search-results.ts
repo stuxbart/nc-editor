@@ -34,6 +34,9 @@ export default class SerachResults {
 	}
 
 	public nextResult(): [number, number] {
+		if (this._totalResults < 1) {
+			return [-1, -1];
+		}
 		const currentLineRes = this._results[this._activeSearchRes[0]];
 		currentLineRes.activeSearchRes = -1;
 		if (this._activeSearchRes[1] + 1 < currentLineRes.count) {
@@ -50,6 +53,9 @@ export default class SerachResults {
 	}
 
 	public prevResult(): [number, number] {
+		if (this._totalResults < 1) {
+			return [-1, -1];
+		}
 		const currentLineRes = this._results[this._activeSearchRes[0]];
 		currentLineRes.activeSearchRes = -1;
 		if (this._activeSearchRes[1] - 1 > -1) {
