@@ -296,4 +296,9 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
 			this.emit(EvWrap.Changed, { enabled: true });
 		}
 	}
+
+	public nextSearchResult(): void {
+		console.log(this._searchResults.nextResult());
+		this.emit(EvSearch.Finished, undefined);
+	}
 }

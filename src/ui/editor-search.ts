@@ -12,6 +12,7 @@ class EditorSearch extends EventEmitter<SearchUiEvents> {
 	private _mountPoint: HTMLElement | null = null;
 	private _searchContainer: HTMLDivElement | null = null;
 	private _closeButton: HTMLButtonElement | null = null;
+	private _nextResultButton: HTMLButtonElement | null = null;
 	private _input: HTMLInputElement | null = null;
 	private _resultsContainer: HTMLParagraphElement | null = null;
 	private _isOpen: boolean = false;
@@ -97,6 +98,11 @@ class EditorSearch extends EventEmitter<SearchUiEvents> {
 				this._session.search(this._searchPhrase);
 			});
 		}
+		if (this._nextResultButton) {
+			this._nextResultButton.addEventListener('click', () => {
+				this._session.nextSearchResult();
+			});
+		}
 	}
 
 	private _createSearchContainer(): void {
@@ -119,6 +125,10 @@ class EditorSearch extends EventEmitter<SearchUiEvents> {
 		this._resultsContainer = createElement('p') as HTMLParagraphElement;
 		this._resultsContainer.className = CSSClasses.SEARCH_RESULT;
 		this._searchContainer.appendChild(this._resultsContainer);
+
+		this._nextResultButton = createElement('button') as HTMLButtonElement;
+		this._nextResultButton.textContent = 'Next';
+		this._searchContainer.appendChild(this._nextResultButton);
 
 		this.hide();
 	}

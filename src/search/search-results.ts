@@ -1,3 +1,5 @@
+import { Point } from '../selection';
+
 export interface SearchLineResults {
 	lineNumber: number;
 	matches: number[];
@@ -89,6 +91,11 @@ export default class SerachResults {
 		}
 		this._totalResults += newRes.count;
 		this._results.push(newRes);
+	}
+
+	public getActiveSearchResPosition(): Point {
+		const lineRes = this._results[this._activeSearchRes[0]];
+		return { line: lineRes.lineNumber, offset: lineRes.matches[this._activeSearchRes[1]] };
 	}
 
 	public clearResults(): void {
