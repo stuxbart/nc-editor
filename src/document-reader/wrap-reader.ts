@@ -97,17 +97,19 @@ export default class WrapReader extends Reader {
 			const lineSearchResults: number[] = linesSearchResults[lineIndex].matches;
 			const rowSearchResults: number[] = [];
 			let rowActiveSearchRes = -1;
+			let firstRowSearchRes = 0;
 
 			for (let j = 0; j < lineSearchResults.length; j++) {
 				const searchResult = lineSearchResults[j];
 
 				if (searchResult < off) {
+					firstRowSearchRes = j + 1;
 					continue;
 				}
 				if (searchResult < row.offset) {
 					rowSearchResults.push(searchResult - off);
 					if (j === linesSearchResults[lineIndex].activeSearchRes) {
-						rowActiveSearchRes = j;
+						rowActiveSearchRes = j - firstRowSearchRes;
 					}
 				} else {
 					break;
