@@ -33,7 +33,8 @@ export default class SerachResults {
 
 	public nextResult(): [number, number] {
 		const currentLineRes = this._results[this._activeSearchRes[0]];
-		if (this._activeSearchRes[1] + 1 < currentLineRes.lineNumber) {
+		currentLineRes.activeSearchRes = -1;
+		if (this._activeSearchRes[1] + 1 < currentLineRes.count) {
 			this._activeSearchRes[1] += 1;
 		} else {
 			if (this._activeSearchRes[0] + 1 < this._results.length) {
