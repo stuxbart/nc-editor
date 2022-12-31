@@ -306,4 +306,10 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
 		this._searchResults.prevResult();
 		this.emit(EvSearch.Finished, undefined);
 	}
+
+	public toggleCaseSensitiveSearch(): boolean {
+		this._searchResults.caseSensitive = !this._searchResults.caseSensitive;
+		this.search(this._searchResults.phrase);
+		return this._searchResults.caseSensitive;
+	}
 }

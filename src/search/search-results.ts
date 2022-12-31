@@ -12,6 +12,7 @@ export default class SerachResults {
 	private _totalResults: number = 0;
 	private _searchPhrase: string = '';
 	private _activeSearchRes: [number, number] = [0, 0]; // line number, number in line
+	public caseSensitive: boolean = false;
 
 	public get results(): SearchLineResults[] {
 		return this._results;

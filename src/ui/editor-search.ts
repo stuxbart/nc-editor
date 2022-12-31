@@ -14,6 +14,7 @@ class EditorSearch extends EventEmitter<SearchUiEvents> {
 	private _closeButton: HTMLButtonElement | null = null;
 	private _nextResultButton: HTMLButtonElement | null = null;
 	private _prevResultButton: HTMLButtonElement | null = null;
+	private _caseSensitiveToggleButton: HTMLButtonElement | null = null;
 	private _input: HTMLInputElement | null = null;
 	private _resultsContainer: HTMLParagraphElement | null = null;
 	private _isOpen: boolean = false;
@@ -110,6 +111,12 @@ class EditorSearch extends EventEmitter<SearchUiEvents> {
 				this._session.prevSearchResult();
 			});
 		}
+
+		if (this._caseSensitiveToggleButton) {
+			this._caseSensitiveToggleButton.addEventListener('click', () => {
+				this._session.toggleCaseSensitiveSearch();
+			});
+		}
 	}
 
 	private _createSearchContainer(): void {
@@ -140,6 +147,10 @@ class EditorSearch extends EventEmitter<SearchUiEvents> {
 		this._prevResultButton = createElement('button') as HTMLButtonElement;
 		this._prevResultButton.textContent = 'Prev';
 		this._searchContainer.appendChild(this._prevResultButton);
+
+		this._caseSensitiveToggleButton = createElement('button') as HTMLButtonElement;
+		this._caseSensitiveToggleButton.textContent = 'Case Sensitive';
+		this._searchContainer.appendChild(this._caseSensitiveToggleButton);
 
 		this.hide();
 	}

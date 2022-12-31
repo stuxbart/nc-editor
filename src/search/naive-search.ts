@@ -5,8 +5,14 @@ import SearchResults from './search-results';
 export default class NaiveSearch extends Search {
 	public search(phrase: string, document: Document, searchResults: SearchResults): void {
 		searchResults.clearResults();
+		if (!searchResults.caseSensitive) {
+			phrase = phrase.toLowerCase();
+		}
 		for (let i = 0; i < document.linesCount; i++) {
-			const line = document.getLine(i);
+			let line = document.getLine(i);
+			if (!searchResults.caseSensitive) {
+				line = line.toLowerCase();
+			}
 			const lineResults = this._searchInLine(phrase, line);
 			searchResults.setLineResults(i, lineResults);
 		}
