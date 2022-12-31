@@ -68,6 +68,9 @@ export default class SerachResults {
 	}
 
 	public setLineResults(lineNumber: number, results: number[], clearPrev: boolean = false): void {
+		if (results.length === 0) {
+			return;
+		}
 		const newRes: SearchLineResults = {
 			lineNumber: lineNumber,
 			matches: results,

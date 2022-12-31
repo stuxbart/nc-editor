@@ -11,7 +11,6 @@ export default class NaiveSearch extends Search {
 			searchResults.setLineResults(i, lineResults);
 		}
 		searchResults.phrase = phrase;
-		searchResults.nextResult();
 	}
 
 	public updateSearchResults(
