@@ -424,6 +424,9 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 	}
 
 	private _onKeyDown(e: KeyboardEvent): void {
+		if (!this._input?.isFocused) {
+			return;
+		}
 		switch (e.code) {
 			case 'ControlLeft': {
 				this._isCtrlHold = true;

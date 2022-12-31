@@ -8,6 +8,7 @@ import { EvDocument } from '../document-session/events';
 export default class EditorInput {
 	private _domElement: HTMLTextAreaElement | null = null;
 	private _view: EdiotrView;
+	private _isFocused: boolean = false;
 
 	constructor(view: EdiotrView) {
 		this._view = view;
@@ -17,6 +18,10 @@ export default class EditorInput {
 		this._domElement.autofocus = true;
 		this._domElement.autocapitalize = 'off';
 		this._initEventListeners();
+	}
+
+	public get isFocused(): boolean {
+		return this._isFocused;
 	}
 
 	public focus(): void {
@@ -32,6 +37,8 @@ export default class EditorInput {
 	private _initEventListeners(): void {
 		if (this._domElement) {
 			this._domElement.addEventListener('input', () => this._onInput());
+			this._domElement.addEventListener('focus', () => (this._isFocused = true));
+			this._domElement.addEventListener('blur', () => (this._isFocused = false));
 		}
 
 		this._view.on(EvFocus.Changed, (e) => {
