@@ -12,6 +12,7 @@ export const CSSClasses = {
 	MULTI_LINE_CONTENT: 'nc-text__multi-line_content',
 	SELECTION_RANGE: 'nc-selection__range',
 	SELECTION_SEARCH: 'nc-selection__search',
+	SELECTION_SEARCH_ACTIVE: 'nc-selection__search--active',
 	SELECTION: 'nc-editor__selection',
 	SCROLL_BAR: 'nc-editor__scroll-bar',
 	SCROLL_INNER: 'nc-scroll__scrollable',
