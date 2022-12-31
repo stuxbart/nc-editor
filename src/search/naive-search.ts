@@ -14,6 +14,7 @@ export default class NaiveSearch extends Search {
 		}
 		searchResults.matchCount = totalMatches;
 		searchResults.phrase = phrase;
+		searchResults.activeSearchResult = 0;
 	}
 
 	public updateSearchResults(

@@ -7,6 +7,7 @@ export default class SerachResults {
 	private _results: Map<number, SearchLineResults>;
 	private _totalResults: number = 0;
 	private _searchPhrase: string = '';
+	private _activeSearchRes: number = 0;
 
 	constructor() {
 		this._results = new Map<number, SearchLineResults>();
@@ -22,6 +23,23 @@ export default class SerachResults {
 
 	public set matchCount(value) {
 		this._totalResults = value;
+	}
+
+	public get activeSearchResult(): number {
+		return this._activeSearchRes;
+	}
+
+	public set activeSearchResult(value: number) {
+		this._activeSearchRes = value;
+	}
+
+	public nextResult(): number {
+		if (this._activeSearchRes + 1 < this._totalResults) {
+			this._activeSearchRes++;
+		} else {
+			this._activeSearchRes = 0;
+		}
+		return this._activeSearchRes;
 	}
 
 	public getLineResutls(lineNode: number): SearchLineResults {
