@@ -49,6 +49,22 @@ export default class SerachResults {
 		return this._activeSearchRes;
 	}
 
+	public prevResult(): [number, number] {
+		const currentLineRes = this._results[this._activeSearchRes[0]];
+		currentLineRes.activeSearchRes = -1;
+		if (this._activeSearchRes[1] - 1 > -1) {
+			this._activeSearchRes[1] -= 1;
+		} else {
+			if (this._activeSearchRes[0] - 1 > -1) {
+				this._activeSearchRes[0] -= 1;
+			} else {
+				this._activeSearchRes[0] = this._results.length - 1;
+			}
+			this._activeSearchRes[1] = this._results[this._activeSearchRes[0]].count - 1;
+		}
+		return this._activeSearchRes;
+	}
+
 	public getLineResutls(lineNumber: number): SearchLineResults {
 		const lineResIndex = this._results.findIndex((res) => res.lineNumber === lineNumber);
 		if (lineResIndex === -1) {

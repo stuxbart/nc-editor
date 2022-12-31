@@ -301,4 +301,9 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
 		this._searchResults.nextResult();
 		this.emit(EvSearch.Finished, undefined);
 	}
+
+	public prevSearchResult(): void {
+		this._searchResults.prevResult();
+		this.emit(EvSearch.Finished, undefined);
+	}
 }
