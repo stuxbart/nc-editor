@@ -1,20 +1,17 @@
 import { Document } from '../document';
 import { Search } from './search';
-import SearchResults, { SearchLineResults } from './search-results';
+import SearchResults from './search-results';
 
 export default class NaiveSearch extends Search {
 	public search(phrase: string, document: Document, searchResults: SearchResults): void {
 		searchResults.clearResults();
-		let totalMatches = 0;
 		for (let i = 0; i < document.linesCount; i++) {
 			const line = document.getLine(i);
 			const lineResults = this._searchInLine(phrase, line);
-			totalMatches += lineResults.count;
-			searchResults.results.set(i, lineResults);
+			searchResults.setLineResults(i, lineResults);
 		}
-		searchResults.matchCount = totalMatches;
 		searchResults.phrase = phrase;
-		searchResults.activeSearchResult = 0;
+		searchResults.nextResult();
 	}
 
 	public updateSearchResults(
@@ -29,19 +26,13 @@ export default class NaiveSearch extends Search {
 			return;
 		}
 
-		const prevResults = searchResults.results.get(lineNumber);
-		if (prevResults) {
-			searchResults.matchCount -= prevResults.count;
-			searchResults.results.delete(lineNumber);
-		}
 		const lineResults = this._searchInLine(searchResults.phrase, line);
-		searchResults.matchCount += lineResults.count;
-		searchResults.results.set(lineNumber, lineResults);
+		searchResults.setLineResults(lineNumber, lineResults, true);
 	}
 
-	private _searchInLine(phrase: string, text: string): SearchLineResults {
+	private _searchInLine(phrase: string, text: string): number[] {
 		if (phrase.length < 1) {
-			return { matches: [], count: 0 };
+			return [];
 		}
 		const matches: number[] = [];
 		let index = 0;
@@ -50,6 +41,6 @@ export default class NaiveSearch extends Search {
 			matches.push(index);
 			startIndex = index + phrase.length;
 		}
-		return { matches: matches, count: matches.length };
+		return matches;
 	}
 }
