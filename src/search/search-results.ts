@@ -94,7 +94,7 @@ export default class SerachResults {
 	}
 
 	public setLineResults(lineNumber: number, results: number[], clearPrev: boolean = false): void {
-		if (results.length === 0) {
+		if (results.length === 0 && !clearPrev) {
 			return;
 		}
 		const newRes: SearchLineResults = {
@@ -105,10 +105,14 @@ export default class SerachResults {
 		};
 		if (clearPrev) {
 			const i = this._results.findIndex((res) => res.lineNumber === lineNumber);
+			const isActive = i === this._activeSearchRes[0];
 			if (i > -1) {
-				this._results[i] = newRes;
 				this._totalResults -= this._results[i].count;
+				this._results[i] = newRes;
 				this._totalResults += newRes.count;
+				if (isActive && results.length <= this._activeSearchRes[1]) {
+					this.nextResult();
+				}
 				return;
 			}
 		}
