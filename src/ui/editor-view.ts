@@ -367,11 +367,13 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 
 	private _onSelectionChanged(): void {
 		const selections = this._session.getSelctions();
-		const lastSel = selections[selections.length - 1];
-		const editPoint = lastSel.type === SelectionType.L ? lastSel.start : lastSel.end;
-		const isVisible = this._isCursorVisible(editPoint);
-		if (!isVisible) {
-			this.scrollTolastSelection();
+		if (selections.length > 0) {
+			const lastSel = selections[selections.length - 1];
+			const editPoint = lastSel.type === SelectionType.L ? lastSel.start : lastSel.end;
+			const isVisible = this._isCursorVisible(editPoint);
+			if (!isVisible) {
+				this.scrollTolastSelection();
+			}
 		}
 		this.emit(EvSelection.Changed, undefined);
 	}
