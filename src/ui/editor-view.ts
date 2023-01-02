@@ -393,6 +393,9 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 	}
 
 	private _onPaste(e: ClipboardEvent): void {
+		if (!this._input?.isFocused) {
+			return;
+		}
 		if (e.clipboardData) {
 			this.writer.insert(e.clipboardData.getData('text'));
 		}
