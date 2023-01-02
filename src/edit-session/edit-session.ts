@@ -103,14 +103,15 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
 		return this._documentSession.document;
 	}
 
-	public updateLinesSearchResults(firstLine: number): void {
-		if (this._searchAfterEdit) {
-			this._documentSession.search.updateSearchResults(
-				this._document,
-				this._searchResults,
-				firstLine,
-			);
+	public updateLineSearchResults(firstLine: number): void {
+		if (!this._searchAfterEdit) {
+			return;
 		}
+		this._documentSession.search.updateSearchResults(
+			this._document,
+			this._searchResults,
+			firstLine,
+		);
 	}
 
 	public updateSelctions(
