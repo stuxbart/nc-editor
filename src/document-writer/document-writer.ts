@@ -304,10 +304,24 @@ export default class DocumentWriter {
 	}
 
 	public replaceAllSearchResult(text: string): void {
+		this._editSession.selections.clear();
 		const search = this._editSession.searchResults;
 		const resultsCount = search.matchCount;
+
 		for (let i = 0; i < resultsCount; i++) {
-			this.replaceSearchResult(text);
+			const searchRes = search.getActiveSearchResPosition();
+			const searchPhrase = search.phrase;
+
+			const selection = new Selection(
+				searchRes.line,
+				searchRes.offset,
+				searchRes.line,
+				searchRes.offset + searchPhrase.length,
+			);
+			this._editSession.addSelection(selection);
+			search.nextResult();
 		}
+		this.insert(text);
+		this._editSession.onlyLastSelection();
 	}
 }

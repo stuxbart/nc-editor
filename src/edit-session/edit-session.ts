@@ -243,6 +243,11 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
 		this._emitSelectionChangedEvent();
 	}
 
+	public onlyLastSelection(): void {
+		this._selectionManager.onlyLastSelection();
+		this._emitSelectionChangedEvent();
+	}
+
 	public emitSelectionChangedEvent(): void {
 		this._emitSelectionChangedEvent();
 	}

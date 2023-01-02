@@ -89,6 +89,10 @@ export default class SelectionManager {
 		this._removeOverlappingSelections();
 	}
 
+	public clear(): void {
+		this._selections = [];
+	}
+
 	public setSelection(selection: Selection): void {
 		this._selections = [selection];
 	}
@@ -517,6 +521,13 @@ export default class SelectionManager {
 		const selectedLines = this.getActiveLinesNumbers();
 		const count = selectedLines.size;
 		return count;
+	}
+
+	public onlyLastSelection(): void {
+		if (this._selections.length === 0) {
+			return;
+		}
+		this._selections = [this._selections[this._selections.length - 1]];
 	}
 
 	private _removeOverlappingSelections(): void {
