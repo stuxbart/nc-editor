@@ -54,17 +54,30 @@
 			}
 
 			&__input {
+				border: 1px solid rgb(29, 29, 29);
+				background-color: rgb(224, 224, 224);
 				color: rgb(0, 0, 0);
-				border: 2px solid rgb(22, 22, 22);
-				background-color: rgb(248, 248, 248);
-				&:focus,
-				&:active {
-					background-color: rgb(228, 228, 228);
+			}
+
+			&__button {
+				padding: 0.5em;
+				background-color: white;
+				color: rgb(0, 0, 0);
+
+				&:hover {
+					background-color: rgb(224, 224, 224);
+				}
+
+				&--active {
+					background-color: rgb(224, 224, 224);
 				}
 			}
 
 			&__result {
-				color: rgb(22, 22, 22);
+				display: flex;
+				justify-content: center;
+				min-width: 150px;
+				color: rgb(0, 0, 0);
 			}
 		}
 		.nc-format__word {
@@ -249,8 +262,8 @@
 		right: 15px;
 		z-index: 5;
 		background-color: black;
-		width: 300px;
-		height: 130px;
+		min-width: 400px;
+		// height: 130px;
 		border: 1px solid rgb(148, 148, 148);
 		border-top: 0px;
 		background-color: rgb(36, 36, 36);
@@ -258,38 +271,81 @@
 		flex-direction: column;
 		justify-content: flex-start;
 		align-items: center;
+		padding: 1em;
 
-		&__close {
-			align-self: flex-end;
-			color: rgb(148, 148, 148);
-			background-color: rgb(36, 36, 36);
-			border: none;
-			padding: 1em;
-			cursor: pointer;
+		&__main {
+			display: flex;
+			flex-direction: row;
+			justify-content: center;
+			align-items: flex-start;
+		}
+
+		&__inputs {
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
 		}
 
 		&__input {
-			width: 80%;
-			height: 24px;
-			color: rgb(218, 218, 218);
-			border: 2px solid rgb(148, 148, 148);
-			background-color: rgb(95, 95, 95);
-			padding: 0.5em;
-			font-size: 14px;
-			outline: none;
+			height: 50px;
+			min-height: 50px;
+			width: 250px;
+			min-width: 250px;
+			margin: 5px;
+			border: 1px solid rgb(148, 148, 148);
+			background-color: rgb(54, 54, 54);
+			color: white;
+		}
 
-			&:focus,
-			&:active {
-				background-color: rgb(110, 110, 110);
+		&__controls {
+			display: flex;
+			flex-direction: column;
+			justify-content: flex-start;
+			align-items: flex-start;
+			padding: 1em 1em;
+			width: 120px;
+		}
+
+		&__controls-container {
+			// height: 50px;
+			// min-height: 50px;
+			display: flex;
+			flex-direction: row;
+			justify-content: flex-start;
+			align-items: center;
+		}
+
+		&__button {
+			padding: 0.5em;
+			background-color: rgb(36, 36, 36);
+			color: rgb(219, 219, 219);
+			border: 0px;
+			cursor: pointer;
+			font-size: 15px;
+			margin: 0em 2px;
+			&:hover {
+				background-color: rgb(54, 54, 54);
+			}
+			&--active {
+				background-color: rgb(54, 54, 54);
 			}
 		}
 
+		&__nav {
+			padding: 0px 5px;
+			width: 100%;
+			display: flex;
+			flex-direction: row;
+			justify-content: space-between;
+			align-items: center;
+		}
+
 		&__result {
-			align-self: flex-start;
-			color: rgb(148, 148, 148);
-			padding: 1em;
-			margin-left: 2em;
-			font-size: 14px;
+			display: flex;
+			justify-content: center;
+			min-width: 150px;
+			color: rgb(219, 219, 219);
 		}
 	}
 }

@@ -1,5 +1,5 @@
 import { EventEmitter } from '../events';
-import { createDiv, createElement } from './dom-utils';
+import { createDiv } from './dom-utils';
 import EdiotrView from './editor-view';
 import { EvSearchUi, SearchUiEvents } from './events';
 import { CSSClasses } from '../styles/css';
@@ -15,6 +15,8 @@ class EditorSearch extends EventEmitter<SearchUiEvents> {
 	private _nextResultButton: HTMLButtonElement | null = null;
 	private _prevResultButton: HTMLButtonElement | null = null;
 	private _caseSensitiveToggleButton: HTMLButtonElement | null = null;
+	private _regexToggleButton: HTMLButtonElement | null = null;
+	private _selectionSearchToggleButton: HTMLButtonElement | null = null;
 	private _replaceButton: HTMLButtonElement | null = null;
 	private _replaceAllButton: HTMLButtonElement | null = null;
 	private _input: HTMLTextAreaElement | null = null;
@@ -94,6 +96,7 @@ class EditorSearch extends EventEmitter<SearchUiEvents> {
 				this.hide();
 			});
 		}
+
 		if (this._input) {
 			this._input.addEventListener('input', () => {
 				if (!this._input) {
@@ -102,7 +105,18 @@ class EditorSearch extends EventEmitter<SearchUiEvents> {
 				this._searchPhrase = this._input.value;
 				this._session.search(this._searchPhrase);
 			});
+
+			this._input.addEventListener('click', () => {
+				this._input?.select();
+			});
 		}
+
+		if (this._replaceInput) {
+			this._replaceInput.addEventListener('click', () => {
+				this._replaceInput?.select();
+			});
+		}
+
 		if (this._nextResultButton) {
 			this._nextResultButton.addEventListener('click', () => {
 				this._session.nextSearchResult();
@@ -117,7 +131,12 @@ class EditorSearch extends EventEmitter<SearchUiEvents> {
 
 		if (this._caseSensitiveToggleButton) {
 			this._caseSensitiveToggleButton.addEventListener('click', () => {
-				this._session.toggleCaseSensitiveSearch();
+				const isCaseSensitive = this._session.toggleCaseSensitiveSearch();
+				if (isCaseSensitive) {
+					this._caseSensitiveToggleButton?.classList.add('nc-search__button--active');
+				} else {
+					this._caseSensitiveToggleButton?.classList.remove('nc-search__button--active');
+				}
 			});
 		}
 
@@ -142,48 +161,73 @@ class EditorSearch extends EventEmitter<SearchUiEvents> {
 		if (this._mountPoint === null) {
 			return;
 		}
-		this._searchContainer = createDiv(CSSClasses.SEARCH);
-
-		this._closeButton = createElement('button') as HTMLButtonElement;
-		this._closeButton.className = CSSClasses.CLOSE_SEARCH;
-		this._closeButton.textContent = 'X';
-
-		this._input = createElement('textarea') as HTMLTextAreaElement;
-		this._input.className = CSSClasses.SEARCH_INPUT;
-		this._input.autofocus = true;
-
-		this._replaceInput = createElement('textarea') as HTMLTextAreaElement;
-		this._replaceInput.className = CSSClasses.SEARCH_INPUT;
-
-		this._resultsContainer = createElement('p') as HTMLParagraphElement;
-		this._resultsContainer.className = CSSClasses.SEARCH_RESULT;
-
-		this._nextResultButton = createElement('button') as HTMLButtonElement;
-		this._nextResultButton.textContent = 'Next';
-
-		this._prevResultButton = createElement('button') as HTMLButtonElement;
-		this._prevResultButton.textContent = 'Prev';
-
-		this._caseSensitiveToggleButton = createElement('button') as HTMLButtonElement;
-		this._caseSensitiveToggleButton.textContent = 'Case Sensitive';
-
-		this._replaceButton = createElement('button') as HTMLButtonElement;
-		this._replaceButton.textContent = 'Replace';
-
-		this._replaceAllButton = createElement('button') as HTMLButtonElement;
-		this._replaceAllButton.textContent = 'Replace All';
-
-		this._searchContainer.appendChild(this._closeButton);
-		this._searchContainer.appendChild(this._input);
-		this._searchContainer.appendChild(this._replaceInput);
-		this._searchContainer.appendChild(this._resultsContainer);
-		this._searchContainer.appendChild(this._nextResultButton);
-		this._searchContainer.appendChild(this._prevResultButton);
-		this._searchContainer.appendChild(this._caseSensitiveToggleButton);
-		this._searchContainer.appendChild(this._replaceButton);
-		this._searchContainer.appendChild(this._replaceAllButton);
-
+		const container = createDiv(CSSClasses.SEARCH);
+		this._searchContainer = container;
+		const html = `
+		<div class="nc-search__main">
+			<div class="nc-search__inputs">
+				<textarea class="nc-search__input" autofocus=""></textarea>
+				<textarea class="nc-search__input"></textarea>
+			</div>
+			<div class="nc-search__controls">
+				<div class="nc-search__controls-container">
+					<button class="nc-search__button">CS</button>
+					<button class="nc-search__button">RX</button>
+					<button class="nc-search__button">S</button>
+				</div>
+				<div class="nc-search__controls-container">
+					<button class="nc-search__button">R</button>
+					<button class="nc-search__button">R All</button>
+				</div>
+			</div>
+			<div class="nc-search__close">
+				<button class="nc-search__button">X</button>
+			</div>
+		</div>
+		<div class="nc-search__nav">
+			<div class="nc-search__result">
+				0 of 0
+			</div>
+			<div class="nc-search__controls">
+				<div class="nc-search__controls-container">
+					<button class="nc-search__button">↑</button>
+					<button class="nc-search__button">↓</button>
+				</div>
+			</div>
+		</div>`;
+		this._searchContainer.innerHTML = html;
 		this._mountPoint.appendChild(this._searchContainer);
+
+		this._input = container.querySelectorAll('textarea')[0];
+		this._replaceInput = container.querySelectorAll('textarea')[1];
+		this._closeButton = container.querySelector('.nc-search__close > .nc-search__button');
+		this._resultsContainer = container.querySelector('.nc-search__result');
+		this._prevResultButton = container.querySelectorAll(
+			'.nc-search__nav button',
+		)[0] as HTMLButtonElement;
+		this._nextResultButton = container.querySelectorAll(
+			'.nc-search__nav button',
+		)[1] as HTMLButtonElement;
+
+		this._caseSensitiveToggleButton = container.querySelectorAll(
+			'.nc-search__main button',
+		)[0] as HTMLButtonElement;
+
+		this._regexToggleButton = container.querySelectorAll(
+			'.nc-search__main button',
+		)[1] as HTMLButtonElement;
+
+		this._selectionSearchToggleButton = container.querySelectorAll(
+			'.nc-search__main button',
+		)[2] as HTMLButtonElement;
+
+		this._replaceButton = container.querySelectorAll(
+			'.nc-search__main button',
+		)[3] as HTMLButtonElement;
+
+		this._replaceAllButton = container.querySelectorAll(
+			'.nc-search__main button',
+		)[4] as HTMLButtonElement;
 
 		this.hide();
 	}
