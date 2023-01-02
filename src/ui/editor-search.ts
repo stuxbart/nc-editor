@@ -15,7 +15,10 @@ class EditorSearch extends EventEmitter<SearchUiEvents> {
 	private _nextResultButton: HTMLButtonElement | null = null;
 	private _prevResultButton: HTMLButtonElement | null = null;
 	private _caseSensitiveToggleButton: HTMLButtonElement | null = null;
-	private _input: HTMLInputElement | null = null;
+	private _replaceButton: HTMLButtonElement | null = null;
+	private _replaceAllButton: HTMLButtonElement | null = null;
+	private _input: HTMLTextAreaElement | null = null;
+	private _replaceInput: HTMLTextAreaElement | null = null;
 	private _resultsContainer: HTMLParagraphElement | null = null;
 	private _isOpen: boolean = false;
 	private _seatchMatchesCount: number = 0;
@@ -117,6 +120,22 @@ class EditorSearch extends EventEmitter<SearchUiEvents> {
 				this._session.toggleCaseSensitiveSearch();
 			});
 		}
+
+		if (this._replaceButton) {
+			this._replaceButton.addEventListener('click', () => {
+				if (this._replaceInput) {
+					this._session.writer.replaceSearchResult(this._replaceInput.value);
+				}
+			});
+		}
+
+		if (this._replaceAllButton) {
+			this._replaceAllButton.addEventListener('click', () => {
+				if (this._replaceInput) {
+					this._session.writer.replaceAllSearchResult(this._replaceInput.value);
+				}
+			});
+		}
 	}
 
 	private _createSearchContainer(): void {
@@ -124,33 +143,47 @@ class EditorSearch extends EventEmitter<SearchUiEvents> {
 			return;
 		}
 		this._searchContainer = createDiv(CSSClasses.SEARCH);
-		this._mountPoint.appendChild(this._searchContainer);
 
 		this._closeButton = createElement('button') as HTMLButtonElement;
 		this._closeButton.className = CSSClasses.CLOSE_SEARCH;
 		this._closeButton.textContent = 'X';
-		this._searchContainer.appendChild(this._closeButton);
 
-		this._input = createElement('input') as HTMLInputElement;
+		this._input = createElement('textarea') as HTMLTextAreaElement;
 		this._input.className = CSSClasses.SEARCH_INPUT;
 		this._input.autofocus = true;
-		this._searchContainer.appendChild(this._input);
+
+		this._replaceInput = createElement('textarea') as HTMLTextAreaElement;
+		this._replaceInput.className = CSSClasses.SEARCH_INPUT;
 
 		this._resultsContainer = createElement('p') as HTMLParagraphElement;
 		this._resultsContainer.className = CSSClasses.SEARCH_RESULT;
-		this._searchContainer.appendChild(this._resultsContainer);
 
 		this._nextResultButton = createElement('button') as HTMLButtonElement;
 		this._nextResultButton.textContent = 'Next';
-		this._searchContainer.appendChild(this._nextResultButton);
 
 		this._prevResultButton = createElement('button') as HTMLButtonElement;
 		this._prevResultButton.textContent = 'Prev';
-		this._searchContainer.appendChild(this._prevResultButton);
 
 		this._caseSensitiveToggleButton = createElement('button') as HTMLButtonElement;
 		this._caseSensitiveToggleButton.textContent = 'Case Sensitive';
+
+		this._replaceButton = createElement('button') as HTMLButtonElement;
+		this._replaceButton.textContent = 'Replace';
+
+		this._replaceAllButton = createElement('button') as HTMLButtonElement;
+		this._replaceAllButton.textContent = 'Replace All';
+
+		this._searchContainer.appendChild(this._closeButton);
+		this._searchContainer.appendChild(this._input);
+		this._searchContainer.appendChild(this._replaceInput);
+		this._searchContainer.appendChild(this._resultsContainer);
+		this._searchContainer.appendChild(this._nextResultButton);
+		this._searchContainer.appendChild(this._prevResultButton);
 		this._searchContainer.appendChild(this._caseSensitiveToggleButton);
+		this._searchContainer.appendChild(this._replaceButton);
+		this._searchContainer.appendChild(this._replaceAllButton);
+
+		this._mountPoint.appendChild(this._searchContainer);
 
 		this.hide();
 	}

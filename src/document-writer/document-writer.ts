@@ -1,7 +1,7 @@
 import DocumentSession from '../document-session/document-session';
 import Document from '../document/document';
 import EditSession from '../edit-session/edit-session';
-import { Point, Range } from '../selection';
+import { Point, Range, Selection } from '../selection';
 import { getWordAfter, getWordBefore, removeAccents } from '../text-utils';
 
 export default class DocumentWriter {
@@ -286,5 +286,28 @@ export default class DocumentWriter {
 		}
 		docSession.history.closeTransaction();
 		docSession.emitEditEvent();
+	}
+
+	public replaceSearchResult(text: string): void {
+		const search = this._editSession.searchResults;
+		const searchRes = search.getActiveSearchResPosition();
+		const searchPhrase = search.phrase;
+
+		const selection = new Selection(
+			searchRes.line,
+			searchRes.offset,
+			searchRes.line,
+			searchRes.offset + searchPhrase.length,
+		);
+		this._editSession.setSelection(selection);
+		this.insert(text);
+	}
+
+	public replaceAllSearchResult(text: string): void {
+		const search = this._editSession.searchResults;
+		const resultsCount = search.matchCount;
+		for (let i = 0; i < resultsCount; i++) {
+			this.replaceSearchResult(text);
+		}
 	}
 }
