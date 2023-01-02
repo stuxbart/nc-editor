@@ -19,7 +19,7 @@ export default class NaiveSearch extends Search {
 		searchResults.phrase = phrase;
 	}
 
-	public updateSearchResults(
+	public updateLineSearchResults(
 		document: Document,
 		searchResults: SearchResults,
 		lineNumber: number,
@@ -33,6 +33,45 @@ export default class NaiveSearch extends Search {
 
 		const lineResults = this._searchInLine(searchResults.phrase, line);
 		searchResults.setLineResults(lineNumber, lineResults, true);
+	}
+
+	public updateLinesSearchResults(
+		document: Document,
+		searchResults: SearchResults,
+		firstLineNumber: number,
+		linesCount: number,
+	): void {
+		for (let i = 0; i < linesCount; i++) {
+			const lineNumber = firstLineNumber + i;
+			let line: string;
+			try {
+				line = document.getLine(lineNumber);
+			} catch (err) {
+				return;
+			}
+			const lineResults = this._searchInLine(searchResults.phrase, line);
+			searchResults.setLineResults(lineNumber, lineResults, true);
+		}
+	}
+
+	public updateNewLinesSearchResults(
+		document: Document,
+		searchResults: SearchResults,
+		firstLineNumber: number,
+		newLinesCount: number,
+	): void {
+		searchResults.applyLinesDelta(firstLineNumber, newLinesCount);
+		this.updateLinesSearchResults(document, searchResults, firstLineNumber, newLinesCount);
+	}
+
+	public updateRemovedLinesSearchResults(
+		document: Document,
+		searchResults: SearchResults,
+		firstLineNumber: number,
+		removedLinesCount: number,
+	): void {
+		searchResults.applyLinesDelta(firstLineNumber, removedLinesCount);
+		this.updateLinesSearchResults(document, searchResults, firstLineNumber, removedLinesCount);
 	}
 
 	private _searchInLine(phrase: string, text: string): number[] {

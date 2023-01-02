@@ -39,7 +39,7 @@ export default class DocumentWriter {
 			docSession.updateLinesTokens(sel.start.line);
 			editSession.wrapper.removeLines(sel.start.line + 1, removedLines.length - 1);
 			editSession.wrapper.updateLines(sel.start.line, removedLines.length + 1);
-			editSession.updateLineSearchResults(sel.start.line);
+			// editSession.updateLineSearchResults(sel.start.line);
 			docSession.emitLinesCountChanged(sel.end.line - sel.start.line);
 			editSession.updateSelctions(
 				sel.start.line,
@@ -57,6 +57,9 @@ export default class DocumentWriter {
 			editSession.wrapper.insertNewLines(sel.start.line + 1, insertedLines[0]);
 			editSession.wrapper.updateLines(sel.start.line, insertedLines[0] + 1);
 			docSession.updateLinesTokens(line);
+			if (insertedLines[0] > 0) {
+				editSession.updateNewLinesSearchResults(line + 1, insertedLines[0]);
+			}
 			editSession.updateLineSearchResults(line);
 			editSession.updateSelctions(line, offset, insertedLines[0], insertedLines[1]);
 		}

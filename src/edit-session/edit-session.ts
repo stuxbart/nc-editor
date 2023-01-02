@@ -107,10 +107,34 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
 		if (!this._searchAfterEdit) {
 			return;
 		}
-		this._documentSession.search.updateSearchResults(
+		this._documentSession.search.updateLineSearchResults(
 			this._document,
 			this._searchResults,
 			firstLine,
+		);
+	}
+
+	public updateLinesSearchResults(firstLine: number, linesCount: number): void {
+		if (!this._searchAfterEdit) {
+			return;
+		}
+		this._documentSession.search.updateLinesSearchResults(
+			this._document,
+			this._searchResults,
+			firstLine,
+			linesCount,
+		);
+	}
+
+	public updateNewLinesSearchResults(firstLine: number, linesCount: number): void {
+		if (!this._searchAfterEdit) {
+			return;
+		}
+		this._documentSession.search.updateNewLinesSearchResults(
+			this._document,
+			this._searchResults,
+			firstLine,
+			linesCount,
 		);
 	}
 

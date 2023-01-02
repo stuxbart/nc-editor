@@ -38,6 +38,10 @@ export default class SerachResults {
 		if (this._totalResults < 1) {
 			return [-1, -1];
 		}
+		if (this._activeSearchRes[0] < 0 || this._activeSearchRes[0] >= this._results.length) {
+			this._activeSearchRes = [0, 0];
+			return [0, 0];
+		}
 		const currentLineRes = this._results[this._activeSearchRes[0]];
 		currentLineRes.activeSearchRes = -1;
 		if (this._activeSearchRes[1] + 1 < currentLineRes.count) {
@@ -56,6 +60,10 @@ export default class SerachResults {
 	public prevResult(): [number, number] {
 		if (this._totalResults < 1) {
 			return [-1, -1];
+		}
+		if (this._activeSearchRes[0] < 0 || this._activeSearchRes[0] >= this._results.length) {
+			this._activeSearchRes = [0, 0];
+			return [0, 0];
 		}
 		const currentLineRes = this._results[this._activeSearchRes[0]];
 		currentLineRes.activeSearchRes = -1;
@@ -97,27 +105,49 @@ export default class SerachResults {
 		if (results.length === 0 && !clearPrev) {
 			return;
 		}
+		if (results.length === 0) {
+			const i = this._results.findIndex((res) => res.lineNumber === lineNumber);
+			if (i === -1) {
+				return;
+			}
+			const isActive = i === this._activeSearchRes[0];
+			this._results.splice(i, 1);
+			if (isActive) {
+				this._activeSearchRes[0]--;
+				const count = this._results[this._activeSearchRes[0]]?.count ?? 0;
+				this._activeSearchRes[1] = count - 1;
+				this.nextResult();
+			}
+			return;
+		}
 		const newRes: SearchLineResults = {
 			lineNumber: lineNumber,
 			matches: results,
 			count: results.length,
 			activeSearchRes: -1,
 		};
-		if (clearPrev) {
-			const i = this._results.findIndex((res) => res.lineNumber === lineNumber);
-			const isActive = i === this._activeSearchRes[0];
-			if (i > -1) {
-				this._totalResults -= this._results[i].count;
-				this._results[i] = newRes;
-				this._totalResults += newRes.count;
-				if (isActive && results.length <= this._activeSearchRes[1]) {
-					this.nextResult();
-				}
-				return;
-			}
+		const i = this._results.findIndex((res) => res.lineNumber >= lineNumber);
+		if (i === -1) {
+			this._results.push(newRes);
+			this._totalResults += newRes.count;
+			return;
 		}
+
+		if (this._results[i].lineNumber === lineNumber) {
+			this._totalResults -= this._results[i].count;
+			this._results[i] = newRes;
+			this._totalResults += newRes.count;
+			const isActive = i === this._activeSearchRes[0];
+			if (isActive && this._results[i].count <= this._activeSearchRes[1]) {
+				this.nextResult();
+			}
+			return;
+		}
+		this._results.splice(i, 0, newRes);
 		this._totalResults += newRes.count;
-		this._results.push(newRes);
+		if (this._activeSearchRes[0] >= i) {
+			this._activeSearchRes[0]++;
+		}
 	}
 
 	public getActiveSearchResPosition(): Point {
@@ -138,5 +168,16 @@ export default class SerachResults {
 
 	public set phrase(value: string) {
 		this._searchPhrase = value;
+	}
+
+	public applyLinesDelta(lineNumber: number, linesCount: number): void {
+		if (linesCount > 0) {
+			for (const res of this._results) {
+				if (res.lineNumber < lineNumber) {
+					continue;
+				}
+				res.lineNumber += linesCount;
+			}
+		}
 	}
 }
