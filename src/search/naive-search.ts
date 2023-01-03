@@ -5,6 +5,7 @@ import SearchResults from './search-results';
 export default class NaiveSearch extends Search {
 	public search(phrase: string, document: Document, searchResults: SearchResults): void {
 		searchResults.clearResults();
+		searchResults.phrase = phrase;
 		if (!searchResults.caseSensitive) {
 			phrase = phrase.toLowerCase();
 		}
@@ -16,7 +17,6 @@ export default class NaiveSearch extends Search {
 			const lineResults = this._searchInLine(phrase, line);
 			searchResults.setLineResults(i, lineResults);
 		}
-		searchResults.phrase = phrase;
 	}
 
 	public updateLineSearchResults(
@@ -24,14 +24,18 @@ export default class NaiveSearch extends Search {
 		searchResults: SearchResults,
 		lineNumber: number,
 	): void {
-		let line: string;
+		let line: string = '';
+		let phrase: string = searchResults.phrase;
 		try {
 			line = document.getLine(lineNumber);
 		} catch (err) {
 			return;
 		}
-
-		const lineResults = this._searchInLine(searchResults.phrase, line);
+		if (!searchResults.caseSensitive) {
+			line = line.toLowerCase();
+			phrase = searchResults.phrase.toLowerCase();
+		}
+		const lineResults = this._searchInLine(phrase, line);
 		searchResults.setLineResults(lineNumber, lineResults, true);
 	}
 
