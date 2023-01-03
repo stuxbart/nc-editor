@@ -530,6 +530,25 @@ export default class SelectionManager {
 		this._selections = [this._selections[this._selections.length - 1]];
 	}
 
+	public selectLine(lineNumber: number): void {
+		if (!this._document) {
+			return;
+		}
+		if (lineNumber >= this._document.linesCount) {
+			return;
+		}
+		if (lineNumber + 1 === this._document.linesCount) {
+			const line = this._document.getLine(lineNumber);
+			const sel = new Selection(lineNumber, 0, lineNumber, line.length);
+			sel.type = SelectionType.R;
+			this._selections = [sel];
+		} else {
+			const sel = new Selection(lineNumber, 0, lineNumber + 1, 0);
+			sel.type = SelectionType.R;
+			this._selections = [sel];
+		}
+	}
+
 	private _removeOverlappingSelections(): void {
 		if (this._document === null || this._selections.length < 2) {
 			return;

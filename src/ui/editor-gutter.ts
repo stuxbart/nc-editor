@@ -5,6 +5,7 @@ import { EvGutter, EvScroll, EditorGutterEvents } from './events';
 import { CSSClasses } from '../styles/css';
 import EditSession from '../edit-session/edit-session';
 import { EvDocument } from '../document-session/events';
+import { Point } from '../selection';
 
 class EditorGutter extends EventEmitter<EditorGutterEvents> {
 	private _view: EdiotrView;
@@ -14,6 +15,8 @@ class EditorGutter extends EventEmitter<EditorGutterEvents> {
 	private _visibleRowsCount: number = 0;
 	private _totalRowsCount: number = 50;
 	private _gutterWidth: number = 50;
+	private _isMouseHold: boolean = false;
+	private _lineHeight: number = 20;
 
 	constructor(view: EdiotrView) {
 		super();
@@ -92,6 +95,12 @@ class EditorGutter extends EventEmitter<EditorGutterEvents> {
 			this.setWidthForRowsCount(rowsCount);
 			this.update();
 		});
+
+		if (this._gutterContainer) {
+			this._gutterContainer.addEventListener('mousedown', (e) => this._onMouseDown(e));
+			this._gutterContainer.addEventListener('mouseup', () => this._onMouseUp());
+			this._gutterContainer.addEventListener('mousemove', (e) => this._onMouseMove(e));
+		}
 	}
 
 	private _createGutterContainer(): void {
@@ -124,6 +133,55 @@ class EditorGutter extends EventEmitter<EditorGutterEvents> {
 		}
 
 		this._gutterContainer.replaceChildren(...lines);
+	}
+
+	private _onMouseDown(e: MouseEvent): void {
+		this._isMouseHold = true;
+		const target = e.target as HTMLDivElement;
+		if (!target.parentElement) {
+			return;
+		}
+		const rect = target.parentElement.getBoundingClientRect();
+		const y = e.clientY - rect.top;
+		console.log(e, y);
+		const line = this._getRowAtPosition(y);
+
+		this._session.selectLine(line);
+	}
+
+	private _onMouseUp(): void {
+		this._isMouseHold = false;
+	}
+
+	private _onMouseMove(e: MouseEvent): void {
+		if (!this._isMouseHold) {
+			return;
+		}
+
+		const target = e.target as HTMLDivElement;
+		if (!target.parentElement) {
+			return;
+		}
+		const rect = target.parentElement.getBoundingClientRect();
+		const y = e.clientY - rect.top;
+		console.log(e, y);
+		const line = this._getRowAtPosition(y);
+
+		this._session.extendLastSelection(new Point(line, 0));
+	}
+
+	private _getRowAtPosition(y: number): number {
+		const rowNumber = Math.floor(y / this._lineHeight) + this._firstVisibleRow;
+		let line = 0;
+
+		try {
+			const rows = this._session.reader.getRows(rowNumber, 1);
+			line = rows[0].line;
+		} catch (err: any) {
+			line = this._session.reader.getTotalLinesCount() - 1;
+		}
+
+		return line;
 	}
 }
 

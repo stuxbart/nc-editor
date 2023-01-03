@@ -272,6 +272,11 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
 		this._emitSelectionChangedEvent();
 	}
 
+	public selectLine(lineNumber: number): void {
+		this._selectionManager.selectLine(lineNumber);
+		this._emitSelectionChangedEvent();
+	}
+
 	public emitSelectionChangedEvent(): void {
 		this._emitSelectionChangedEvent();
 	}
