@@ -1,4 +1,5 @@
 import Line, { Row } from '../document/line';
+import SearchResult from '../search/search-result';
 import Reader from './reader';
 
 export default class DocumentReader extends Reader {
@@ -18,12 +19,29 @@ export default class DocumentReader extends Reader {
 		const lines: Line[] = [];
 
 		for (let i = 0; i < count; i++) {
+			const lineNumber = firstLine + i;
+			const lineSearchResults: SearchResult[] = [];
+			for (const res of linesSearchResults) {
+				if (!(res.start.line <= lineNumber && res.end.line >= lineNumber)) {
+					continue;
+				}
+				let startOffset = 0;
+				let endOffset = rawLines[i].length;
+				if (lineNumber === res.start.line) {
+					startOffset = res.start.offset;
+				}
+				if (lineNumber === res.end.line) {
+					endOffset = res.end.offset;
+				}
+				const lineRes = new SearchResult(lineNumber, startOffset, lineNumber, endOffset);
+				lineRes.isActive = res.isActive;
+				lineSearchResults.push(lineRes);
+			}
 			lines.push({
 				rawText: rawLines[i],
 				tokens: linesTokens[i],
 				lineBreaks: [],
-				searchResults: linesSearchResults[i].matches,
-				activeSearchRes: linesSearchResults[i].activeSearchRes,
+				searchResults: lineSearchResults,
 			});
 		}
 		return lines;
@@ -41,7 +59,6 @@ export default class DocumentReader extends Reader {
 				text: line.rawText,
 				tokens: line.tokens,
 				searchResults: line.searchResults,
-				activeSearchRes: line.activeSearchRes,
 			});
 			i++;
 		}

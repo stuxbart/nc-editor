@@ -1,4 +1,5 @@
 import { Document } from '../document';
+import { Range } from '../selection';
 import { Search } from './search';
 import SearchResults from './search-results';
 
@@ -14,8 +15,8 @@ export default class NaiveSearch extends Search {
 			if (!searchResults.caseSensitive) {
 				line = line.toLowerCase();
 			}
-			const lineResults = this._searchInLine(phrase, line);
-			searchResults.setLineResults(i, lineResults);
+			const lineResults = this._searchInLine(phrase, line, i);
+			searchResults.addResults(lineResults);
 		}
 	}
 
@@ -38,8 +39,8 @@ export default class NaiveSearch extends Search {
 			if (!searchResults.caseSensitive) {
 				line = line.toLowerCase();
 			}
-			const lineResults = this._searchInLine(phrase, line);
-			searchResults.setLineResults(i, lineResults);
+			const lineResults = this._searchInLine(phrase, line, i);
+			searchResults.addResults(lineResults);
 		}
 	}
 
@@ -59,8 +60,9 @@ export default class NaiveSearch extends Search {
 			line = line.toLowerCase();
 			phrase = searchResults.phrase.toLowerCase();
 		}
-		const lineResults = this._searchInLine(phrase, line);
-		searchResults.setLineResults(lineNumber, lineResults, true);
+		searchResults.clearLineResults(lineNumber);
+		const lineResults = this._searchInLine(phrase, line, lineNumber);
+		searchResults.addResults(lineResults);
 	}
 
 	public updateLinesSearchResults(
@@ -69,6 +71,7 @@ export default class NaiveSearch extends Search {
 		firstLineNumber: number,
 		linesCount: number,
 	): void {
+		searchResults.clearLinesResults(firstLineNumber, linesCount);
 		for (let i = 0; i < linesCount; i++) {
 			const lineNumber = firstLineNumber + i;
 			let line: string;
@@ -77,8 +80,8 @@ export default class NaiveSearch extends Search {
 			} catch (err) {
 				return;
 			}
-			const lineResults = this._searchInLine(searchResults.phrase, line);
-			searchResults.setLineResults(lineNumber, lineResults, true);
+			const lineResults = this._searchInLine(searchResults.phrase, line, lineNumber);
+			searchResults.addResults(lineResults);
 		}
 	}
 
@@ -98,19 +101,19 @@ export default class NaiveSearch extends Search {
 		firstLineNumber: number,
 		removedLinesCount: number,
 	): void {
-		searchResults.applyLinesDelta(firstLineNumber, removedLinesCount);
+		searchResults.applyLinesDelta(firstLineNumber, -removedLinesCount);
 		this.updateLinesSearchResults(document, searchResults, firstLineNumber, removedLinesCount);
 	}
 
-	private _searchInLine(phrase: string, text: string): number[] {
+	private _searchInLine(phrase: string, text: string, lineNumber: number): Range[] {
 		if (phrase.length < 1) {
 			return [];
 		}
-		const matches: number[] = [];
+		const matches: Range[] = [];
 		let index = 0;
 		let startIndex = 0;
 		while ((index = text.indexOf(phrase, startIndex)) > -1) {
-			matches.push(index);
+			matches.push(new Range(lineNumber, index, lineNumber, index + phrase.length));
 			startIndex = index + phrase.length;
 		}
 		return matches;

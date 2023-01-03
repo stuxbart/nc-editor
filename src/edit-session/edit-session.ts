@@ -141,6 +141,19 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
 		this.emit(EvSearch.Finished, undefined);
 	}
 
+	public updateRemovedLinesSearchResults(firstLine: number, linesCount: number): void {
+		if (!this._searchAfterEdit) {
+			return;
+		}
+		this._documentSession.search.updateRemovedLinesSearchResults(
+			this._document,
+			this._searchResults,
+			firstLine,
+			linesCount,
+		);
+		this.emit(EvSearch.Finished, undefined);
+	}
+
 	public updateSelctions(
 		line: number,
 		offset: number,

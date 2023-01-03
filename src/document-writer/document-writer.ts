@@ -39,6 +39,12 @@ export default class DocumentWriter {
 			docSession.updateLinesTokens(sel.start.line);
 			editSession.wrapper.removeLines(sel.start.line + 1, removedLines.length - 1);
 			editSession.wrapper.updateLines(sel.start.line, removedLines.length + 1);
+			if (removedLines.length > 0) {
+				editSession.updateRemovedLinesSearchResults(
+					sel.start.line + 1,
+					removedLines.length - 1,
+				);
+			}
 			// editSession.updateLineSearchResults(sel.start.line);
 			docSession.emitLinesCountChanged(sel.end.line - sel.start.line);
 			editSession.updateSelctions(
@@ -113,6 +119,12 @@ export default class DocumentWriter {
 			docSession.updateLinesTokens(sel.start.line);
 			editSession.wrapper.removeLines(sel.start.line + 1, removedLines.length - 1);
 			editSession.wrapper.updateLines(sel.start.line, removedLines.length + 1);
+			if (removedLines.length > 0) {
+				editSession.updateRemovedLinesSearchResults(
+					sel.start.line + 1,
+					removedLines.length - 1,
+				);
+			}
 			editSession.updateLineSearchResults(sel.start.line);
 			docSession.emitLinesCountChanged(sel.end.line - sel.start.line);
 			editSession.updateSelctions(
@@ -294,13 +306,12 @@ export default class DocumentWriter {
 			return;
 		}
 		const searchRes = search.getActiveSearchResPosition();
-		const searchPhrase = search.phrase;
 
 		const selection = new Selection(
-			searchRes.line,
-			searchRes.offset,
-			searchRes.line,
-			searchRes.offset + searchPhrase.length,
+			searchRes.start.line,
+			searchRes.start.offset,
+			searchRes.end.line,
+			searchRes.end.offset,
 		);
 		this._editSession.setSelection(selection);
 		this.insert(text);
@@ -316,13 +327,12 @@ export default class DocumentWriter {
 
 		for (let i = 0; i < resultsCount; i++) {
 			const searchRes = search.getActiveSearchResPosition();
-			const searchPhrase = search.phrase;
 
 			const selection = new Selection(
-				searchRes.line,
-				searchRes.offset,
-				searchRes.line,
-				searchRes.offset + searchPhrase.length,
+				searchRes.start.line,
+				searchRes.start.offset,
+				searchRes.end.line,
+				searchRes.end.offset,
 			);
 			this._editSession.addSelection(selection);
 			search.nextResult();

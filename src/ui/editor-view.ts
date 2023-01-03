@@ -385,10 +385,10 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 	private _onSearchFinished(): void {
 		const searchResults = this._session.searchResults;
 		if (searchResults.matchCount > 0) {
-			const searchPoint = searchResults.getActiveSearchResPosition();
-			const isVisible = this._isCursorVisible(searchPoint);
+			const searchResult = searchResults.getActiveSearchResPosition();
+			const isVisible = this._isCursorVisible(searchResult.start);
 			if (!isVisible) {
-				this._scrollToLine(searchPoint.line);
+				this._scrollToLine(searchResult.start.line);
 			}
 		}
 		this.emit(EvSearch.Finished, undefined);

@@ -1,4 +1,5 @@
 import Line, { Row } from '../document/line';
+import SearchResult from '../search/search-result';
 import { Token } from '../tokenizer';
 import Reader from './reader';
 
@@ -19,12 +20,29 @@ export default class WrapReader extends Reader {
 		const lines: Line[] = [];
 
 		for (let i = 0; i < count; i++) {
+			const lineNumber = firstLine + i;
+			const lineSearchResults: SearchResult[] = [];
+			for (const res of linesSearchResults) {
+				if (!(res.start.line <= lineNumber && res.end.line >= lineNumber)) {
+					continue;
+				}
+				let startOffset = 0;
+				let endOffset = rawLines[i].length;
+				if (lineNumber === res.start.line) {
+					startOffset = res.start.offset;
+				}
+				if (lineNumber === res.end.line) {
+					endOffset = res.end.offset;
+				}
+				const lineRes = new SearchResult(lineNumber, startOffset, lineNumber, endOffset);
+				lineRes.isActive = res.isActive;
+				lineSearchResults.push(lineRes);
+			}
 			lines.push({
 				rawText: rawLines[i],
 				tokens: linesTokens[i],
 				lineBreaks: [],
-				searchResults: linesSearchResults[i].matches,
-				activeSearchRes: linesSearchResults[i].activeSearchRes,
+				searchResults: [],
 			});
 		}
 		return lines;
@@ -94,26 +112,47 @@ export default class WrapReader extends Reader {
 				}
 			}
 
-			const lineSearchResults: number[] = linesSearchResults[lineIndex].matches;
-			const rowSearchResults: number[] = [];
-			let rowActiveSearchRes = -1;
-			let firstRowSearchRes = 0;
-
-			for (let j = 0; j < lineSearchResults.length; j++) {
-				const searchResult = lineSearchResults[j];
-
-				if (searchResult < off) {
-					firstRowSearchRes = j + 1;
+			const lineSearchResults: SearchResult[] = [];
+			for (const res of linesSearchResults) {
+				if (!(res.start.line <= lineIndex && res.end.line >= lineIndex)) {
 					continue;
 				}
-				if (searchResult < row.offset) {
-					rowSearchResults.push(searchResult - off);
-					if (j === linesSearchResults[lineIndex].activeSearchRes) {
-						rowActiveSearchRes = j - firstRowSearchRes;
-					}
-				} else {
-					break;
+				let startOffset = 0;
+				let endOffset = line.length;
+				if (lineIndex === res.start.line) {
+					startOffset = res.start.offset;
 				}
+				if (lineIndex === res.end.line) {
+					endOffset = res.end.offset;
+				}
+				const lineRes = new SearchResult(lineIndex, startOffset, lineIndex, endOffset);
+				lineRes.isActive = res.isActive;
+				lineSearchResults.push(lineRes);
+			}
+
+			const rowSearchResults: SearchResult[] = [];
+
+			for (const res of lineSearchResults) {
+				if (
+					!(
+						res.start.offset >= off ||
+						res.end.offset <= row.offset ||
+						(res.start.offset <= off && res.end.offset >= row.offset)
+					)
+				) {
+					continue;
+				}
+				const startOffset = Math.max(res.start.offset, off);
+				const endOffset = Math.min(res.end.offset, row.offset);
+
+				const rowRes = new SearchResult(
+					lineIndex,
+					startOffset - off,
+					lineIndex,
+					endOffset - off,
+				);
+				rowRes.isActive = res.isActive;
+				rowSearchResults.push(rowRes);
 			}
 
 			rows.push({
@@ -123,7 +162,6 @@ export default class WrapReader extends Reader {
 				text: line.slice(off, row.offset),
 				tokens: rowTokens,
 				searchResults: rowSearchResults,
-				activeSearchRes: rowActiveSearchRes,
 			});
 
 			off = row.offset;
