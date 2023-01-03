@@ -112,6 +112,7 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
 			this._searchResults,
 			firstLine,
 		);
+		this.emit(EvSearch.Finished, undefined);
 	}
 
 	public updateLinesSearchResults(firstLine: number, linesCount: number): void {
@@ -124,6 +125,7 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
 			firstLine,
 			linesCount,
 		);
+		this.emit(EvSearch.Finished, undefined);
 	}
 
 	public updateNewLinesSearchResults(firstLine: number, linesCount: number): void {
@@ -136,6 +138,7 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
 			firstLine,
 			linesCount,
 		);
+		this.emit(EvSearch.Finished, undefined);
 	}
 
 	public updateSelctions(
@@ -340,6 +343,7 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
 	public toggleCaseSensitiveSearch(): boolean {
 		this._searchResults.caseSensitive = !this._searchResults.caseSensitive;
 		this.search(this._searchResults.phrase);
+		this.emit(EvSearch.Finished, undefined);
 		return this._searchResults.caseSensitive;
 	}
 }
