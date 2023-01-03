@@ -290,6 +290,9 @@ export default class DocumentWriter {
 
 	public replaceSearchResult(text: string): void {
 		const search = this._editSession.searchResults;
+		if (search.matchCount === 0) {
+			return;
+		}
 		const searchRes = search.getActiveSearchResPosition();
 		const searchPhrase = search.phrase;
 
@@ -306,6 +309,9 @@ export default class DocumentWriter {
 	public replaceAllSearchResult(text: string): void {
 		this._editSession.selections.clear();
 		const search = this._editSession.searchResults;
+		if (search.matchCount === 0) {
+			return;
+		}
 		const resultsCount = search.matchCount;
 
 		for (let i = 0; i < resultsCount; i++) {
