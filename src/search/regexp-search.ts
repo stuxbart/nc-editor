@@ -10,7 +10,12 @@ export default class RegExpSearch extends Search {
 		if (phrase.length === 0) {
 			return;
 		}
-		const regexp = new RegExp(phrase, 'g');
+		let regexp;
+		try {
+			regexp = new RegExp(phrase, 'g');
+		} catch (err: any) {
+			return;
+		}
 
 		for (let i = 0; i < document.linesCount; i++) {
 			const line = document.getLine(i);
@@ -30,7 +35,12 @@ export default class RegExpSearch extends Search {
 		if (phrase.length === 0) {
 			return;
 		}
-		const regexp = new RegExp(phrase, 'g');
+		let regexp;
+		try {
+			regexp = new RegExp(phrase, 'g');
+		} catch (err: any) {
+			return;
+		}
 
 		for (let i = 0; i < document.linesCount; i++) {
 			if (!lines.has(i)) {
@@ -56,7 +66,12 @@ export default class RegExpSearch extends Search {
 		} catch (err) {
 			return;
 		}
-		const regexp = new RegExp(searchResults.phrase, 'g');
+		let regexp;
+		try {
+			regexp = new RegExp(searchResults.phrase, 'g');
+		} catch (err: any) {
+			return;
+		}
 		searchResults.clearLineResults(lineNumber);
 		const lineResults = this._searchInLine(regexp, line, lineNumber);
 		searchResults.addResults(lineResults);
@@ -71,7 +86,12 @@ export default class RegExpSearch extends Search {
 		if (searchResults.phrase.length === 0) {
 			return;
 		}
-		const regexp = new RegExp(searchResults.phrase, 'g');
+		let regexp;
+		try {
+			regexp = new RegExp(searchResults.phrase, 'g');
+		} catch (err: any) {
+			return;
+		}
 		for (let i = 0; i < linesCount; i++) {
 			const lineNumber = firstLineNumber + i;
 			let line: string;
