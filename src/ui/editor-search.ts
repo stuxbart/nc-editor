@@ -138,8 +138,8 @@ class EditorSearch extends EventEmitter<SearchUiEvents> {
 
 		if (this._caseSensitiveToggleButton) {
 			this._caseSensitiveToggleButton.addEventListener('click', () => {
-				const isCaseSensitive = this._session.toggleCaseSensitiveSearch();
-				if (isCaseSensitive) {
+				const isCaseSensitiveSearchEnabled = this._session.toggleCaseSensitiveSearch();
+				if (isCaseSensitiveSearchEnabled) {
 					this._caseSensitiveToggleButton?.classList.add('nc-search__button--active');
 				} else {
 					this._caseSensitiveToggleButton?.classList.remove('nc-search__button--active');
@@ -149,13 +149,24 @@ class EditorSearch extends EventEmitter<SearchUiEvents> {
 
 		if (this._selectionSearchToggleButton) {
 			this._selectionSearchToggleButton.addEventListener('click', () => {
-				const isSelectionSearch = this._session.toggleSelectionSearch();
-				if (isSelectionSearch) {
+				const isSelectionSearchEnabled = this._session.toggleSelectionSearch();
+				if (isSelectionSearchEnabled) {
 					this._selectionSearchToggleButton?.classList.add('nc-search__button--active');
 				} else {
 					this._selectionSearchToggleButton?.classList.remove(
 						'nc-search__button--active',
 					);
+				}
+			});
+		}
+
+		if (this._regexToggleButton) {
+			this._regexToggleButton.addEventListener('click', () => {
+				const isRegExpSearchEnabled = this._session.toggleRegExpSearch();
+				if (isRegExpSearchEnabled) {
+					this._regexToggleButton?.classList.add('nc-search__button--active');
+				} else {
+					this._regexToggleButton?.classList.remove('nc-search__button--active');
 				}
 			});
 		}

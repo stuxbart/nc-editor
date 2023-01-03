@@ -3,7 +3,6 @@ import Document from '../document/document';
 import { EventEmitter } from '../events';
 import { Mode } from '../mode';
 import { getMode, MODES } from '../modes';
-import { NaiveSearch, Search } from '../search';
 import TokenizerData from '../tokenizer/tokenizer-data';
 import { randomId } from '../utils';
 import { DocumentSessionEvents, EvDocument, EvTokenizer } from './events';
@@ -13,7 +12,7 @@ export default class DocumentSession extends EventEmitter<DocumentSessionEvents>
 	private _document: Document;
 	private _tokenizerData: TokenizerData;
 	private _mode: Mode;
-	private _search: Search;
+
 	private _documentHistory: DocumentHistory;
 
 	private _updateTokensAfterEdit: boolean = true;
@@ -41,7 +40,6 @@ export default class DocumentSession extends EventEmitter<DocumentSessionEvents>
 			this._tokenizerData = tokenizerData;
 		}
 
-		this._search = new NaiveSearch();
 		this._documentHistory = new DocumentHistory(this);
 	}
 
@@ -63,10 +61,6 @@ export default class DocumentSession extends EventEmitter<DocumentSessionEvents>
 
 	public set mode(value: Mode) {
 		this._mode = value;
-	}
-
-	public get search(): Search {
-		return this._search;
 	}
 
 	public get modeName(): string {

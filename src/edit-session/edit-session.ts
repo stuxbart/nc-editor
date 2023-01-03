@@ -7,7 +7,7 @@ import DocumentWriter from '../document-writer/document-writer';
 import { EventEmitter } from '../events';
 import { HighlighterSchema } from '../highlighter';
 import { getMode } from '../modes';
-import { SerachResults } from '../search';
+import { NaiveSearch, RegExpSearch, Search, SerachResults } from '../search';
 import { Point, Selection } from '../selection';
 import SelectionHistory from '../selection/selection-history';
 import SelectionManager from '../selection/selection-manager';
@@ -28,6 +28,8 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
 	private _writer: DocumentWriter;
 	private _wrapper: Wrapper;
 	private _wrapData: WrapData;
+	private _search: Search;
+	private _useRegExp: boolean = false;
 
 	private _searchAfterEdit: boolean = true;
 	private _shouldUpdateSelections: boolean = true;
@@ -49,6 +51,7 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
 		this._writer = new DocumentWriter(this._documentSession, this);
 		this._wrapper = new Wrapper(this);
 		this._wrapData = new WrapData();
+		this._search = new NaiveSearch();
 	}
 
 	public get id(): string {
@@ -107,11 +110,7 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
 		if (!this._searchAfterEdit) {
 			return;
 		}
-		this._documentSession.search.updateLineSearchResults(
-			this._document,
-			this._searchResults,
-			firstLine,
-		);
+		this._search.updateLineSearchResults(this._document, this._searchResults, firstLine);
 		this.emit(EvSearch.Finished, undefined);
 	}
 
@@ -119,7 +118,7 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
 		if (!this._searchAfterEdit) {
 			return;
 		}
-		this._documentSession.search.updateLinesSearchResults(
+		this._search.updateLinesSearchResults(
 			this._document,
 			this._searchResults,
 			firstLine,
@@ -132,7 +131,7 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
 		if (!this._searchAfterEdit) {
 			return;
 		}
-		this._documentSession.search.updateNewLinesSearchResults(
+		this._search.updateNewLinesSearchResults(
 			this._document,
 			this._searchResults,
 			firstLine,
@@ -145,7 +144,7 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
 		if (!this._searchAfterEdit) {
 			return;
 		}
-		this._documentSession.search.updateRemovedLinesSearchResults(
+		this._search.updateRemovedLinesSearchResults(
 			this._document,
 			this._searchResults,
 			firstLine,
@@ -167,14 +166,14 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
 	public search(phrase: string): void {
 		const document = this._document;
 		if (this._searchResults.searchInSelection) {
-			this._documentSession.search.searchInLines(
+			this._search.searchInLines(
 				phrase,
 				document,
 				this.searchResults,
 				this._selectionManager.getActiveLinesNumbers(),
 			);
 		} else {
-			this._documentSession.search.search(phrase, document, this.searchResults);
+			this._search.search(phrase, document, this.searchResults);
 		}
 		this.emit(EvSearch.Finished, undefined);
 	}
@@ -372,5 +371,16 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
 		this._searchResults.searchInSelection = !this._searchResults.searchInSelection;
 		this.search(this._searchResults.phrase);
 		return this._searchResults.searchInSelection;
+	}
+
+	public toggleRegExpSearch(): boolean {
+		this._useRegExp = !this._useRegExp;
+		if (this._useRegExp) {
+			this._search = new RegExpSearch();
+		} else {
+			this._search = new NaiveSearch();
+		}
+		this.search(this._searchResults.phrase);
+		return this._useRegExp;
 	}
 }
