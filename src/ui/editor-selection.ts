@@ -10,6 +10,7 @@ import { SelectionType } from '../selection/selection';
 import EditSession from '../edit-session/edit-session';
 import { EvSearch, EvSelection } from '../edit-session/events';
 import { EvDocument } from '../document-session/events';
+import { getRelativePositionOfMouseEvent, getRelativePositionOfTouchEvent } from './utils';
 
 export default class SelectionLayer extends EventEmitter<SelectionLayerEvents> {
 	private _emitterName: string = 'selection-layer';
@@ -367,20 +368,4 @@ export default class SelectionLayer extends EventEmitter<SelectionLayerEvents> {
 
 		return [line, offset];
 	}
-}
-
-function getRelativePositionOfMouseEvent(e: MouseEvent): [number, number] {
-	const target = e.target as HTMLDivElement;
-	const rect = target.getBoundingClientRect();
-	const x = e.clientX - rect.left;
-	const y = e.clientY - rect.top;
-	return [x, y];
-}
-
-function getRelativePositionOfTouchEvent(e: TouchEvent): [number, number] {
-	const target = e.target as HTMLDivElement;
-	const rect = target.getBoundingClientRect();
-	const x = e.touches[0].clientX - rect.left;
-	const y = e.touches[0].clientY - rect.top;
-	return [x, y];
 }
