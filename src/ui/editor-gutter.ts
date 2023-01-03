@@ -143,7 +143,6 @@ class EditorGutter extends EventEmitter<EditorGutterEvents> {
 		}
 		const rect = target.parentElement.getBoundingClientRect();
 		const y = e.clientY - rect.top;
-		console.log(e, y);
 		const line = this._getRowAtPosition(y);
 
 		this._session.selectLine(line);
@@ -164,7 +163,6 @@ class EditorGutter extends EventEmitter<EditorGutterEvents> {
 		}
 		const rect = target.parentElement.getBoundingClientRect();
 		const y = e.clientY - rect.top;
-		console.log(e, y);
 		const line = this._getRowAtPosition(y);
 
 		this._session.extendLastSelection(new Point(line, 0));
