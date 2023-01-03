@@ -2,7 +2,6 @@ import { Point, Selection } from '../selection';
 import { columnToOffset, offsetToColumn } from '../text-utils';
 import { CSSClasses } from '../styles/css';
 import { createDiv, em, px } from './dom-utils';
-import EditorCursor from './editor-cursor';
 import EditorSelectionElement from './editor-selection-element';
 import EdiotrView from './editor-view';
 import { EvFont, EvKey, EvScroll, EvSearchUi, SelectionLayerEvents } from './events';
@@ -56,10 +55,10 @@ export default class SelectionLayer extends EventEmitter<SelectionLayerEvents> {
 
 	public update(): void {
 		if (this._selectionContainer) {
-			const el1 = this._renderSelections();
-			const el2 = this._renderCursors();
-			const el3 = this._renderSearchResults();
-			this._selectionContainer.replaceChildren(...el1, ...el2, ...el3);
+			const html1 = this._renderSelections();
+			const html2 = this._renderCursors();
+			const html3 = this._renderSearchResults();
+			this._selectionContainer.innerHTML = html1 + html2 + html3;
 		}
 	}
 
@@ -132,48 +131,44 @@ export default class SelectionLayer extends EventEmitter<SelectionLayerEvents> {
 		}
 	}
 
-	private _renderSelections(): HTMLElement[] {
+	private _renderSelections(): string {
 		if (this._selectionContainer === null) {
-			return [];
+			return '';
 		}
 		const selections = this._session.getSelctions();
 		const rows = this._session.reader.getRows(this._firstVisibleLine, this._visibleLinesCount);
-		const selectionElements: HTMLElement[] = [];
+		let html = '';
 		if (rows.length === 0) {
-			return [];
+			return '';
 		}
 		if (selections.length === this._visibleSelections.length) {
 			for (let i = 0; i < selections.length; i++) {
 				this._visibleSelections[i].setSelection(selections[i]);
-				selectionElements.push(
-					...this._visibleSelections[i].render(rows, this._letterWidth),
-				);
+				html += this._visibleSelections[i].render(rows, this._letterWidth);
 			}
 		} else {
 			this._visibleSelections = [];
 			for (let i = 0; i < selections.length; i++) {
 				const newSelectionElement = new EditorSelectionElement(selections[i]);
 				this._visibleSelections.push(newSelectionElement);
-				selectionElements.push(
-					...this._visibleSelections[i].render(rows, this._letterWidth),
-				);
+				html += this._visibleSelections[i].render(rows, this._letterWidth);
 			}
 		}
 
-		return selectionElements;
+		return html;
 	}
 
-	private _renderCursors(): HTMLElement[] {
+	private _renderCursors(): string {
 		if (this._selectionContainer === null) {
-			return [];
+			return '';
 		}
 		const selections = this._session.getSelctions();
 		const rows = this._session.reader.getRows(this._firstVisibleLine, this._visibleLinesCount);
-		const cursorElements: HTMLElement[] = [];
 
 		if (rows.length === 0) {
-			return [];
+			return '';
 		}
+		let html = '';
 		const firstVisibleLine = rows[0].line;
 		const lastVisibleLine = rows[rows.length - 1].line;
 		for (const sel of selections) {
@@ -220,45 +215,41 @@ export default class SelectionLayer extends EventEmitter<SelectionLayerEvents> {
 			}
 			const left = offsetToColumn(rows[rowNumber].text, rowOffset) * this._letterWidth;
 			const top = rowNumber * this._lineHeight;
-			const cursor = new EditorCursor(left, top);
-			const cursorElement = cursor.getDOMElment();
-			if (cursorElement) {
-				cursorElements.push(cursorElement);
-			}
+			html += `<div class="${
+				CSSClasses.CURSOR + ' ' + CSSClasses.CURSOR_ANIMATED
+			}" style="top: ${top}px; left: ${left}px"></div>`;
 		}
-		return cursorElements;
+		return html;
 	}
 
-	private _renderSearchResults(): HTMLElement[] {
+	private _renderSearchResults(): string {
 		if (this._selectionContainer === null || !this._showSearchResults) {
-			return [];
+			return '';
 		}
 		const rows = this._session.reader.getRows(this._firstVisibleLine, this._visibleLinesCount);
-		const searchResultElements: HTMLElement[] = [];
+		let html: string = '';
 
 		for (let i = 0; i < rows.length; i++) {
 			const row = rows[i];
-			if (row.searchResults.length < 1) {
-				continue;
-			}
-			for (const match of row.searchResults) {
-				const resultElement = createDiv(CSSClasses.SELECTION_SEARCH);
+			const top = i * this._lineHeight;
 
-				if (match.isActive) {
-					resultElement.classList.add(CSSClasses.SELECTION_SEARCH_ACTIVE);
-				}
-				const left = offsetToColumn(row.text, match.start.offset) * this._letterWidth;
-				const right = offsetToColumn(row.text, match.end.offset) * this._letterWidth;
-				const top = i * this._lineHeight;
-				resultElement.style.top = px(top);
-				resultElement.style.left = px(left);
-				resultElement.style.width = px(right - left);
-				resultElement.style.height = px(this._lineHeight);
-				searchResultElements.push(resultElement);
+			for (const match of row.searchResults) {
+				const left = offsetToColumn(row.text, match.start.offset);
+				const right =
+					offsetToColumn(
+						row.text.substring(left),
+						match.end.offset - match.start.offset,
+					) + left;
+				const width = (right - left) * this._letterWidth;
+				const activeClass = match.isActive ? ' ' + CSSClasses.SELECTION_SEARCH_ACTIVE : '';
+				html += `<div class="${CSSClasses.SELECTION_SEARCH + activeClass}" style="top: ${px(
+					top,
+				)}; left: ${px(left * this._letterWidth)}; width: ${px(width)}; height: ${px(
+					this._lineHeight,
+				)}"></div>`;
 			}
 		}
-
-		return searchResultElements;
+		return html;
 	}
 
 	private _onMouseDown(e: MouseEvent): void {

@@ -1,11 +1,10 @@
 import { Selection } from '../selection';
 import { offsetToColumn } from '../text-utils';
 import { CSSClasses } from '../styles/css';
-import { createDiv, px } from './dom-utils';
+import { px } from './dom-utils';
 import { Row } from '../document/line';
 
 export default class EditorSelectionElement {
-	private _domElements: HTMLElement[] = [];
 	private _selection: Selection;
 
 	constructor(selection: Selection) {
@@ -16,9 +15,9 @@ export default class EditorSelectionElement {
 		this._selection = selection;
 	}
 
-	public render(rows: Row[], letterWidth: number): HTMLElement[] {
+	public render(rows: Row[], letterWidth: number): string {
 		if (this._selection.isCollapsed) {
-			return [];
+			return '';
 		}
 		const sel = this._selection;
 
@@ -41,7 +40,7 @@ export default class EditorSelectionElement {
 			}
 		}
 		if (firstRowNumber === rows.length) {
-			return [];
+			return '';
 		}
 		let lastRowNumber = 0;
 		let lastRowOffset = 0;
@@ -67,15 +66,11 @@ export default class EditorSelectionElement {
 				}
 			}
 		} else {
-			return [];
+			return '';
 		}
 
 		const rowsLengths = rows.map((row) => row.text.length);
-
-		const rowsToRender = lastRowNumber - firstRowNumber + 1;
-		if (rowsToRender !== this._domElements.length) {
-			this._domElements = [];
-		}
+		let html = '';
 		for (let i = firstRowNumber; i < lastRowNumber + 1; i++) {
 			const row = rows[i].text;
 			let startPos = 0;
@@ -90,21 +85,8 @@ export default class EditorSelectionElement {
 			const top = px(i * 20);
 			const width = px((endPos - startPos) * letterWidth || letterWidth);
 			const height = px(20);
-			if (rowsToRender === this._domElements.length) {
-				const index = i - firstRowNumber;
-				this._domElements[index].style.left = left;
-				this._domElements[index].style.top = top;
-				this._domElements[index].style.width = width;
-				this._domElements[index].style.height = height;
-			} else {
-				const element = createDiv(CSSClasses.SELECTION_RANGE);
-				element.style.left = left;
-				element.style.top = top;
-				element.style.width = width;
-				element.style.height = height;
-				this._domElements.push(element);
-			}
+			html += `<div class="${CSSClasses.SELECTION_RANGE}" style="top: ${top}; left: ${left}; width: ${width}; height: ${height}"></div>`;
 		}
-		return this._domElements;
+		return html;
 	}
 }
