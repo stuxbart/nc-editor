@@ -147,6 +147,19 @@ class EditorSearch extends EventEmitter<SearchUiEvents> {
 			});
 		}
 
+		if (this._selectionSearchToggleButton) {
+			this._selectionSearchToggleButton.addEventListener('click', () => {
+				const isSelectionSearch = this._session.toggleSelectionSearch();
+				if (isSelectionSearch) {
+					this._selectionSearchToggleButton?.classList.add('nc-search__button--active');
+				} else {
+					this._selectionSearchToggleButton?.classList.remove(
+						'nc-search__button--active',
+					);
+				}
+			});
+		}
+
 		if (this._replaceButton) {
 			this._replaceButton.addEventListener('click', () => {
 				if (this._replaceInput) {

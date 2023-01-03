@@ -153,7 +153,16 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
 
 	public search(phrase: string): void {
 		const document = this._document;
-		this._documentSession.search.search(phrase, document, this.searchResults);
+		if (this._searchResults.searchInSelection) {
+			this._documentSession.search.searchInLines(
+				phrase,
+				document,
+				this.searchResults,
+				this._selectionManager.getActiveLinesNumbers(),
+			);
+		} else {
+			this._documentSession.search.search(phrase, document, this.searchResults);
+		}
 		this.emit(EvSearch.Finished, undefined);
 	}
 
@@ -343,7 +352,12 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
 	public toggleCaseSensitiveSearch(): boolean {
 		this._searchResults.caseSensitive = !this._searchResults.caseSensitive;
 		this.search(this._searchResults.phrase);
-		this.emit(EvSearch.Finished, undefined);
 		return this._searchResults.caseSensitive;
+	}
+
+	public toggleSelectionSearch(): boolean {
+		this._searchResults.searchInSelection = !this._searchResults.searchInSelection;
+		this.search(this._searchResults.phrase);
+		return this._searchResults.searchInSelection;
 	}
 }

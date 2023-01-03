@@ -4,6 +4,13 @@ import SearchResults from './search-results';
 export abstract class Search {
 	public abstract search(phrase: string, document: Document, searchResults: SearchResults): void;
 
+	public abstract searchInLines(
+		phrase: string,
+		document: Document,
+		searchResults: SearchResults,
+		lines: Set<number>,
+	): void;
+
 	public abstract updateLineSearchResults(
 		document: Document,
 		searchResults: SearchResults,

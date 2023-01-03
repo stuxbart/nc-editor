@@ -19,6 +19,30 @@ export default class NaiveSearch extends Search {
 		}
 	}
 
+	public searchInLines(
+		phrase: string,
+		document: Document,
+		searchResults: SearchResults,
+		lines: Set<number>,
+	): void {
+		searchResults.clearResults();
+		searchResults.phrase = phrase;
+		if (!searchResults.caseSensitive) {
+			phrase = phrase.toLowerCase();
+		}
+		for (let i = 0; i < document.linesCount; i++) {
+			if (!lines.has(i)) {
+				continue;
+			}
+			let line = document.getLine(i);
+			if (!searchResults.caseSensitive) {
+				line = line.toLowerCase();
+			}
+			const lineResults = this._searchInLine(phrase, line);
+			searchResults.setLineResults(i, lineResults);
+		}
+	}
+
 	public updateLineSearchResults(
 		document: Document,
 		searchResults: SearchResults,
