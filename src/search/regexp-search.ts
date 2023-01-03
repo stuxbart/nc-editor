@@ -133,6 +133,9 @@ export default class RegExpSearch extends Search {
 			if (match.index === undefined) {
 				break;
 			}
+			if (match[0].length === 0) {
+				continue;
+			}
 			matches.push(
 				new Range(lineNumber, match.index, lineNumber, match.index + match[0].length),
 			);
