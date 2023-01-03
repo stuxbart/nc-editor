@@ -34,6 +34,19 @@ export default class SerachResults {
 		this._activeSearchRes = value;
 	}
 
+	public get activeSearchResultNumber(): number {
+		if (this._activeSearchRes[0] >= this._results.length) {
+			return -1;
+		}
+		let offset = 0;
+		for (let i = 0; i < this._activeSearchRes[0]; i++) {
+			const element = this._results[i];
+			offset += element.count;
+		}
+		offset += this._activeSearchRes[1];
+		return offset;
+	}
+
 	public nextResult(): [number, number] {
 		if (this._totalResults < 1) {
 			return [-1, -1];
@@ -111,6 +124,7 @@ export default class SerachResults {
 				return;
 			}
 			const isActive = i === this._activeSearchRes[0];
+			this._totalResults -= this._results[i].count;
 			this._results.splice(i, 1);
 			if (isActive) {
 				this._activeSearchRes[0]--;

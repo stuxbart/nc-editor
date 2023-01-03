@@ -39,7 +39,14 @@ class EditorSearch extends EventEmitter<SearchUiEvents> {
 
 	public update(): void {
 		if (this._resultsContainer) {
-			this._resultsContainer.textContent = `Results: ${this._seatchMatchesCount}`;
+			const activeNumber = this._session.searchResults.activeSearchResultNumber;
+			if (activeNumber > -1 && this._seatchMatchesCount > 0) {
+				this._resultsContainer.textContent = `${activeNumber + 1} of ${
+					this._seatchMatchesCount
+				}`;
+			} else {
+				this._resultsContainer.textContent = 'No results';
+			}
 		}
 		if (this._input) {
 			if (this._input.value !== this._searchPhrase) {
