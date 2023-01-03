@@ -80,6 +80,7 @@ export default class WrapReader extends Reader {
 
 		for (const row of rowsWrapData) {
 			const lineIndex = row.line - firstLineIndex;
+			const lineNumber = row.line;
 			if (rawLines.length < lineIndex) {
 				break;
 			}
@@ -114,18 +115,19 @@ export default class WrapReader extends Reader {
 
 			const lineSearchResults: SearchResult[] = [];
 			for (const res of linesSearchResults) {
-				if (!(res.start.line <= lineIndex && res.end.line >= lineIndex)) {
+				if (!(res.start.line <= lineNumber && res.end.line >= lineNumber)) {
 					continue;
 				}
 				let startOffset = 0;
 				let endOffset = line.length;
-				if (lineIndex === res.start.line) {
+				if (lineNumber === res.start.line) {
 					startOffset = res.start.offset;
 				}
-				if (lineIndex === res.end.line) {
+				if (lineNumber === res.end.line) {
 					endOffset = res.end.offset;
 				}
-				const lineRes = new SearchResult(lineIndex, startOffset, lineIndex, endOffset);
+
+				const lineRes = new SearchResult(lineNumber, startOffset, lineNumber, endOffset);
 				lineRes.isActive = res.isActive;
 				lineSearchResults.push(lineRes);
 			}
@@ -134,11 +136,8 @@ export default class WrapReader extends Reader {
 
 			for (const res of lineSearchResults) {
 				if (
-					!(
-						res.start.offset >= off ||
-						res.end.offset <= row.offset ||
-						(res.start.offset <= off && res.end.offset >= row.offset)
-					)
+					(res.start.offset <= off && res.end.offset <= off) ||
+					(res.start.offset >= row.offset && res.end.offset >= row.offset)
 				) {
 					continue;
 				}
@@ -146,9 +145,9 @@ export default class WrapReader extends Reader {
 				const endOffset = Math.min(res.end.offset, row.offset);
 
 				const rowRes = new SearchResult(
-					lineIndex,
+					lineNumber,
 					startOffset - off,
-					lineIndex,
+					lineNumber,
 					endOffset - off,
 				);
 				rowRes.isActive = res.isActive;
