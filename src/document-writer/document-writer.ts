@@ -317,27 +317,49 @@ export default class DocumentWriter {
 		this.insert(text);
 	}
 
-	public replaceAllSearchResult(text: string): void {
+	public replaceAllSearchResult(str: string): void {
 		this._editSession.selections.clear();
+		const document = this._document;
+		const editSession = this._editSession;
+		const docSession = this._documentSession;
 		const search = this._editSession.searchResults;
-		if (search.matchCount === 0) {
-			return;
-		}
-		const resultsCount = search.matchCount;
+		docSession.history.startTransaction();
+		editSession.history.createSnapshot();
 
-		for (let i = 0; i < resultsCount; i++) {
-			const searchRes = search.getActiveSearchResPosition();
-
-			const selection = new Selection(
-				searchRes.start.line,
-				searchRes.start.offset,
-				searchRes.end.line,
-				searchRes.end.offset,
+		let nextResult;
+		const position = new Point(0, 0);
+		while (
+			(nextResult = this._editSession.findNextOccurnece(position.line, position.offset)) !==
+			null
+		) {
+			const sel = new Selection(
+				nextResult.start.line,
+				nextResult.start.offset,
+				nextResult.end.line,
+				nextResult.end.offset,
 			);
-			this._editSession.addSelection(selection);
-			search.nextResult();
+			const removedText = document.remove(sel);
+			docSession.history.deleted(
+				new Point(sel.start.line, sel.start.offset),
+				new Point(sel.end.line, sel.end.offset),
+				removedText,
+			);
+			const insertedLines = document.insert(str, sel.start.line, sel.start.offset);
+			docSession.history.inserted(new Point(sel.start.line, sel.start.offset), str);
+			docSession.updateLinesTokens(sel.start.line);
+			position.line = sel.start.line + insertedLines[0];
+			if (insertedLines[0] > 0) {
+				position.offset = insertedLines[1];
+			} else {
+				position.offset = sel.start.offset + insertedLines[1];
+			}
 		}
-		this.insert(text);
+		editSession.wrapper.wrap();
+		editSession.search(search.phrase);
+		docSession.emitLinesCountChanged(1);
+		docSession.history.closeTransaction();
+		docSession.emitEditEvent();
+
 		this._editSession.onlyLastSelection();
 	}
 }

@@ -2,6 +2,7 @@ import { Document } from '../document';
 import { Range } from '../selection';
 import { MAX_SEARCH_RESULTS } from './config';
 import { Search } from './search';
+import SearchResult from './search-result';
 import SearchResults from './search-results';
 
 export default class RegExpSearch extends Search {
@@ -131,6 +132,42 @@ export default class RegExpSearch extends Search {
 		this.updateLinesSearchResults(document, searchResults, firstLineNumber, removedLinesCount);
 	}
 
+	public findNextOccurence(
+		document: Document,
+		searchResults: SearchResults,
+		startLineNumber: number,
+		startOffset: number,
+	): SearchResult | null {
+		let regexp;
+		try {
+			regexp = new RegExp(searchResults.phrase, 'g');
+		} catch (err: any) {
+			return null;
+		}
+		let res: SearchResult | null = null;
+		for (let i = startLineNumber; i < document.linesCount; i++) {
+			let line = document.getLine(i);
+			if (i === startLineNumber) {
+				line = line.substring(startOffset);
+			}
+			const lineResult = this._findNextInLine(regexp, line, i);
+			if (lineResult) {
+				let offsetDiff = 0;
+				if (lineResult.start.line === startLineNumber) {
+					offsetDiff = startOffset;
+				}
+				res = new SearchResult(
+					lineResult.start.line,
+					lineResult.start.offset + offsetDiff,
+					lineResult.end.line,
+					lineResult.end.offset + offsetDiff,
+				);
+				break;
+			}
+		}
+		return res;
+	}
+
 	private _searchInLine(regexp: RegExp, text: string, lineNumber: number): Range[] {
 		const matches: Range[] = [];
 		const m = text.matchAll(regexp);
@@ -146,5 +183,17 @@ export default class RegExpSearch extends Search {
 			);
 		}
 		return matches;
+	}
+
+	private _findNextInLine(regexp: RegExp, text: string, lineNumber: number): Range | null {
+		let m;
+		while ((m = regexp.exec(text)) !== null) {
+			if (m[0].length === 0) {
+				regexp.lastIndex++;
+				continue;
+			}
+			return new Range(lineNumber, m.index, lineNumber, regexp.lastIndex);
+		}
+		return null;
 	}
 }

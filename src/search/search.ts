@@ -1,4 +1,5 @@
 import Document from '../document/document';
+import SearchResult from './search-result';
 import SearchResults from './search-results';
 
 export abstract class Search {
@@ -37,4 +38,11 @@ export abstract class Search {
 		firstLineNumber: number,
 		removedLinesCount: number,
 	): void;
+
+	public abstract findNextOccurence(
+		document: Document,
+		searchResults: SearchResults,
+		startLineNumber: number,
+		startOffset: number,
+	): SearchResult | null;
 }

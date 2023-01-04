@@ -2,6 +2,7 @@ import { Document } from '../document';
 import { Range } from '../selection';
 import { MAX_SEARCH_RESULTS } from './config';
 import { Search } from './search';
+import SearchResult from './search-result';
 import SearchResults from './search-results';
 
 export default class NaiveSearch extends Search {
@@ -111,6 +112,43 @@ export default class NaiveSearch extends Search {
 		this.updateLinesSearchResults(document, searchResults, firstLineNumber, removedLinesCount);
 	}
 
+	public findNextOccurence(
+		document: Document,
+		searchResults: SearchResults,
+		startLineNumber: number,
+		startOffset: number,
+	): SearchResult | null {
+		let phrase = searchResults.phrase;
+		if (!searchResults.caseSensitive) {
+			phrase = phrase.toLowerCase();
+		}
+		let res: SearchResult | null = null;
+		for (let i = startLineNumber; i < document.linesCount; i++) {
+			let line = document.getLine(i);
+			if (i === startLineNumber) {
+				line = line.substring(startOffset);
+			}
+			if (!searchResults.caseSensitive) {
+				line = line.toLowerCase();
+			}
+			const lineResult = this._findNextInLine(phrase, line, i);
+			if (lineResult) {
+				let offsetDiff = 0;
+				if (lineResult.start.line === startLineNumber) {
+					offsetDiff = startOffset;
+				}
+				res = new SearchResult(
+					lineResult.start.line,
+					lineResult.start.offset + offsetDiff,
+					lineResult.end.line,
+					lineResult.end.offset + offsetDiff,
+				);
+				break;
+			}
+		}
+		return res;
+	}
+
 	private _searchInLine(phrase: string, text: string, lineNumber: number): Range[] {
 		if (phrase.length < 1) {
 			return [];
@@ -123,5 +161,16 @@ export default class NaiveSearch extends Search {
 			startIndex = index + phrase.length;
 		}
 		return matches;
+	}
+
+	private _findNextInLine(phrase: string, text: string, lineNumber: number): Range | null {
+		if (phrase.length < 1) {
+			return null;
+		}
+		const index = text.indexOf(phrase);
+		if (index === -1) {
+			return null;
+		}
+		return new Range(lineNumber, index, lineNumber, index + phrase.length);
 	}
 }

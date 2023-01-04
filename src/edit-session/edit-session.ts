@@ -8,6 +8,7 @@ import { EventEmitter } from '../events';
 import { HighlighterSchema } from '../highlighter';
 import { getMode } from '../modes';
 import { NaiveSearch, RegExpSearch, Search, SerachResults } from '../search';
+import SearchResult from '../search/search-result';
 import { Point, Selection } from '../selection';
 import SelectionHistory from '../selection/selection-history';
 import SelectionManager from '../selection/selection-manager';
@@ -151,6 +152,15 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
 			linesCount,
 		);
 		this.emit(EvSearch.Finished, undefined);
+	}
+
+	public findNextOccurnece(startLine: number, startOffset: number): SearchResult | null {
+		return this._search.findNextOccurence(
+			this._document,
+			this._searchResults,
+			startLine,
+			startOffset,
+		);
 	}
 
 	public updateSelctions(
