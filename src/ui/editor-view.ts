@@ -1,6 +1,6 @@
 import { Editor } from '../editor';
 import { EventEmitter } from '../events';
-import TextLayer from './ediotr-text';
+import TextLayer from './editor-text';
 import EditorGutter from './editor-gutter';
 import ScrollBar from './editor-scrollbar';
 import SelectionLayer from './editor-selection';

@@ -99,7 +99,9 @@ class TextLayer extends EventEmitter<TextLayerEvents> {
 	}
 
 	public update(): void {
+		console.time('RENDER');
 		this._renderRows();
+		console.timeEnd('RENDER');
 	}
 
 	public measureLetterWidth(): void {
