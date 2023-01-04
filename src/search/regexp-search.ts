@@ -12,10 +12,8 @@ export default class RegExpSearch extends Search {
 		if (phrase.length === 0) {
 			return;
 		}
-		let regexp;
-		try {
-			regexp = new RegExp(phrase, 'g');
-		} catch (err: any) {
+		const regexp = this._compileRegExp(searchResults);
+		if (regexp === null) {
 			return;
 		}
 		let total = 0;
@@ -41,10 +39,8 @@ export default class RegExpSearch extends Search {
 		if (phrase.length === 0) {
 			return;
 		}
-		let regexp;
-		try {
-			regexp = new RegExp(phrase, 'g');
-		} catch (err: any) {
+		const regexp = this._compileRegExp(searchResults);
+		if (regexp === null) {
 			return;
 		}
 
@@ -72,10 +68,8 @@ export default class RegExpSearch extends Search {
 		} catch (err) {
 			return;
 		}
-		let regexp;
-		try {
-			regexp = new RegExp(searchResults.phrase, 'g');
-		} catch (err: any) {
+		const regexp = this._compileRegExp(searchResults);
+		if (regexp === null) {
 			return;
 		}
 		searchResults.clearLineResults(lineNumber);
@@ -92,10 +86,8 @@ export default class RegExpSearch extends Search {
 		if (searchResults.phrase.length === 0) {
 			return;
 		}
-		let regexp;
-		try {
-			regexp = new RegExp(searchResults.phrase, 'g');
-		} catch (err: any) {
+		const regexp = this._compileRegExp(searchResults);
+		if (regexp === null) {
 			return;
 		}
 		for (let i = 0; i < linesCount; i++) {
@@ -138,10 +130,8 @@ export default class RegExpSearch extends Search {
 		startLineNumber: number,
 		startOffset: number,
 	): SearchResult | null {
-		let regexp;
-		try {
-			regexp = new RegExp(searchResults.phrase, 'g');
-		} catch (err: any) {
+		const regexp = this._compileRegExp(searchResults);
+		if (regexp === null) {
 			return null;
 		}
 		let res: SearchResult | null = null;
@@ -195,5 +185,17 @@ export default class RegExpSearch extends Search {
 			return new Range(lineNumber, m.index, lineNumber, regexp.lastIndex);
 		}
 		return null;
+	}
+
+	private _compileRegExp(searchResults: SearchResults): RegExp | null {
+		try {
+			let flags = 'g';
+			if (!searchResults.caseSensitive) {
+				flags += 'i';
+			}
+			return new RegExp(searchResults.phrase, flags);
+		} catch (err: any) {
+			return null;
+		}
 	}
 }
