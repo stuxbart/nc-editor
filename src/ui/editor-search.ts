@@ -61,6 +61,7 @@ class EditorSearch extends EventEmitter<SearchUiEvents> {
 			this._searchContainer.style.display = 'flex';
 		}
 		this._input?.focus();
+		this._input?.select();
 	}
 
 	public hide(): void {
@@ -111,16 +112,6 @@ class EditorSearch extends EventEmitter<SearchUiEvents> {
 				}
 				this._searchPhrase = this._input.value;
 				this._session.search(this._searchPhrase);
-			});
-
-			this._input.addEventListener('click', () => {
-				this._input?.select();
-			});
-		}
-
-		if (this._replaceInput) {
-			this._replaceInput.addEventListener('click', () => {
-				this._replaceInput?.select();
 			});
 		}
 
