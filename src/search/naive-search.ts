@@ -1,5 +1,6 @@
 import { Document } from '../document';
 import { Range } from '../selection';
+import { MAX_SEARCH_RESULTS } from './config';
 import { Search } from './search';
 import SearchResults from './search-results';
 
@@ -10,6 +11,7 @@ export default class NaiveSearch extends Search {
 		if (!searchResults.caseSensitive) {
 			phrase = phrase.toLowerCase();
 		}
+		let total = 0;
 		for (let i = 0; i < document.linesCount; i++) {
 			let line = document.getLine(i);
 			if (!searchResults.caseSensitive) {
@@ -17,6 +19,10 @@ export default class NaiveSearch extends Search {
 			}
 			const lineResults = this._searchInLine(phrase, line, i);
 			searchResults.addResults(lineResults);
+			total += lineResults.length;
+			if (total > MAX_SEARCH_RESULTS) {
+				break;
+			}
 		}
 	}
 

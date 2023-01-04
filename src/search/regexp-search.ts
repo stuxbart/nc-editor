@@ -1,5 +1,6 @@
 import { Document } from '../document';
 import { Range } from '../selection';
+import { MAX_SEARCH_RESULTS } from './config';
 import { Search } from './search';
 import SearchResults from './search-results';
 
@@ -16,11 +17,15 @@ export default class RegExpSearch extends Search {
 		} catch (err: any) {
 			return;
 		}
-
+		let total = 0;
 		for (let i = 0; i < document.linesCount; i++) {
 			const line = document.getLine(i);
 			const lineResults = this._searchInLine(regexp, line, i);
 			searchResults.addResults(lineResults);
+			total += lineResults.length;
+			if (total > MAX_SEARCH_RESULTS) {
+				break;
+			}
 		}
 	}
 
