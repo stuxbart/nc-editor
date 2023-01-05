@@ -347,9 +347,8 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
 
 	public enableWrap(): void {
 		this._useWrapData = true;
-		this._wrapper.wrap();
 		this._reader = new WrapReader(this.documentSession, this);
-		this.emit(EvWrap.Changed, { enabled: true });
+		this._wrap();
 	}
 
 	public disableWrap(): void {
@@ -360,9 +359,16 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
 
 	public setVisibleColumnsCount(count: number): void {
 		this._visibleColumnsCount = count;
+		this._wrap();
+	}
+
+	private _wrap(): void {
 		if (this._useWrapData) {
-			this._wrapper.wrap();
-			this.emit(EvWrap.Changed, { enabled: true });
+			if (this._wrapData.maxRowLength !== this._visibleColumnsCount) {
+				this._wrapData.maxRowLength = this._visibleColumnsCount;
+				this._wrapper.wrap();
+				this.emit(EvWrap.Changed, { enabled: true });
+			}
 		}
 	}
 

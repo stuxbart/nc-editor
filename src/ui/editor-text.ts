@@ -23,7 +23,6 @@ class TextLayer extends EventEmitter<TextLayerEvents> {
 	private _lineHeight: number = 20;
 	private _letterWidth: number = 0;
 	private _rightPadding: number = 20;
-	private _resizeObserver: ResizeObserver;
 
 	constructor(view: EdiotrView) {
 		super();
@@ -32,26 +31,6 @@ class TextLayer extends EventEmitter<TextLayerEvents> {
 		this._createTextContainer();
 		this._initEventListeners();
 		this._measureLetterWidth();
-
-		this._resizeObserver = new ResizeObserver(() => {
-			if (this._textContainer === null) {
-				return;
-			}
-			const row = this._session.reader.getRows(this._firstVisibleLine, 1);
-			const rect = this._textContainer.getBoundingClientRect();
-			const padding = this._rightPadding;
-			const visibleChars = Math.floor((rect.width - padding) / this._letterWidth);
-			this._session.setVisibleColumnsCount(visibleChars);
-			if (row.length > 0) {
-				this._view.scrollToLine(row[0].line);
-			} else {
-				this._view.scrollTolastSelection();
-			}
-		});
-
-		if (this._textContainer) {
-			this._resizeObserver.observe(this._textContainer);
-		}
 	}
 
 	private get _session(): EditSession {
@@ -60,6 +39,16 @@ class TextLayer extends EventEmitter<TextLayerEvents> {
 
 	private get _highlighterSchema(): HighlighterSchema {
 		return this._session.highlightingSchema;
+	}
+
+	public updateSessionRowWidth(): void {
+		if (this._textContainer === null) {
+			return;
+		}
+		const rect = this._textContainer.getBoundingClientRect();
+		const padding = this._rightPadding;
+		const visibleChars = Math.floor((rect.width - padding) / this._letterWidth);
+		this._session.setVisibleColumnsCount(visibleChars);
 	}
 
 	private _initEventListeners(): void {

@@ -6,6 +6,7 @@ export default class WrapData {
 	private _rootNode: WrapNode | null = null;
 	private _linesCount: number = 0;
 	private _rowsCount: number = 0;
+	public maxRowLength: number = 0;
 
 	public get linesCount(): number {
 		return this._linesCount;

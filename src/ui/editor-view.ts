@@ -77,6 +77,8 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 
 	private _theme: Theme = Theme.Default;
 
+	private _resizeObserver: ResizeObserver = new ResizeObserver(() => {});
+
 	constructor(editor: Editor, mountPoint: HTMLElement | string) {
 		super();
 		this._onDocumentEdit = this._onDocumentEdit.bind(this);
@@ -116,6 +118,8 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 		this.setTheme(Theme.Default);
 		this._textLayer.measureLetterWidth();
 		this._emitInitEvent();
+
+		this._createResizeObserver();
 	}
 
 	public get session(): EditSession {
@@ -242,6 +246,31 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 		this._updateGridLayout();
 	}
 
+	private _createResizeObserver(): void {
+		let timeout: NodeJS.Timeout | null = null;
+
+		this._resizeObserver = new ResizeObserver(() => {
+			if (timeout) {
+				clearTimeout(timeout);
+				timeout = null;
+			}
+			timeout = setTimeout(() => {
+				const row = this.reader.getRows(this._firstVisibleRow, 1);
+				this._textLayer?.updateSessionRowWidth();
+
+				if (row.length > 0) {
+					this.scrollToLine(row[0].line);
+				} else {
+					this.scrollTolastSelection();
+				}
+			}, 100);
+		});
+
+		if (this._editorContainer) {
+			this._resizeObserver.observe(this._editorContainer);
+		}
+	}
+
 	private _updateGridLayout(): void {
 		if (this._editorContainer) {
 			this._editorContainer.style.gridTemplate = `100% / ${px(this._gutterWidth)} 1fr ${px(
@@ -305,6 +334,7 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 			this._gutter.on(EvGutter.Width, (e) => {
 				this._gutterWidth = e.width;
 				this._updateGridLayout();
+				this._textLayer?.updateSessionRowWidth();
 			});
 		}
 		if (this._selectionLayer) {
