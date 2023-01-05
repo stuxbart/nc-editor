@@ -65,7 +65,14 @@ export default class WrapReader extends Reader {
 		const firstLineIndex = Math.min(...lineNumbers);
 		const lastLineIndex = Math.max(...lineNumbers);
 		const linesCount = lastLineIndex - firstLineIndex + 1;
-		const rawLines = document.getLines(firstLineIndex, linesCount);
+		let rawLines: string[] = [];
+		if (firstLineIndex < document.linesCount) {
+			if (firstLineIndex + linesCount < document.linesCount) {
+				rawLines = document.getLines(firstLineIndex, linesCount);
+			} else {
+				rawLines = document.getLines(firstLineIndex, document.linesCount - firstLineIndex);
+			}
+		}
 		const linesTokens = tokenizerData.getLinesTokens(firstLineIndex, linesCount);
 		const linesSearchResults = searchResults.getLinesResutls(firstLineIndex, linesCount);
 		const rows: Row[] = [];
