@@ -102,7 +102,7 @@ class EditorSearch extends EventEmitter<SearchUiEvents> {
 			this.update();
 		});
 		this._view.on(EvDocument.Set, () => {
-			if (this._input && this._searchPhrase) {
+			if (this._input && this._searchPhrase && this._isOpen) {
 				this._session.search(this._searchPhrase);
 			}
 			if (this._isOpen) {
