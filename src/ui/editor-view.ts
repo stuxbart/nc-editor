@@ -31,6 +31,7 @@ import { EvDocument, EvTokenizer } from '../document-session/events';
 import DocumentReader from '../document-reader/document-reader';
 import DocumentWriter from '../document-writer/document-writer';
 import { EvSearch, EvSelection } from '../edit-session/events';
+import { debounce } from '../utils';
 
 const MAX_LINES_PADDING = 10;
 
@@ -245,24 +246,17 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 	}
 
 	private _createResizeObserver(): void {
-		let timeout: NodeJS.Timeout | null = null;
+		const fn = debounce(() => {
+			const row = this.reader.getRows(this._firstVisibleRow, 1);
+			this._textLayer?.updateSessionRowWidth();
 
-		this._resizeObserver = new ResizeObserver(() => {
-			if (timeout) {
-				clearTimeout(timeout);
-				timeout = null;
+			if (row.length > 0) {
+				this.scrollToLine(row[0].line);
+			} else {
+				this.scrollTolastSelection();
 			}
-			timeout = setTimeout(() => {
-				const row = this.reader.getRows(this._firstVisibleRow, 1);
-				this._textLayer?.updateSessionRowWidth();
-
-				if (row.length > 0) {
-					this.scrollToLine(row[0].line);
-				} else {
-					this.scrollTolastSelection();
-				}
-			}, 100);
-		});
+		}, 100);
+		this._resizeObserver = new ResizeObserver(fn);
 
 		if (this._editorContainer) {
 			this._resizeObserver.observe(this._editorContainer);

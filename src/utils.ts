@@ -21,3 +21,18 @@ export function randomId(length: number = 6): string {
 	IDS_REGISTRY.push(id);
 	return id;
 }
+
+export function debounce(fn: (...args: any) => any, delay: number = 100): (...args: any) => void {
+	let timeout: NodeJS.Timeout | null = null;
+
+	return (...args: Parameters<typeof fn>) => {
+		if (timeout) {
+			clearTimeout(timeout);
+			timeout = null;
+		}
+		timeout = setTimeout(() => {
+			// eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+			fn(...args);
+		}, delay);
+	};
+}
