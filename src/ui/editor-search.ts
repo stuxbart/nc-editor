@@ -6,6 +6,7 @@ import { CSSClasses } from '../styles/css';
 import EditSession from '../edit-session/edit-session';
 import { EvSearch } from '../edit-session/events';
 import { EvDocument } from '../document-session/events';
+import { debounce } from '../utils';
 
 class EditorSearch extends EventEmitter<SearchUiEvents> {
 	private _view: EdiotrView;
@@ -32,6 +33,8 @@ class EditorSearch extends EventEmitter<SearchUiEvents> {
 		this._mountPoint = view.getDOMElement();
 		this._createSearchContainer();
 		this._initEventListeners();
+
+		this._search = debounce(this._search.bind(this), 300);
 	}
 	private get _session(): EditSession {
 		return this._view.session;
@@ -77,6 +80,10 @@ class EditorSearch extends EventEmitter<SearchUiEvents> {
 		return this._searchContainer;
 	}
 
+	private _search(): void {
+		this._session.search(this._searchPhrase);
+	}
+
 	private _initEventListeners(): void {
 		this._view.on(EvSearchUi.Open, ({ phrase }) => {
 			if (phrase !== null) {
@@ -118,7 +125,7 @@ class EditorSearch extends EventEmitter<SearchUiEvents> {
 					return;
 				}
 				this._searchPhrase = this._input.value;
-				this._session.search(this._searchPhrase);
+				this._search();
 			});
 		}
 
