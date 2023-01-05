@@ -107,6 +107,18 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
 		return this._documentSession.document;
 	}
 
+	public get caseSensitiveSearch(): boolean {
+		return this._searchResults.caseSensitive;
+	}
+
+	public get selectionSearch(): boolean {
+		return this._searchResults.searchInSelection;
+	}
+
+	public get regexpSearch(): boolean {
+		return this._useRegExp;
+	}
+
 	public enableSearchAfterEdit(): void {
 		this._searchAfterEdit = true;
 	}
@@ -390,8 +402,48 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
 		this.emit(EvSearch.Finished, undefined);
 	}
 
+	public setCaseSensitiveSearch(enabled: boolean): void {
+		if (enabled) {
+			this.enableCaseSensitiveSearch();
+		} else {
+			this.disableCaseSensitiveSearch();
+		}
+	}
+
+	public enableCaseSensitiveSearch(): boolean {
+		this._searchResults.caseSensitive = true;
+		this.search(this._searchResults.phrase);
+		return this._searchResults.caseSensitive;
+	}
+
+	public disableCaseSensitiveSearch(): boolean {
+		this._searchResults.caseSensitive = false;
+		this.search(this._searchResults.phrase);
+		return this._searchResults.caseSensitive;
+	}
+
 	public toggleCaseSensitiveSearch(): boolean {
 		this._searchResults.caseSensitive = !this._searchResults.caseSensitive;
+		this.search(this._searchResults.phrase);
+		return this._searchResults.caseSensitive;
+	}
+
+	public setSelectionSearch(enabled: boolean): void {
+		if (enabled) {
+			this.enableSelectionSearch();
+		} else {
+			this.disableSelectionSearch();
+		}
+	}
+
+	public enableSelectionSearch(): boolean {
+		this._searchResults.searchInSelection = true;
+		this.search(this._searchResults.phrase);
+		return this._searchResults.caseSensitive;
+	}
+
+	public disableSelectionSearch(): boolean {
+		this._searchResults.searchInSelection = false;
 		this.search(this._searchResults.phrase);
 		return this._searchResults.caseSensitive;
 	}
@@ -400,6 +452,28 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
 		this._searchResults.searchInSelection = !this._searchResults.searchInSelection;
 		this.search(this._searchResults.phrase);
 		return this._searchResults.searchInSelection;
+	}
+
+	public setRegExpSearch(enabled: boolean): void {
+		if (enabled) {
+			this.enableRegExpSearch();
+		} else {
+			this.disableRegExpSearch();
+		}
+	}
+
+	public enableRegExpSearch(): boolean {
+		this._useRegExp = true;
+		this._search = new RegExpSearch();
+		this.search(this._searchResults.phrase);
+		return this._searchResults.caseSensitive;
+	}
+
+	public disableRegExpSearch(): boolean {
+		this._useRegExp = false;
+		this._search = new NaiveSearch();
+		this.search(this._searchResults.phrase);
+		return this._searchResults.caseSensitive;
 	}
 
 	public toggleRegExpSearch(): boolean {

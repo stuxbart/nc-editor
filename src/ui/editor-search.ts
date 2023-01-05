@@ -27,6 +27,10 @@ class EditorSearch extends EventEmitter<SearchUiEvents> {
 	private _seatchMatchesCount: number = 0;
 	private _searchPhrase: string = '';
 
+	private _regexpSearch: boolean = false;
+	private _caseSensitiveSearch: boolean = false;
+	private _selectionSearch: boolean = false;
+
 	constructor(view: EdiotrView) {
 		super();
 		this._view = view;
@@ -102,13 +106,19 @@ class EditorSearch extends EventEmitter<SearchUiEvents> {
 			this.update();
 		});
 		this._view.on(EvDocument.Set, () => {
-			if (this._input && this._searchPhrase && this._isOpen) {
-				this._session.search(this._searchPhrase);
-			}
 			if (this._isOpen) {
 				this._session.enableSearchAfterEdit();
+				this._session.setCaseSensitiveSearch(this._caseSensitiveSearch);
+				this._session.setSelectionSearch(this._selectionSearch);
+				this._session.setRegExpSearch(this._regexpSearch);
 			} else {
 				this._session.disableSearchAfterEdit();
+				this._setCaseSensitiveSearch(this._session.caseSensitiveSearch);
+				this._setSelectionSearch(this._session.selectionSearch);
+				this._setRegExpSearch(this._session.regexpSearch);
+			}
+			if (this._input && this._searchPhrase && this._isOpen) {
+				this._session.search(this._searchPhrase);
 			}
 		});
 
@@ -144,35 +154,21 @@ class EditorSearch extends EventEmitter<SearchUiEvents> {
 		if (this._caseSensitiveToggleButton) {
 			this._caseSensitiveToggleButton.addEventListener('click', () => {
 				const isCaseSensitiveSearchEnabled = this._session.toggleCaseSensitiveSearch();
-				if (isCaseSensitiveSearchEnabled) {
-					this._caseSensitiveToggleButton?.classList.add('nc-search__button--active');
-				} else {
-					this._caseSensitiveToggleButton?.classList.remove('nc-search__button--active');
-				}
+				this._setCaseSensitiveSearch(isCaseSensitiveSearchEnabled);
 			});
 		}
 
 		if (this._selectionSearchToggleButton) {
 			this._selectionSearchToggleButton.addEventListener('click', () => {
 				const isSelectionSearchEnabled = this._session.toggleSelectionSearch();
-				if (isSelectionSearchEnabled) {
-					this._selectionSearchToggleButton?.classList.add('nc-search__button--active');
-				} else {
-					this._selectionSearchToggleButton?.classList.remove(
-						'nc-search__button--active',
-					);
-				}
+				this._setSelectionSearch(isSelectionSearchEnabled);
 			});
 		}
 
 		if (this._regexToggleButton) {
 			this._regexToggleButton.addEventListener('click', () => {
 				const isRegExpSearchEnabled = this._session.toggleRegExpSearch();
-				if (isRegExpSearchEnabled) {
-					this._regexToggleButton?.classList.add('nc-search__button--active');
-				} else {
-					this._regexToggleButton?.classList.remove('nc-search__button--active');
-				}
+				this._setRegExpSearch(isRegExpSearchEnabled);
 			});
 		}
 
@@ -191,6 +187,33 @@ class EditorSearch extends EventEmitter<SearchUiEvents> {
 				}
 			});
 		}
+	}
+
+	private _setCaseSensitiveSearch(enabled: boolean): void {
+		if (enabled) {
+			this._caseSensitiveToggleButton?.classList.add('nc-search__button--active');
+		} else {
+			this._caseSensitiveToggleButton?.classList.remove('nc-search__button--active');
+		}
+		this._caseSensitiveSearch = enabled;
+	}
+
+	private _setSelectionSearch(enabled: boolean): void {
+		if (enabled) {
+			this._selectionSearchToggleButton?.classList.add('nc-search__button--active');
+		} else {
+			this._selectionSearchToggleButton?.classList.remove('nc-search__button--active');
+		}
+		this._selectionSearch = enabled;
+	}
+
+	private _setRegExpSearch(enabled: boolean): void {
+		if (enabled) {
+			this._regexToggleButton?.classList.add('nc-search__button--active');
+		} else {
+			this._regexToggleButton?.classList.remove('nc-search__button--active');
+		}
+		this._regexpSearch = enabled;
 	}
 
 	private _createSearchContainer(): void {
