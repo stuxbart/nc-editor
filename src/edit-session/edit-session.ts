@@ -32,7 +32,7 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
 	private _search: Search;
 	private _useRegExp: boolean = false;
 
-	private _searchAfterEdit: boolean = true;
+	private _searchAfterEdit: boolean = false;
 	private _shouldUpdateSelections: boolean = true;
 
 	private _useWrapData: boolean = false;
@@ -105,6 +105,14 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
 
 	private get _document(): Document {
 		return this._documentSession.document;
+	}
+
+	public enableSearchAfterEdit(): void {
+		this._searchAfterEdit = true;
+	}
+
+	public disableSearchAfterEdit(): void {
+		this._searchAfterEdit = false;
 	}
 
 	public updateLineSearchResults(firstLine: number): void {

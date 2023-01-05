@@ -62,6 +62,7 @@ class EditorSearch extends EventEmitter<SearchUiEvents> {
 		}
 		this._input?.focus();
 		this._input?.select();
+		this._session.enableSearchAfterEdit();
 	}
 
 	public hide(): void {
@@ -69,6 +70,7 @@ class EditorSearch extends EventEmitter<SearchUiEvents> {
 		if (this._searchContainer) {
 			this._searchContainer.style.display = 'none';
 		}
+		this._session.disableSearchAfterEdit();
 	}
 
 	public getDOMElement(): HTMLDivElement | null {
@@ -95,6 +97,11 @@ class EditorSearch extends EventEmitter<SearchUiEvents> {
 		this._view.on(EvDocument.Set, () => {
 			if (this._input && this._searchPhrase) {
 				this._session.search(this._searchPhrase);
+			}
+			if (this._isOpen) {
+				this._session.enableSearchAfterEdit();
+			} else {
+				this._session.disableSearchAfterEdit();
 			}
 		});
 
