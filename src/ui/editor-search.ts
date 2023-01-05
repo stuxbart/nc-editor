@@ -188,8 +188,8 @@ class EditorSearch extends EventEmitter<SearchUiEvents> {
 		const html = `
 		<div class="nc-search__main">
 			<div class="nc-search__inputs">
-				<textarea class="nc-search__input" autofocus=""></textarea>
-				<textarea class="nc-search__input"></textarea>
+				<textarea class="nc-search__input" autofocus="" placeholder="Search..."></textarea>
+				<textarea class="nc-search__input" placeholder="Repalce..."></textarea>
 			</div>
 			<div class="nc-search__controls">
 				<div class="nc-search__controls-container">
