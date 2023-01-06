@@ -589,6 +589,20 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 					this._session.undo();
 					e.preventDefault();
 					e.stopPropagation();
+				} else if (this._isLeftAltHold) {
+					const row = this.reader.getRows(this._firstVisibleRow, 1);
+					if (this._session.isWrapEnabled) {
+						this._session.disableWrap();
+					} else {
+						this._session.enableWrap();
+					}
+					if (row.length > 0) {
+						this.scrollToLine(row[0].line);
+					} else {
+						this.scrollTolastSelection();
+					}
+					e.preventDefault();
+					e.stopPropagation();
 				}
 				break;
 			}

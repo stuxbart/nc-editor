@@ -414,7 +414,9 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
 	public enableWrap(): void {
 		this._useWrapData = true;
 		this._reader = new WrapReader(this.documentSession, this);
-		this._wrap();
+		if (!this._wrap()) {
+			this.emit(EvWrap.Changed, { enabled: true });
+		}
 	}
 
 	public disableWrap(): void {
@@ -428,14 +430,16 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
 		this._wrap();
 	}
 
-	private _wrap(): void {
+	private _wrap(): boolean {
 		if (this._useWrapData) {
 			if (this._wrapData.maxRowLength !== this._visibleColumnsCount) {
 				this._wrapData.maxRowLength = this._visibleColumnsCount;
 				this._wrapper.wrap();
 				this.emit(EvWrap.Changed, { enabled: true });
+				return true;
 			}
 		}
+		return false;
 	}
 
 	public nextSearchResult(): void {
