@@ -352,18 +352,18 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
 			.filter(({ line }) => firstLine <= line && line <= lastLine);
 
 		const activeRows = new Set<number>();
-		let off = 0;
+		let off = -1;
 		let prevRowLine = -1;
 		for (let i = 0; i < rows.length; i++) {
 			const row = rows[i];
 			if (row.line !== prevRowLine) {
-				off = 0;
+				off = -1;
 			}
 			for (const cursor of cursors) {
 				if (cursor.line !== row.line) {
 					continue;
 				}
-				if (off <= cursor.offset && cursor.offset <= row.offset) {
+				if (off < cursor.offset && cursor.offset <= row.offset) {
 					activeRows.add(firstRow + i);
 					break;
 				}
