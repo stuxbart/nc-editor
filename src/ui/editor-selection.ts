@@ -236,11 +236,7 @@ export default class SelectionLayer extends EventEmitter<SelectionLayerEvents> {
 
 			for (const match of row.searchResults) {
 				const left = offsetToColumn(row.text, match.start.offset);
-				const right =
-					offsetToColumn(
-						row.text.substring(left),
-						match.end.offset - match.start.offset,
-					) + left;
+				const right = offsetToColumn(row.text, match.end.offset);
 				const width = (right - left) * this._letterWidth;
 				const activeClass = match.isActive ? ' ' + CSSClasses.SELECTION_SEARCH_ACTIVE : '';
 				html += `<div class="${CSSClasses.SELECTION_SEARCH + activeClass}" style="top: ${px(
