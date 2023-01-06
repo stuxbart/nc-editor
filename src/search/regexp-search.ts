@@ -1,6 +1,5 @@
 import { Document } from '../document';
 import { Range } from '../selection';
-import { MAX_SEARCH_RESULTS } from './config';
 import { Search } from './search';
 import SearchResult from './search-result';
 import SearchResults from './search-results';
@@ -16,13 +15,11 @@ export default class RegExpSearch extends Search {
 		if (regexp === null) {
 			return;
 		}
-		let total = 0;
 		for (let i = 0; i < document.linesCount; i++) {
 			const line = document.getLine(i);
 			const lineResults = this._searchInLine(regexp, line, i);
-			searchResults.addResults(lineResults);
-			total += lineResults.length;
-			if (total > MAX_SEARCH_RESULTS) {
+			const added = searchResults.addResults(lineResults);
+			if (added !== lineResults.length) {
 				break;
 			}
 		}
@@ -50,7 +47,10 @@ export default class RegExpSearch extends Search {
 			}
 			const line = document.getLine(i);
 			const lineResults = this._searchInLine(regexp, line, i);
-			searchResults.addResults(lineResults);
+			const added = searchResults.addResults(lineResults);
+			if (added !== lineResults.length) {
+				break;
+			}
 		}
 	}
 
@@ -100,7 +100,10 @@ export default class RegExpSearch extends Search {
 			}
 			searchResults.clearLineResults(lineNumber);
 			const lineResults = this._searchInLine(regexp, line, lineNumber);
-			searchResults.addResults(lineResults);
+			const added = searchResults.addResults(lineResults);
+			if (added !== lineResults.length) {
+				break;
+			}
 		}
 	}
 

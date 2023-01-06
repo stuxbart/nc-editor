@@ -1,6 +1,5 @@
 import { Document } from '../document';
 import { Range } from '../selection';
-import { MAX_SEARCH_RESULTS } from './config';
 import { Search } from './search';
 import SearchResult from './search-result';
 import SearchResults from './search-results';
@@ -12,16 +11,14 @@ export default class NaiveSearch extends Search {
 		if (!searchResults.caseSensitive) {
 			phrase = phrase.toLowerCase();
 		}
-		let total = 0;
 		for (let i = 0; i < document.linesCount; i++) {
 			let line = document.getLine(i);
 			if (!searchResults.caseSensitive) {
 				line = line.toLowerCase();
 			}
 			const lineResults = this._searchInLine(phrase, line, i);
-			searchResults.addResults(lineResults);
-			total += lineResults.length;
-			if (total > MAX_SEARCH_RESULTS) {
+			const added = searchResults.addResults(lineResults);
+			if (added !== lineResults.length) {
 				break;
 			}
 		}
@@ -47,7 +44,10 @@ export default class NaiveSearch extends Search {
 				line = line.toLowerCase();
 			}
 			const lineResults = this._searchInLine(phrase, line, i);
-			searchResults.addResults(lineResults);
+			const added = searchResults.addResults(lineResults);
+			if (added !== lineResults.length) {
+				break;
+			}
 		}
 	}
 
@@ -88,7 +88,10 @@ export default class NaiveSearch extends Search {
 				return;
 			}
 			const lineResults = this._searchInLine(searchResults.phrase, line, lineNumber);
-			searchResults.addResults(lineResults);
+			const added = searchResults.addResults(lineResults);
+			if (added !== lineResults.length) {
+				break;
+			}
 		}
 	}
 

@@ -1,4 +1,5 @@
 import { Range } from '../selection';
+import { MAX_SEARCH_RESULTS } from './config';
 import SearchResult from './search-result';
 
 export interface SearchLineResults {
@@ -14,6 +15,7 @@ export default class SerachResults {
 	private _activeSearchRes: number = 0;
 	public caseSensitive: boolean = false;
 	public searchInSelection: boolean = false;
+	public maxResultsCount: number = MAX_SEARCH_RESULTS;
 
 	private get _totalResults(): number {
 		return this._results.length;
@@ -111,12 +113,22 @@ export default class SerachResults {
 		}
 	}
 
-	public addResult(res: Range): void {
+	public addResult(res: Range): number {
+		if (this._results.length + 1 > this.maxResultsCount) {
+			return 0;
+		}
 		this._results.push(res);
+		return 1;
 	}
 
-	public addResults(res: Range[]): void {
+	public addResults(res: Range[]): number {
+		if (this._results.length + res.length > this.maxResultsCount) {
+			const l = this.maxResultsCount - this._results.length;
+			this._results = this._results.concat(res.slice(0, l));
+			return l;
+		}
 		this._results = this._results.concat(res);
+		return res.length;
 	}
 
 	public getActiveSearchResPosition(): SearchResult {
