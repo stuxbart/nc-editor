@@ -3,6 +3,7 @@ export const CSSClasses = {
 	TEXT_LAYER: 'nc-editor__text',
 	GUTTER: 'nc-editor__gutter',
 	GUTTER_NUMBER: 'nc-gutter__number',
+	GUTTER_NUMBER_ACTIVE: 'nc-gutter__number--active',
 	MAIN_INPUT: 'nc-editor__input',
 	CURSOR: 'nc-selection__cursor',
 	CURSOR_ANIMATED: 'nc-selection__cursor--animated',

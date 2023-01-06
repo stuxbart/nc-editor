@@ -80,10 +80,19 @@
 				color: rgb(0, 0, 0);
 			}
 		}
+
+		.nc-gutter__number {
+			background-color: rgb(204, 204, 204);
+			color: rgb(22, 22, 22);
+
+			&--active {
+				color: rgb(168, 73, 73);
+			}
+		}
+
 		.nc-format__word {
 			color: rgb(10, 10, 10);
 		}
-
 		.nc-format__bracket {
 			color: rgb(7, 76, 204);
 		}
@@ -254,6 +263,13 @@
 		display: flex;
 		justify-content: center;
 		align-items: center;
+		background-color: rgb(36, 36, 36);
+		color: rgb(153, 153, 153);
+
+		&--active {
+			background-color: rgb(48, 48, 48);
+			color: rgb(255, 255, 255);
+		}
 	}
 
 	&search {

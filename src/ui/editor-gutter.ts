@@ -6,6 +6,7 @@ import { CSSClasses } from '../styles/css';
 import EditSession from '../edit-session/edit-session';
 import { EvDocument } from '../document-session/events';
 import { Point } from '../selection';
+import { EvSelection } from '../edit-session/events';
 
 class EditorGutter extends EventEmitter<EditorGutterEvents> {
 	private _view: EdiotrView;
@@ -95,6 +96,9 @@ class EditorGutter extends EventEmitter<EditorGutterEvents> {
 			this.setWidthForRowsCount(rowsCount);
 			this.update();
 		});
+		this._view.on(EvSelection.Changed, () => {
+			this.update();
+		});
 
 		if (this._gutterContainer) {
 			this._gutterContainer.addEventListener('mousedown', (e) => this._onMouseDown(e));
@@ -118,17 +122,25 @@ class EditorGutter extends EventEmitter<EditorGutterEvents> {
 		}
 
 		const rows = this._session.reader.getRows(this._firstVisibleRow, this._visibleRowsCount);
+		const lineNumbers = rows.map((row) => row.line);
+		const firstVisibleLine = Math.min(...lineNumbers);
+		const lastVisibleLine = Math.max(...lineNumbers);
+		const activeLines = this._session.getActiveLinesNumbers(
+			firstVisibleLine,
+			lastVisibleLine - firstVisibleLine + 1,
+		);
 		const lines = [];
 
 		for (const row of rows) {
+			const numberDiv = createDiv(CSSClasses.GUTTER_NUMBER);
+			lines.push(numberDiv);
 			if (row.ord === 0 || lines.length === 0) {
-				const numberDiv = createDiv(CSSClasses.GUTTER_NUMBER);
 				numberDiv.innerText = `${row.line + 1}`;
-				lines.push(numberDiv);
 			} else {
-				const numberDiv = createDiv(CSSClasses.GUTTER_NUMBER);
 				numberDiv.innerHTML = `&nbsp;`;
-				lines.push(numberDiv);
+			}
+			if (activeLines.has(row.line)) {
+				numberDiv.classList.add(CSSClasses.GUTTER_NUMBER_ACTIVE);
 			}
 		}
 
