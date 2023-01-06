@@ -212,12 +212,11 @@
 		}
 
 		&__controls-container {
-			// height: 50px;
-			// min-height: 50px;
 			display: flex;
 			flex-direction: row;
-			justify-content: flex-start;
+			justify-content: center;
 			align-items: center;
+			width: 100%;
 		}
 
 		&__button {

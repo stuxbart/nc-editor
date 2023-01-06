@@ -230,13 +230,15 @@ class EditorSearch extends EventEmitter<SearchUiEvents> {
 			</div>
 			<div class="nc-search__controls">
 				<div class="nc-search__controls-container">
-					<button class="nc-search__button">CS</button>
-					<button class="nc-search__button">RX</button>
+					<button class="nc-search__button">Aa</button>
+					<button class="nc-search__button">.*</button>
 					<button class="nc-search__button">S</button>
 				</div>
 				<div class="nc-search__controls-container">
-					<button class="nc-search__button">R</button>
-					<button class="nc-search__button">R All</button>
+					<button class="nc-search__button">Replace</button>
+				</div>
+				<div class="nc-search__controls-container">
+					<button class="nc-search__button">Replace All</button>
 				</div>
 			</div>
 			<div class="nc-search__close">
