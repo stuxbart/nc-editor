@@ -115,7 +115,9 @@ export default class DocumentSession extends EventEmitter<DocumentSessionEvents>
 	}
 
 	public disableTokenization(): void {
+		this._tokenizerData.clear();
 		this._updateTokensAfterEdit = false;
+		this.emit(EvTokenizer.Finished, undefined);
 	}
 
 	public enableEditEvent(): void {
