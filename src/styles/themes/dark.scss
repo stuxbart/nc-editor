@@ -1,0 +1,128 @@
+.nc-theme--default,
+.nc-theme--dark {
+	.nc-editor__text {
+		background-color: rgb(36, 36, 36);
+	}
+	.nc-editor__gutter {
+		border-right: 1px solid rgb(148, 148, 148);
+		background-color: rgb(36, 36, 36);
+		color: rgb(167, 167, 167);
+	}
+	.nc-editor__scroll-bar {
+		background-color: rgb(36, 36, 36);
+	}
+	.nc-text__multi-line {
+		background-color: rgb(36, 36, 36);
+		border-top: 1px solid rgb(36, 36, 36);
+		border-bottom: 1px solid rgb(36, 36, 36);
+		color: white;
+
+		&--active {
+			border-color: rgb(83, 83, 83);
+			background-color: rgb(49, 49, 49);
+		}
+	}
+	.nc-selection__ {
+		&cursor {
+			background-color: white;
+		}
+		&range {
+			background-color: rgba(50, 148, 240, 0.2);
+		}
+		&search {
+			border: 1px solid rgba(228, 199, 36, 0.281);
+			background-color: rgba(228, 199, 36, 0.295);
+
+			&--active {
+				background-color: rgba(36, 228, 46, 0.295);
+			}
+		}
+	}
+	.nc-search {
+		border: 1px solid rgb(148, 148, 148);
+		background-color: rgb(36, 36, 36);
+
+		&__close {
+			color: rgb(32, 32, 32);
+			background-color: white;
+		}
+
+		&__input {
+			border: 1px solid rgb(148, 148, 148);
+			background-color: rgb(54, 54, 54);
+			color: white;
+		}
+
+		&__button {
+			background-color: rgb(36, 36, 36);
+			color: rgb(219, 219, 219);
+
+			&:hover {
+				background-color: rgb(54, 54, 54);
+			}
+
+			&--active {
+				background-color: rgb(54, 54, 54);
+			}
+		}
+
+		&__result {
+			color: rgb(219, 219, 219);
+		}
+	}
+
+	.nc-gutter__number {
+		background-color: rgb(36, 36, 36);
+		color: rgb(153, 153, 153);
+
+		&--active {
+			background-color: rgb(48, 48, 48);
+			color: rgb(255, 255, 255);
+		}
+	}
+
+	.nc-format__word {
+		color: rgb(136, 196, 253);
+	}
+
+	.nc-format__bracket {
+		color: rgb(7, 76, 204);
+	}
+	.nc-format__square-bracket {
+		color: rgb(197, 39, 202);
+	}
+	.nc-format__brace {
+		color: rgb(188, 6, 243);
+	}
+	.nc-format__comment {
+		color: rgb(0, 139, 7);
+	}
+	.nc-format__keyword {
+		color: rgb(172, 49, 209);
+	}
+	.nc-format__string {
+		color: rgb(202, 74, 24);
+	}
+	.nc-format__semicolon,
+	.nc-format__colon {
+		color: rgb(240, 240, 240);
+	}
+	.nc-format__operator {
+		color: rgb(240, 240, 240);
+	}
+	.nc-format__comma,
+	.nc-format__dot {
+		color: rgb(240, 240, 240);
+	}
+	.nc-format__number {
+		color: rgb(58, 189, 127);
+	}
+	.nc-format__const-value,
+	.nc-format__access-modifier,
+	.nc-format__declaration {
+		color: rgb(57, 108, 202);
+	}
+	.nc-format__type {
+		color: rgb(34, 173, 120);
+	}
+}

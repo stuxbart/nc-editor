@@ -1,3 +1,5 @@
+@use './themes/light';
+@use './themes/dark';
 * {
 	margin: 0;
 	padding: 0;
@@ -10,129 +12,6 @@
 	}
 	100% {
 		opacity: 0;
-	}
-}
-.nc-theme-- {
-	&light {
-		.nc-editor__text {
-			background-color: white;
-		}
-		.nc-editor__gutter {
-			border-right: 1px solid rgb(46, 46, 46);
-			background-color: rgb(204, 204, 204);
-			color: rgb(22, 22, 22);
-		}
-		.nc-editor__scroll-bar {
-			background-color: white;
-		}
-		.nc-text__multi-line {
-			background-color: white;
-			color: rgb(22, 22, 22);
-		}
-		.nc-selection__ {
-			&cursor {
-				background-color: rgb(22, 22, 22);
-			}
-			&range {
-				background-color: rgba(0, 112, 218, 0.432);
-			}
-			&search {
-				background-color: rgba(209, 178, 2, 0.452);
-
-				&--active {
-					background-color: rgba(31, 245, 42, 0.473);
-				}
-			}
-		}
-		.nc-search {
-			border: 1px solid rgb(22, 22, 22);
-			background-color: white;
-
-			&__close {
-				color: rgb(32, 32, 32);
-				background-color: white;
-			}
-
-			&__input {
-				border: 1px solid rgb(29, 29, 29);
-				background-color: rgb(224, 224, 224);
-				color: rgb(0, 0, 0);
-			}
-
-			&__button {
-				padding: 0.5em;
-				background-color: white;
-				color: rgb(0, 0, 0);
-
-				&:hover {
-					background-color: rgb(224, 224, 224);
-				}
-
-				&--active {
-					background-color: rgb(224, 224, 224);
-				}
-			}
-
-			&__result {
-				display: flex;
-				justify-content: center;
-				min-width: 150px;
-				color: rgb(0, 0, 0);
-			}
-		}
-
-		.nc-gutter__number {
-			background-color: rgb(204, 204, 204);
-			color: rgb(22, 22, 22);
-
-			&--active {
-				color: rgb(168, 73, 73);
-			}
-		}
-
-		.nc-format__word {
-			color: rgb(10, 10, 10);
-		}
-		.nc-format__bracket {
-			color: rgb(7, 76, 204);
-		}
-		.nc-format__square-bracket {
-			color: rgb(197, 39, 202);
-		}
-		.nc-format__brace {
-			color: rgb(188, 6, 243);
-		}
-		.nc-format__comment {
-			color: rgb(0, 139, 7);
-		}
-		.nc-format__keyword {
-			color: rgb(172, 49, 209);
-		}
-		.nc-format__string {
-			color: rgb(202, 74, 24);
-		}
-		.nc-format__semicolon,
-		.nc-format__colon {
-			color: rgb(32, 32, 32);
-		}
-		.nc-format__operator {
-			color: rgb(53, 53, 53);
-		}
-		.nc-format__comma,
-		.nc-format__dot {
-			color: rgb(34, 34, 34);
-		}
-		.nc-format__number {
-			color: rgb(58, 189, 127);
-		}
-		.nc-format__const-value,
-		.nc-format__access-modifier,
-		.nc-format__declaration {
-			color: rgb(57, 108, 202);
-		}
-		.nc-format__type {
-			color: rgb(34, 173, 120);
-		}
 	}
 }
 
@@ -236,6 +115,7 @@
 			margin: 0px;
 			pointer-events: none;
 			user-select: none;
+			border: 1px solid rgba(228, 199, 36, 0.281);
 			background-color: rgba(228, 199, 36, 0.295);
 
 			&--active {
@@ -253,10 +133,18 @@
 		padding: 0em 0em 0em 1em;
 		margin: 0;
 		max-width: 100%;
+		border-top: 1px solid rgb(36, 36, 36);
+		border-bottom: 1px solid rgb(36, 36, 36);
 		background-color: rgb(36, 36, 36);
 		cursor: text;
 		color: white;
 		white-space: pre;
+		box-sizing: border-box;
+
+		&--active {
+			border-color: rgb(83, 83, 83);
+			background-color: rgb(49, 49, 49);
+		}
 	}
 
 	&gutter__number {
@@ -366,14 +254,6 @@
 	}
 }
 
-.nc-text__multi-line--hover {
-	background-color: rgb(43, 43, 43);
-}
-
-.nc-text__multi-line--active {
-	background-color: rgb(49, 49, 49);
-}
-
 .nc-format__word,
 .nc-format__bracket,
 .nc-format__square-bracket,
@@ -392,49 +272,4 @@
 .nc-format__const-value,
 .nc-format__access-modifier {
 	white-space: pre;
-}
-
-.nc-format__word {
-	color: rgb(136, 196, 253);
-}
-
-.nc-format__bracket {
-	color: rgb(7, 76, 204);
-}
-.nc-format__square-bracket {
-	color: rgb(197, 39, 202);
-}
-.nc-format__brace {
-	color: rgb(188, 6, 243);
-}
-.nc-format__comment {
-	color: rgb(0, 139, 7);
-}
-.nc-format__keyword {
-	color: rgb(172, 49, 209);
-}
-.nc-format__string {
-	color: rgb(202, 74, 24);
-}
-.nc-format__semicolon,
-.nc-format__colon {
-	color: rgb(240, 240, 240);
-}
-.nc-format__operator {
-	color: rgb(240, 240, 240);
-}
-.nc-format__comma,
-.nc-format__dot {
-	color: rgb(240, 240, 240);
-}
-.nc-format__number {
-	color: rgb(58, 189, 127);
-}
-.nc-format__const-value,
-.nc-format__access-modifier,
-.nc-format__declaration {
-	color: rgb(57, 108, 202);
-}
-.nc-format__type {
-	color: rgb(34, 173, 120);
 }

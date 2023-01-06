@@ -1,0 +1,124 @@
+.nc-theme--light {
+	.nc-editor__text {
+		background-color: white;
+	}
+	.nc-editor__gutter {
+		border-right: 1px solid rgb(46, 46, 46);
+		background-color: rgb(204, 204, 204);
+		color: rgb(22, 22, 22);
+	}
+	.nc-editor__scroll-bar {
+		background-color: white;
+	}
+	.nc-text__multi-line {
+		background-color: white;
+		border-top: 1px solid white;
+		border-bottom: 1px solid white;
+		color: rgb(22, 22, 22);
+
+		&--active {
+			border-color: rgb(224, 224, 224);
+		}
+	}
+	.nc-selection__ {
+		&cursor {
+			background-color: rgb(22, 22, 22);
+		}
+		&range {
+			background-color: rgba(0, 112, 218, 0.432);
+		}
+		&search {
+			background-color: rgba(197, 197, 197, 0.452);
+			border: 1px solid rgba(36, 87, 228, 0.644);
+
+			&--active {
+				background-color: rgba(31, 245, 42, 0.473);
+			}
+		}
+	}
+	.nc-search {
+		border: 1px solid rgb(22, 22, 22);
+		background-color: white;
+
+		&__close {
+			color: rgb(32, 32, 32);
+			background-color: white;
+		}
+
+		&__input {
+			border: 1px solid rgb(29, 29, 29);
+			background-color: rgb(224, 224, 224);
+			color: rgb(0, 0, 0);
+		}
+
+		&__button {
+			background-color: white;
+			color: rgb(0, 0, 0);
+
+			&:hover {
+				background-color: rgb(224, 224, 224);
+			}
+
+			&--active {
+				background-color: rgb(224, 224, 224);
+			}
+		}
+
+		&__result {
+			color: rgb(0, 0, 0);
+		}
+	}
+
+	.nc-gutter__number {
+		background-color: rgb(204, 204, 204);
+		color: rgb(22, 22, 22);
+
+		&--active {
+			color: rgb(168, 73, 73);
+		}
+	}
+
+	.nc-format__word {
+		color: rgb(10, 10, 10);
+	}
+	.nc-format__bracket {
+		color: rgb(7, 76, 204);
+	}
+	.nc-format__square-bracket {
+		color: rgb(197, 39, 202);
+	}
+	.nc-format__brace {
+		color: rgb(188, 6, 243);
+	}
+	.nc-format__comment {
+		color: rgb(0, 139, 7);
+	}
+	.nc-format__keyword {
+		color: rgb(172, 49, 209);
+	}
+	.nc-format__string {
+		color: rgb(202, 74, 24);
+	}
+	.nc-format__semicolon,
+	.nc-format__colon {
+		color: rgb(32, 32, 32);
+	}
+	.nc-format__operator {
+		color: rgb(53, 53, 53);
+	}
+	.nc-format__comma,
+	.nc-format__dot {
+		color: rgb(34, 34, 34);
+	}
+	.nc-format__number {
+		color: rgb(58, 189, 127);
+	}
+	.nc-format__const-value,
+	.nc-format__access-modifier,
+	.nc-format__declaration {
+		color: rgb(57, 108, 202);
+	}
+	.nc-format__type {
+		color: rgb(34, 173, 120);
+	}
+}
