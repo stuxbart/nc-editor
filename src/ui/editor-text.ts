@@ -99,19 +99,14 @@ class TextLayer extends EventEmitter<TextLayerEvents> {
 		if (this._textContainer == null) {
 			return;
 		}
-		const rows = this._session.reader.getRows(this._firstVisibleLine, this._visibleLinesCount);
-		const lineNumbers = rows.map((row) => row.line);
-		const firstVisibleLine = Math.min(...lineNumbers);
-		const lastVisibleLine = Math.max(...lineNumbers);
-		const activeLines = this._session.getActiveLinesNumbers(
-			firstVisibleLine,
-			lastVisibleLine - firstVisibleLine + 1,
+		const activeRows = this._session.getActiveRowsNumbers(
+			this._firstVisibleLine,
+			this._visibleLinesCount,
 		);
-		if (this._visibleRows.length !== rows.length) {
-			return;
-		}
-		for (const row of this._visibleRows) {
-			row.setActive(activeLines.has(row.line));
+
+		for (let i = 0; i < this._visibleRows.length; i++) {
+			const row = this._visibleRows[i];
+			row.setActive(activeRows.has(this._firstVisibleLine + i));
 		}
 	}
 
@@ -136,21 +131,17 @@ class TextLayer extends EventEmitter<TextLayerEvents> {
 		if (this._textContainer === null) {
 			return;
 		}
-		const rows = this._session.reader.getRows(this._firstVisibleLine, this._visibleLinesCount);
-		const lineNumbers = rows.map((row) => row.line);
-		const firstVisibleLine = Math.min(...lineNumbers);
-		const lastVisibleLine = Math.max(...lineNumbers);
-		const activeLines = this._session.getActiveLinesNumbers(
-			firstVisibleLine,
-			lastVisibleLine - firstVisibleLine + 1,
+		const activeRows = this._session.getActiveRowsNumbers(
+			this._firstVisibleLine,
+			this._visibleLinesCount,
 		);
+		const rows = this._session.reader.getRows(this._firstVisibleLine, this._visibleLinesCount);
 
 		this._visibleRows = [];
-		let rowNumber = 0;
-		for (const row of rows) {
+		for (let i = 0; i < rows.length; i++) {
+			const row = rows[i];
 			this._renderRow(this._visibleRows, row, row.line === this._activeLineNumber);
-			this._visibleRows[rowNumber].setActive(activeLines.has(row.line));
-			rowNumber++;
+			this._visibleRows[i].setActive(activeRows.has(this._firstVisibleLine + i));
 		}
 
 		const domElements = this._visibleRows.map((el) => el.getNode()).filter(notEmpty);

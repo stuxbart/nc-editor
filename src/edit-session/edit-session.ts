@@ -328,6 +328,49 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
 		return this._selectionManager.getActiveLinesNumbers(firstLine, linesCount);
 	}
 
+	public getActiveRowsNumbers(firstRow: number = 0, rowCount: number = Infinity): Set<number> {
+		if (!this._useWrapData) {
+			const cursors = this._selectionManager
+				.getCursorsPositions()
+				.filter(({ line }) => firstRow <= line && line <= firstRow + rowCount);
+
+			const activeRows = new Set<number>();
+			for (const cursor of cursors) {
+				activeRows.add(cursor.line);
+			}
+			return activeRows;
+		}
+
+		const rows = this._wrapData.getRows(firstRow, rowCount);
+		const firstLine = rows[0].line;
+		const lastLine = rows[rows.length - 1].line;
+		const cursors = this._selectionManager
+			.getCursorsPositions()
+			.filter(({ line }) => firstLine <= line && line <= lastLine);
+
+		const activeRows = new Set<number>();
+		let off = 0;
+		let prevRowLine = -1;
+		for (let i = 0; i < rows.length; i++) {
+			const row = rows[i];
+			if (row.line !== prevRowLine) {
+				off = 0;
+			}
+			for (const cursor of cursors) {
+				if (cursor.line !== row.line) {
+					continue;
+				}
+				if (off <= cursor.offset && cursor.offset <= row.offset) {
+					activeRows.add(firstRow + i);
+					break;
+				}
+			}
+			off = row.offset;
+			prevRowLine = row.line;
+		}
+		return activeRows;
+	}
+
 	public getSelectedLinesCount(): number {
 		return this._selectionManager.getSelectedLinesCount();
 	}

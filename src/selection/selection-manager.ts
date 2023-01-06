@@ -30,6 +30,10 @@ export default class SelectionManager {
 		return this._selections;
 	}
 
+	public getCursorsPositions(): Point[] {
+		return this._selections.map((sel) => (sel.type === SelectionType.L ? sel.start : sel.end));
+	}
+
 	public enableUpdatingSelections(): void {
 		this._shouldUpdateSelections = true;
 	}
