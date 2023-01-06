@@ -1,4 +1,5 @@
 import { Range } from '../selection';
+import { pointCompare } from '../selection/utils';
 import { MAX_SEARCH_RESULTS } from './config';
 import SearchResult from './search-result';
 
@@ -117,18 +118,26 @@ export default class SerachResults {
 		if (this._results.length + 1 > this.maxResultsCount) {
 			return 0;
 		}
-		this._results.push(res);
+		let i = 0;
+		for (i = 0; i < this._results.length; i++) {
+			const r = this._results[i];
+			if (pointCompare(res.start, r.start) === 2) {
+				break;
+			}
+		}
+		this._results.splice(i, 0, res);
 		return 1;
 	}
 
 	public addResults(res: Range[]): number {
+		let l = res.length;
 		if (this._results.length + res.length > this.maxResultsCount) {
-			const l = this.maxResultsCount - this._results.length;
-			this._results = this._results.concat(res.slice(0, l));
-			return l;
+			l = this.maxResultsCount - this._results.length;
 		}
-		this._results = this._results.concat(res);
-		return res.length;
+		for (const r of res.slice(0, l)) {
+			this.addResult(r);
+		}
+		return l;
 	}
 
 	public getActiveSearchResPosition(): SearchResult {
