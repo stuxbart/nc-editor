@@ -342,6 +342,9 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
 		}
 
 		const rows = this._wrapData.getRows(firstRow, rowCount);
+		if (rows.length === 0) {
+			return new Set<number>();
+		}
 		const firstLine = rows[0].line;
 		const lastLine = rows[rows.length - 1].line;
 		const cursors = this._selectionManager
