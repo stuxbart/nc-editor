@@ -367,62 +367,52 @@ export default class DocumentWriter {
 
 	public changeIndentToTabs(): void {
 		const docSession = this._documentSession;
-		if (docSession.indentType === IndentType.TABS) {
-			return;
-		}
-		const editSession = this._editSession;
-		const search = new RegExpSearch();
-		const document = this._document;
-		const results = new SerachResults();
-		const regex = '^  *';
-		search.search(regex, document, results);
-		docSession.history.startTransaction();
-		editSession.history.createSnapshot();
-		docSession.setIndentType(IndentType.TABS);
-
-		for (let i = 0; i < document.linesCount; i++) {
-			const res = results.getLineResutls(i);
-			if (res.length < 1) {
-				continue;
+		const fn = (prevIndent: IndentType, count: number): string => {
+			if (prevIndent === IndentType.SPACES) {
+				const spaces = Math.round(count / docSession.indentSize);
+				return '\t'.repeat(spaces);
+			} else {
+				const spaces = count;
+				return '\t'.repeat(spaces);
 			}
-			const sel = res[0];
-			const count = res[0].end.offset;
-			const tabs = Math.round(count / docSession.indentSize);
-
-			const removedText = document.remove(sel);
-			docSession.history.deleted(
-				new Point(sel.start.line, sel.start.offset),
-				new Point(sel.end.line, sel.end.offset),
-				removedText,
-			);
-			const indent = '\t'.repeat(tabs);
-			document.insert(indent, sel.start.line, sel.start.offset);
-			docSession.history.inserted(new Point(sel.start.line, sel.start.offset), indent);
-			docSession.updateLinesTokens(sel.start.line);
-		}
-
-		editSession.wrapper.wrap();
-		editSession.search(editSession.searchResults.phrase);
-		docSession.history.closeTransaction();
-		docSession.emitEditEvent();
-
-		this._editSession.onlyLastSelection();
+		};
+		this._changeIndent(fn, IndentType.TABS, 1);
 	}
 
 	public changeIndentToSpaces(): void {
 		const docSession = this._documentSession;
-		if (docSession.indentType === IndentType.SPACES) {
-			return;
-		}
+		const newIndentSize = 4;
+		const fn = (prevIndent: IndentType, count: number): string => {
+			if (prevIndent === IndentType.SPACES) {
+				const spaces = Math.round(count / docSession.indentSize) * newIndentSize;
+				return ' '.repeat(spaces);
+			} else {
+				const spaces = count * newIndentSize;
+				return ' '.repeat(spaces);
+			}
+		};
+		this._changeIndent(fn, IndentType.SPACES, newIndentSize);
+	}
+
+	private _changeIndent(
+		indentFn: (prevIndent: IndentType, count: number) => string,
+		indentType: IndentType,
+		size: number,
+	): void {
+		const docSession = this._documentSession;
 		const editSession = this._editSession;
 		const search = new RegExpSearch();
 		const document = this._document;
 		const results = new SerachResults();
-		const regex = '^\t\t*';
+		let regex = '';
+		if (docSession.indentType === IndentType.SPACES) {
+			regex = '^  *';
+		} else {
+			regex = '^\t\t*';
+		}
 		search.search(regex, document, results);
 		docSession.history.startTransaction();
 		editSession.history.createSnapshot();
-		docSession.setIndentType(IndentType.SPACES);
 
 		for (let i = 0; i < document.linesCount; i++) {
 			const res = results.getLineResutls(i);
@@ -430,21 +420,20 @@ export default class DocumentWriter {
 				continue;
 			}
 			const sel = res[0];
-			const count = res[0].end.offset;
-			const spaces = Math.round(count) * docSession.indentSize;
-
+			const count = sel.end.offset;
 			const removedText = document.remove(sel);
 			docSession.history.deleted(
 				new Point(sel.start.line, sel.start.offset),
 				new Point(sel.end.line, sel.end.offset),
 				removedText,
 			);
-			const indent = ' '.repeat(spaces);
+			const indent = indentFn(docSession.indentType, count);
 			document.insert(indent, sel.start.line, sel.start.offset);
 			docSession.history.inserted(new Point(sel.start.line, sel.start.offset), indent);
 			docSession.updateLinesTokens(sel.start.line);
 		}
-
+		docSession.setIndentType(indentType);
+		docSession.setIndentSize(size);
 		editSession.wrapper.wrap();
 		editSession.search(editSession.searchResults.phrase);
 		docSession.history.closeTransaction();
