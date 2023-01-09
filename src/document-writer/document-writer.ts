@@ -379,9 +379,8 @@ export default class DocumentWriter {
 		this._changeIndent(fn, IndentType.TABS, 1);
 	}
 
-	public changeIndentToSpaces(): void {
+	public changeIndentToSpaces(newIndentSize: number = 4): void {
 		const docSession = this._documentSession;
-		const newIndentSize = 4;
 		const fn = (prevIndent: IndentType, count: number): string => {
 			if (prevIndent === IndentType.SPACES) {
 				const spaces = Math.round(count / docSession.indentSize) * newIndentSize;
@@ -392,6 +391,10 @@ export default class DocumentWriter {
 			}
 		};
 		this._changeIndent(fn, IndentType.SPACES, newIndentSize);
+	}
+
+	public changeIndentSize(size: number): void {
+		this.changeIndentToSpaces(size);
 	}
 
 	private _changeIndent(
