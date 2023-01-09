@@ -6,6 +6,7 @@ import { getMode, MODES } from '../modes';
 import TokenizerData from '../tokenizer/tokenizer-data';
 import { randomId } from '../utils';
 import { DocumentSessionEvents, EvDocument, EvTokenizer } from './events';
+import { IndentType } from './indent-type';
 
 export default class DocumentSession extends EventEmitter<DocumentSessionEvents> {
 	private _id: string;
@@ -18,6 +19,8 @@ export default class DocumentSession extends EventEmitter<DocumentSessionEvents>
 	private _updateTokensAfterEdit: boolean = true;
 	private _shouldEmitLinesCountChangeEvent: boolean = true;
 	private _shouldEmitEditEvent: boolean = true;
+	private _indentType: IndentType = IndentType.TABS;
+	private _indentSize: number = 4;
 
 	constructor(
 		document: Document,
@@ -69,6 +72,14 @@ export default class DocumentSession extends EventEmitter<DocumentSessionEvents>
 
 	public get history(): DocumentHistory {
 		return this._documentHistory;
+	}
+
+	public get indentType(): IndentType {
+		return this._indentType;
+	}
+
+	public get indentSize(): number {
+		return this._indentSize;
 	}
 
 	public updateLinesTokens(firstLine: number): void {
@@ -151,5 +162,13 @@ export default class DocumentSession extends EventEmitter<DocumentSessionEvents>
 
 	public redo(): void {
 		this._documentHistory.redo();
+	}
+
+	public setIndentType(type: IndentType): void {
+		this._indentType = type;
+	}
+
+	public setIndentSize(size: number): void {
+		this._indentSize = size;
 	}
 }
