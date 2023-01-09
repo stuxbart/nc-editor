@@ -144,3 +144,18 @@ export function readAfterUntil(text: string, offset: number, fn: Function): numb
 	}
 	return i - offset;
 }
+
+export function getLineIndent(text: string): string {
+	if (text.length < 1) {
+		return '';
+	}
+	if (text.startsWith(' ')) {
+		const length = readAfterUntil(text, 0, (char: string) => char === ' ');
+		return text.substring(0, length);
+	}
+	if (text.startsWith('\t')) {
+		const length = readAfterUntil(text, 0, (char: string) => char === '\t');
+		return text.substring(0, length);
+	}
+	return '';
+}

@@ -3,6 +3,7 @@ import Document from '../document/document';
 import { EventEmitter } from '../events';
 import { Mode } from '../mode';
 import { getMode, MODES } from '../modes';
+import { getLineIndent } from '../text-utils';
 import TokenizerData from '../tokenizer/tokenizer-data';
 import { randomId } from '../utils';
 import { DocumentSessionEvents, EvDocument, EvTokenizer } from './events';
@@ -44,6 +45,7 @@ export default class DocumentSession extends EventEmitter<DocumentSessionEvents>
 		}
 
 		this._documentHistory = new DocumentHistory(this);
+		this._detectTextIndents();
 	}
 
 	public get id(): string {
@@ -170,5 +172,25 @@ export default class DocumentSession extends EventEmitter<DocumentSessionEvents>
 
 	public setIndentSize(size: number): void {
 		this._indentSize = size;
+	}
+
+	private _detectTextIndents(): void {
+		for (let i = 0; i < this._document.linesCount; i++) {
+			const line = this._document.getLine(i);
+			const indent = getLineIndent(line);
+			if (indent.length < 1) {
+				continue;
+			}
+			if (indent.startsWith(' ')) {
+				this._indentSize = indent.length;
+				this._indentType = IndentType.SPACES;
+				break;
+			}
+			if (indent.startsWith('\t')) {
+				this._indentSize = 4;
+				this._indentType = IndentType.TABS;
+				break;
+			}
+		}
 	}
 }
