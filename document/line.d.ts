@@ -1,10 +1,11 @@
+import SearchResult from '../search/search-result';
 import { Token } from '../tokenizer';
 export default class Line {
     rawText: string;
     tokens: Token[];
     lineBreaks: number[];
-    searchResults: number[];
-    constructor(rawText: string, tokens: Token[], lineBreaks: number[], searchResults?: number[]);
+    searchResults: SearchResult[];
+    constructor(rawText: string, tokens: Token[], lineBreaks: number[], searchResults?: SearchResult[]);
 }
 export declare class Row {
     line: number;
@@ -12,6 +13,6 @@ export declare class Row {
     offset: number;
     text: string;
     tokens: Token[];
-    searchResults: number[];
-    constructor(line: number, ord: number, offset: number, text: string, tokens: Token[], searchResults: number[]);
+    searchResults: SearchResult[];
+    constructor(line: number, ord: number, offset: number, text: string, tokens: Token[], searchResults: SearchResult[]);
 }

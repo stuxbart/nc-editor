@@ -33,7 +33,11 @@ Pellentesque euismod nulla nunc, sit amet accumsan dui aliquet at. Aenean pharet
 Etiam accumsan ligula aliquet neque dapibus auctor ac ut risus. Sed sollicitudin nibh sed odio ornare dignissim. In magna ipsum, consequat eu libero in, dignissim varius diam. Sed condimentum mi porttitor ipsum vulputate, id suscipit nisl mattis. Cras non diam nisi. Donec mollis hendrerit dolor ac imperdiet. Aliquam eleifend massa tortor. Cras feugiat laoreet dui ut suscipit.
 `;
 
-const textCode = `const header = document.getElementsByClassName('editor-header')[0];
+const textCode = `const text = \`...\`;
+const longLines = \`...\`;
+const textCode = \`...\`;
+
+const header = document.getElementsByClassName('editor-header')[0];
 
 const setActive = (activeElementNumber) => {
 	for (const child of header.children) {
@@ -46,11 +50,13 @@ const editor = new nc.Editor();
 const editorView = new nc.EditorView(editor, 'editor');
 const doc1 = new nc.Document(text);
 const doc2 = new nc.Document(textCode);
-const doc3 = new nc.Document('');
+const doc3 = new nc.Document(longLines);
+const doc4 = new nc.Document('');
 const documents = [
 	{ doc: doc1, name: 'shortcuts.txt', mode: 'Text', id: '' },
 	{ doc: doc2, name: 'index.js', mode: 'JavaScript', id: '' },
-	{ doc: doc3, name: 'test.js', mode: 'JavaScript', id: '' },
+	{ doc: doc3, name: 'long_lines.txt', mode: 'Text', id: '' },
+	{ doc: doc4, name: 'test.js', mode: 'JavaScript', id: '' },
 ];
 
 for (let i = 0; i < documents.length; i++) {
@@ -61,6 +67,7 @@ for (let i = 0; i < documents.length; i++) {
 	button.className = 'editor-header-button';
 	button.addEventListener('click', () => {
 		editorView.setDocument(doc.id);
+		editorView.session.enableWrap();
 		setActive(i);
 	});
 	header.appendChild(button);

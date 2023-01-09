@@ -4,6 +4,7 @@ export default class WrapData {
     private _rootNode;
     private _linesCount;
     private _rowsCount;
+    maxRowLength: number;
     get linesCount(): number;
     get rowsCount(): number;
     clear(): void;

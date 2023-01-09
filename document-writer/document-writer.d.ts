@@ -15,4 +15,10 @@ export default class DocumentWriter {
     swapLinesDown(): void;
     indentSelectedLines(indentString?: string): void;
     removeIndentFromSelectedLines(indentString?: string): void;
+    replaceSearchResult(text: string): void;
+    replaceAllSearchResult(str: string): void;
+    changeIndentToTabs(): void;
+    changeIndentToSpaces(newIndentSize?: number): void;
+    changeIndentSize(size: number): void;
+    private _changeIndent;
 }

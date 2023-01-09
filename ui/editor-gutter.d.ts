@@ -9,6 +9,8 @@ declare class EditorGutter extends EventEmitter<EditorGutterEvents> {
     private _visibleRowsCount;
     private _totalRowsCount;
     private _gutterWidth;
+    private _isMouseHold;
+    private _lineHeight;
     constructor(view: EdiotrView);
     private get _session();
     update(): void;
@@ -20,5 +22,9 @@ declare class EditorGutter extends EventEmitter<EditorGutterEvents> {
     private _initEventListeners;
     private _createGutterContainer;
     private _renderLinesNumbers;
+    private _onMouseDown;
+    private _onMouseUp;
+    private _onMouseMove;
+    private _getRowAtPosition;
 }
 export default EditorGutter;

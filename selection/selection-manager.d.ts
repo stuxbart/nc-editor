@@ -9,9 +9,11 @@ export default class SelectionManager {
     constructor(document?: Document | null);
     get length(): number;
     getSelections(): Selection[];
+    getCursorsPositions(): Point[];
     enableUpdatingSelections(): void;
     disableUpdatingSelections(): void;
     update(line: number, offset: number, lineDiff: number, offsetDiff: number): void;
+    clear(): void;
     setSelection(selection: Selection): void;
     setSelections(selection: Selection[]): void;
     addSelection(selection: Selection): void;
@@ -36,6 +38,8 @@ export default class SelectionManager {
     collapseSelectionToEnd(): void;
     getActiveLinesNumbers(firstLine?: number, linesCount?: number): Set<number>;
     getSelectedLinesCount(): number;
+    onlyLastSelection(): void;
+    selectLine(lineNumber: number): void;
     private _removeOverlappingSelections;
     private _clearRectSelectionStart;
 }

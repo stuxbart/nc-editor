@@ -8,7 +8,7 @@ export default class JSTokenizer extends Tokenizer {
     DEC_KEYWORDS: string[];
     BASE_TYPES: string[];
     tokenize(document: Document, tokenizerData: TokenizerData): void;
-    updateTokens(document: Document, tokenizerData: TokenizerData, lineNumber: number): void;
+    updateTokens(document: Document, tokenizerData: TokenizerData, firstLineNumber: number): void;
     private _makeLineData;
     private _isWordInList;
 }

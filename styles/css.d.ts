@@ -3,6 +3,7 @@ export declare const CSSClasses: {
     TEXT_LAYER: string;
     GUTTER: string;
     GUTTER_NUMBER: string;
+    GUTTER_NUMBER_ACTIVE: string;
     MAIN_INPUT: string;
     CURSOR: string;
     CURSOR_ANIMATED: string;
@@ -12,6 +13,7 @@ export declare const CSSClasses: {
     MULTI_LINE_CONTENT: string;
     SELECTION_RANGE: string;
     SELECTION_SEARCH: string;
+    SELECTION_SEARCH_ACTIVE: string;
     SELECTION: string;
     SCROLL_BAR: string;
     SCROLL_INNER: string;

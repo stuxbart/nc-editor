@@ -40,6 +40,7 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
     private _isLeftAltHold;
     private _isRightAltHold;
     private _theme;
+    private _resizeObserver;
     constructor(editor: Editor, mountPoint: HTMLElement | string);
     get session(): EditSession;
     get reader(): DocumentReader;
@@ -55,6 +56,7 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
     private _emitInitEvent;
     private _scrollBarInitialConfig;
     private _createEditorContainer;
+    private _createResizeObserver;
     private _updateGridLayout;
     private _createInputElement;
     private _updateEditorSize;

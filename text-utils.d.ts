@@ -15,3 +15,4 @@ export declare function readWhiteSpaceAfter(text: string, offset: number): numbe
 export declare function readWordAfter(text: string, offset: number): number;
 export declare function readNumberAfter(text: string, offset: number): number;
 export declare function readAfterUntil(text: string, offset: number, fn: Function): number;
+export declare function getLineIndent(text: string): string;
