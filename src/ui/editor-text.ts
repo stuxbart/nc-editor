@@ -61,13 +61,13 @@ class TextLayer extends EventEmitter<TextLayerEvents> {
 			this.update();
 		});
 		this._view.on(EvTokenizer.Finished, () => {
-			this.update();
+			this.update(true);
 		});
 		this._view.on(EvSelection.Changed, () => {
 			this._updateActiveRows();
 		});
 		this._view.on(EvDocument.Set, () => {
-			this.update();
+			this.update(true);
 		});
 	}
 
@@ -88,8 +88,8 @@ class TextLayer extends EventEmitter<TextLayerEvents> {
 		this._visibleLinesCount = linesCount;
 	}
 
-	public update(): void {
-		this._renderRows();
+	public update(forceRenderAll: boolean = false): void {
+		this._renderRows(forceRenderAll);
 	}
 
 	public measureLetterWidth(): void {
@@ -128,7 +128,7 @@ class TextLayer extends EventEmitter<TextLayerEvents> {
 		this.emit(EvFont.LetterWidth, { width: this._letterWidth });
 	}
 
-	private _renderRows(): void {
+	private _renderRows(forceRenderAll: boolean = false): void {
 		if (this._textContainer === null) {
 			return;
 		}
@@ -138,18 +138,26 @@ class TextLayer extends EventEmitter<TextLayerEvents> {
 		);
 		const rows = this._session.reader.getRows(this._firstVisibleLine, this._visibleLinesCount);
 		const rowsNumbers = rows.map((row) => row.number);
-		const removed: number[] = [];
-
-		for (let i = 0; i < this._renderedRowsKeys.length; i++) {
-			if (!rowsNumbers.includes(this._renderedRowsKeys[i])) {
-				removed.push(i);
+		let removed: number[] = [];
+		if (forceRenderAll) {
+			removed = this._visibleRows.map((el, i) => i);
+		} else {
+			for (let i = 0; i < this._renderedRowsKeys.length; i++) {
+				if (!rowsNumbers.includes(this._renderedRowsKeys[i])) {
+					removed.push(i);
+				}
 			}
 		}
 
 		const rRemoved = removed.reverse();
 		for (const toRemove of rRemoved) {
 			const row = this._visibleRows[toRemove];
-			const node = row.getNode();
+			let node = null;
+			try {
+				node = row.getNode();
+			} catch {
+				continue;
+			}
 			if (node === null) {
 				continue;
 			}
