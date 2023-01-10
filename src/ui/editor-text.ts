@@ -3,7 +3,7 @@ import { createDiv } from './dom-utils';
 import EditorLineElement from './editor-line-element';
 import { Row, rowCompare } from '../document/line';
 import EdiotrView from './editor-view';
-import { EvFont, EvScroll, TextLayerEvents } from './events';
+import { EvFont, EvScroll, EvWrap, TextLayerEvents } from './events';
 import { CSSClasses } from '../styles/css';
 import { HighlighterSchema } from '../highlighter';
 import EditSession from '../edit-session/edit-session';
@@ -67,6 +67,9 @@ class TextLayer extends EventEmitter<TextLayerEvents> {
 			this._updateActiveRows();
 		});
 		this._view.on(EvDocument.Set, () => {
+			this.update(true);
+		});
+		this._view.on(EvWrap.Changed, () => {
 			this.update(true);
 		});
 	}
