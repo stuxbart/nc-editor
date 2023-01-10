@@ -1,10 +1,9 @@
 import { EventEmitter } from '../events';
 import { createDiv } from './dom-utils';
 import EditorLineElement from './editor-line-element';
-import { Row } from '../document/line';
+import { Row, rowCompare } from '../document/line';
 import EdiotrView from './editor-view';
 import { EvFont, EvScroll, TextLayerEvents } from './events';
-import { notEmpty } from '../utils';
 import { CSSClasses } from '../styles/css';
 import { HighlighterSchema } from '../highlighter';
 import EditSession from '../edit-session/edit-session';
@@ -23,6 +22,8 @@ class TextLayer extends EventEmitter<TextLayerEvents> {
 	private _lineHeight: number = 20;
 	private _letterWidth: number = 0;
 	private _rightPadding: number = 20;
+	private _renderedRowsKeys: number[] = [];
+	private _renderedRows: Row[] = [];
 
 	constructor(view: EdiotrView) {
 		super();
@@ -136,21 +137,71 @@ class TextLayer extends EventEmitter<TextLayerEvents> {
 			this._visibleLinesCount,
 		);
 		const rows = this._session.reader.getRows(this._firstVisibleLine, this._visibleLinesCount);
+		const rowsNumbers = rows.map((row) => row.number);
+		const removed: number[] = [];
 
-		this._visibleRows = [];
-		for (let i = 0; i < rows.length; i++) {
-			const row = rows[i];
-			this._renderRow(this._visibleRows, row, row.line === this._activeLineNumber);
-			this._visibleRows[i].setActive(activeRows.has(this._firstVisibleLine + i));
+		for (let i = 0; i < this._renderedRowsKeys.length; i++) {
+			if (!rowsNumbers.includes(this._renderedRowsKeys[i])) {
+				removed.push(i);
+			}
 		}
 
-		const domElements = this._visibleRows.map((el) => el.getNode()).filter(notEmpty);
-		this._textContainer.replaceChildren(...domElements);
+		const rRemoved = removed.reverse();
+		for (const toRemove of rRemoved) {
+			const row = this._visibleRows[toRemove];
+			const node = row.getNode();
+			if (node === null) {
+				continue;
+			}
+			if (removed.includes(toRemove)) {
+				this._textContainer.removeChild(node);
+			}
+			row.unmount();
+			this._renderedRows.splice(toRemove, 1);
+			this._renderedRowsKeys.splice(toRemove, 1);
+			this._visibleRows.splice(toRemove, 1);
+		}
+
+		let i = 0;
+		for (const row of rows) {
+			const rowNumber = row.number;
+			const ind = this._renderedRowsKeys.indexOf(rowNumber);
+
+			if (ind !== -1) {
+				if (rowCompare(row, this._renderedRows[ind])) {
+					i++;
+					continue;
+				}
+				this._visibleRows[ind].setData(row);
+				this._visibleRows[ind].setSchema(this._highlighterSchema);
+				this._visibleRows[ind].setActive(activeRows.has(row.number));
+				this._visibleRows[ind].render();
+			} else {
+				const rowElement = this._renderRow(row, row.line === this._activeLineNumber);
+				rowElement.setActive(activeRows.has(row.number));
+				const domElement = rowElement.getNode();
+				if (domElement === null) {
+					i++;
+					continue;
+				}
+				let nextNode = null;
+				if (i < this._visibleRows.length) {
+					nextNode = this._visibleRows[i].getNode();
+					this._textContainer.insertBefore(domElement, nextNode);
+				} else {
+					this._textContainer.append(domElement);
+				}
+				this._visibleRows.splice(i, 0, rowElement);
+			}
+			i++;
+		}
+
+		this._renderedRows = rows;
+		this._renderedRowsKeys = rows.map((row) => row.number);
 	}
 
-	private _renderRow(parent: EditorLineElement[], row: Row, active: boolean): void {
-		const lineElement = new EditorLineElement(row, active, this._highlighterSchema);
-		parent.push(lineElement);
+	private _renderRow(row: Row, active: boolean): EditorLineElement {
+		return new EditorLineElement(row, active, this._highlighterSchema);
 	}
 }
 

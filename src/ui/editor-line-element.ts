@@ -1,7 +1,7 @@
 import { Row } from '../document/line';
 import { Token } from '../tokenizer';
 import { CSSClasses } from '../styles/css';
-import { createElement, createNodeFromTemplate, px } from './dom-utils';
+import { createDiv, createElement, px } from './dom-utils';
 import { HighlighterSchema } from '../highlighter';
 
 export default class EditorLineElement {
@@ -18,13 +18,8 @@ export default class EditorLineElement {
 		this._text = line.text;
 		this._tokens = line.tokens;
 		this._highlighterSchema = highlighterSchema;
-		this._domElement = createNodeFromTemplate(
-			`<div class="${CSSClasses.MULTI_LINE}">
-			<div class="${CSSClasses.MULTI_LINE_CONTENT}">
-			  ${this._text || '<br />'}
-			</div>
-		</div>`,
-		);
+		this._domElement = createDiv(CSSClasses.MULTI_LINE);
+		this._domElement.appendChild(createDiv(CSSClasses.MULTI_LINE_CONTENT));
 		const el = this._domElement as HTMLElement;
 		el.style.height = px(20);
 		this.setActive(active);
@@ -51,6 +46,32 @@ export default class EditorLineElement {
 		this._renderTokens();
 	}
 
+	public unmount(): void {
+		if (this._domElement) {
+			this.clear();
+			this._domElement.remove();
+			if (this._domElement.firstChild) {
+				this._domElement.removeChild(this._domElement.firstChild);
+			}
+			this._domElement = null;
+		}
+	}
+
+	public clear(): void {
+		const el = this._domElement as HTMLDivElement;
+		if (el.firstElementChild === null) {
+			return;
+		}
+
+		while (el.firstElementChild.lastChild) {
+			const last = el.firstElementChild.lastChild;
+			if (last.firstChild) {
+				last.removeChild(last.firstChild);
+			}
+			el.firstElementChild.removeChild(last);
+		}
+	}
+
 	public setSchema(highlighterSchema: HighlighterSchema): void {
 		this._highlighterSchema = highlighterSchema;
 	}
@@ -65,7 +86,7 @@ export default class EditorLineElement {
 			el.firstElementChild.textContent = this._text;
 			return;
 		}
-
+		this.clear();
 		const t = [];
 		for (let i = 0; i < this._tokens.length; i++) {
 			const token = this._tokens[i];
@@ -77,7 +98,7 @@ export default class EditorLineElement {
 			el.textContent = this._text.substring(startIndex, endIndex);
 			t.push(el);
 		}
-		el.firstElementChild.replaceChildren(...t);
+		el.firstElementChild.append(...t);
 	}
 
 	public setText(text: string): void {

@@ -53,6 +53,7 @@ export default class DocumentReader extends Reader {
 		let i = 0;
 		for (const line of lines) {
 			rows.push({
+				number: firstRow + i,
 				line: firstRow + i,
 				ord: 0,
 				offset: 0,
