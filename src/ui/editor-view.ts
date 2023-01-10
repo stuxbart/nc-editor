@@ -94,7 +94,7 @@ export default class EditorView extends EventEmitter<EditorViewEvents> {
 		let docId = editor.getLatestDocumentId();
 
 		if (!docId) {
-			const newDoc = new Document('doc');
+			const newDoc = new Document('');
 			docId = editor.addDocument(newDoc);
 		}
 
