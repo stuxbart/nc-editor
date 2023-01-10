@@ -22,6 +22,9 @@ export default class Tree<T> {
 	}
 
 	public getNodesData(firstNodeNumber: number, nodesCount: number): T[] {
+		if (nodesCount < 1) {
+			return [];
+		}
 		const dataArr: T[] = [];
 		this._getNodesData(this._rootNode, firstNodeNumber, nodesCount, dataArr);
 		return dataArr;
