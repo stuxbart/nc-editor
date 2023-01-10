@@ -105,7 +105,11 @@ export default class Document {
 	}
 
 	public get text(): string {
-		return this.getText(new Range(0, 0, Infinity, Infinity));
+		if (this.linesCount === 0) {
+			return '';
+		}
+		const lastLine = this.getLastLine();
+		return this.getText(new Range(0, 0, this.linesCount - 1, lastLine.length));
 	}
 
 	public getText(range: Range): string {
