@@ -1,4 +1,6 @@
 import { Document } from '../document';
+import Reader from '../document-reader/reader';
+import EditSession from '../edit-session/edit-session';
 import {
 	columnToOffset,
 	getWordAfter,
@@ -13,13 +15,18 @@ import { pointCompare } from './utils';
 
 export default class SelectionManager {
 	private _selections: Selection[] = [];
+	private _editSession: EditSession;
 	private _document: Document | null = null;
 	private _shouldUpdateSelections: boolean = true;
 	private _rectSelectionStart: Point | null = null;
 
-	constructor(document: Document | null = null) {
-		this._document = document;
+	constructor(editSession: EditSession) {
+		this._editSession = editSession;
+		this._document = editSession.documentSession.document;
 		this._selections = [new Selection(0, 0, 0, 0)];
+	}
+	private get _reader(): Reader {
+		return this._editSession.reader;
 	}
 
 	public get length(): number {
@@ -208,13 +215,16 @@ export default class SelectionManager {
 			return;
 		}
 		for (const sel of this._selections) {
+			const row = this._reader.getRowAtPosition(sel.start);
+			if (row === null) {
+				continue;
+			}
+			const whiteSpaceLength = readWhiteSpaceAfter(row.text, 0);
 			if (sel.type === SelectionType.R) {
-				const line = this._document.getLine(sel.end.line);
-				const whiteSpaceLength = readWhiteSpaceAfter(line, 0);
-				if (sel.end.offset === whiteSpaceLength) {
-					sel.end.offset = 0;
+				if (sel.end.offset === whiteSpaceLength + row.offset) {
+					sel.end.offset = row.offset;
 				} else {
-					sel.end.offset = whiteSpaceLength;
+					sel.end.offset = row.offset + whiteSpaceLength;
 				}
 				if (sel.start.line === sel.end.line) {
 					const tmpOffset = sel.start.offset;
@@ -223,12 +233,10 @@ export default class SelectionManager {
 					sel.type = SelectionType.L;
 				}
 			} else {
-				const line = this._document.getLine(sel.start.line);
-				const whiteSpaceLength = readWhiteSpaceAfter(line, 0);
 				if (sel.start.offset === whiteSpaceLength) {
-					sel.start.offset = 0;
+					sel.start.offset = row.offset;
 				} else {
-					sel.start.offset = whiteSpaceLength;
+					sel.start.offset = row.offset + whiteSpaceLength;
 				}
 				sel.type = SelectionType.L;
 			}
@@ -244,9 +252,12 @@ export default class SelectionManager {
 		}
 
 		for (const sel of this._selections) {
+			const row = this._reader.getRowAtPosition(sel.start);
+			if (row === null) {
+				continue;
+			}
 			if (sel.type === SelectionType.L) {
-				const line = this._document.getLine(sel.start.line);
-				sel.start.offset = line.length;
+				sel.start.offset = row.offset + row.text.length;
 				if (sel.start.line === sel.end.line) {
 					const tmpOffset = sel.start.offset;
 					sel.start.offset = sel.end.offset;
@@ -254,8 +265,7 @@ export default class SelectionManager {
 					sel.type = SelectionType.R;
 				}
 			} else {
-				const line = this._document.getLine(sel.end.line);
-				sel.end.offset = line.length;
+				sel.end.offset = row.offset + row.text.length;
 				sel.type = SelectionType.R;
 			}
 		}

@@ -45,7 +45,7 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
 		this._documentSession = documentSession;
 		this._highlightingSchema = getMode(documentSession.modeName).schema;
 
-		this._selectionManager = new SelectionManager(this._document);
+		this._selectionManager = new SelectionManager(this);
 		this._selectionHistory = new SelectionHistory(this);
 		this._searchResults = new SerachResults();
 		this._reader = new DocumentReader(this._documentSession, this);
