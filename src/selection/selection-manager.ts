@@ -472,18 +472,32 @@ export default class SelectionManager {
 		if (this._selections.length < 1 || this._document === null) {
 			return;
 		}
-		const lastLineNumber = this._document.linesCount - 1;
-		const lastLineLength = this._document.getLine(lastLineNumber).length;
+		const lastRow = this._reader.getLastRow();
+		if (lastRow === null) {
+			return;
+		}
 		for (const sel of this._selections) {
-			if (sel.end.line === lastLineNumber) {
-				sel.start.offset = lastLineLength;
-				sel.end.offset = lastLineLength;
-				sel.start.line = lastLineNumber;
+			const row = this._reader.getRowAtPosition(sel.end);
+			if (row === null) {
 				continue;
 			}
-			const newLine = sel.start.line + 1;
-			const lineLength = this._document.getLine(newLine).length;
-			const newOffset = lineLength < sel.end.offset ? lineLength : sel.end.offset;
+			if (row.number === lastRow.number) {
+				sel.start.offset = lastRow.offset + lastRow.text.length;
+				sel.end.offset = lastRow.offset + lastRow.text.length;
+				sel.start.line = lastRow.line;
+				sel.end.line = lastRow.line;
+				continue;
+			}
+			const nextRows = this._reader.getRows(row.number + 1, 1);
+			if (nextRows.length === 0) {
+				sel.start.offset = row.offset + row.text.length;
+				sel.end.offset = row.offset + row.text.length;
+				continue;
+			}
+			const nextRow = nextRows[0];
+			const column = offsetToColumn(row.text, sel.end.offset - row.offset);
+			const newOffset = columnToOffset(nextRow.text, column) + nextRow.offset;
+			const newLine = nextRow.line;
 			sel.start.offset = newOffset;
 			sel.end.offset = newOffset;
 			sel.start.line = newLine;

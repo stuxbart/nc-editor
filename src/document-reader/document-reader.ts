@@ -119,4 +119,12 @@ export default class DocumentReader extends Reader {
 		const row = rows[0];
 		return row;
 	}
+
+	public getLastRow(): Row | null {
+		const rows = this.getRows(this._document.linesCount - 1, 1);
+		if (rows.length === 0) {
+			return null;
+		}
+		return rows[0];
+	}
 }

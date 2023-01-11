@@ -235,4 +235,12 @@ export default class WrapReader extends Reader {
 		const row = rows[0];
 		return row;
 	}
+
+	public getLastRow(): Row | null {
+		const rows = this.getRows(this._editSession.wrapData.rowsCount - 1, 1);
+		if (rows.length === 0) {
+			return null;
+		}
+		return rows[0];
+	}
 }

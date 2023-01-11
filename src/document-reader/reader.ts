@@ -34,4 +34,6 @@ export default abstract class Reader {
 	public abstract getSelectedText(): string;
 
 	public abstract getRowAtPosition(pos: Point): Row | null;
+
+	public abstract getLastRow(): Row | null;
 }
