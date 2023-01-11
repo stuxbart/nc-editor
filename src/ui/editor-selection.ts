@@ -252,12 +252,12 @@ export default class SelectionLayer extends EventEmitter<SelectionLayerEvents> {
 	private _onMouseDown(e: MouseEvent): void {
 		this._isMouseHold = true;
 		const [x, y] = getRelativePositionOfMouseEvent(e);
-		const [line, offset] = this._getLineAndOffsetAtPosition(x, y);
+		const [line, row, offset] = this._getLineRowAndOffsetAtPosition(x, y);
 		const column = Math.round(x / this._letterWidth);
 
 		if (this._isShitHold) {
 			if (this._isAltHold) {
-				this._session.extendRectangleSelection(new Point(line, column));
+				this._session.extendRectangleSelection(new Point(row, column));
 			} else {
 				this._session.extendLastSelection(new Point(line, offset));
 			}
@@ -275,11 +275,11 @@ export default class SelectionLayer extends EventEmitter<SelectionLayerEvents> {
 	private _onMouseMove(e: MouseEvent): void {
 		if (this._isMouseHold) {
 			const [x, y] = getRelativePositionOfMouseEvent(e);
-			const [line, offset] = this._getLineAndOffsetAtPosition(x, y);
+			const [line, row, offset] = this._getLineRowAndOffsetAtPosition(x, y);
 			const column = Math.round(x / this._letterWidth);
 
 			if (this._isShitHold && this._isAltHold) {
-				this._session.extendRectangleSelection(new Point(line, column));
+				this._session.extendRectangleSelection(new Point(row, column));
 			} else {
 				this._session.extendLastSelection(new Point(line, offset));
 			}
@@ -288,7 +288,7 @@ export default class SelectionLayer extends EventEmitter<SelectionLayerEvents> {
 
 	private _onDoubleClick(e: MouseEvent): void {
 		const [x, y] = getRelativePositionOfMouseEvent(e);
-		const [line, offset] = this._getLineAndOffsetAtPosition(x, y);
+		const [line, , offset] = this._getLineRowAndOffsetAtPosition(x, y);
 
 		if (!this._isShitHold) {
 			this._session.selectWordAt(new Point(line, offset), this._isCtrlHold);
@@ -298,7 +298,7 @@ export default class SelectionLayer extends EventEmitter<SelectionLayerEvents> {
 	private _onTouchStart(e: TouchEvent): void {
 		this._isTouchHold = true;
 		const [x, y] = getRelativePositionOfTouchEvent(e);
-		const [line, offset] = this._getLineAndOffsetAtPosition(x, y);
+		const [line, , offset] = this._getLineRowAndOffsetAtPosition(x, y);
 		const touchTime = performance.now();
 		if (this._lastTouchTime !== null) {
 			if (touchTime - this._lastTouchTime < 200) {
@@ -321,7 +321,7 @@ export default class SelectionLayer extends EventEmitter<SelectionLayerEvents> {
 	private _onTouchMove(e: TouchEvent): void {
 		if (this._isTouchHold) {
 			const [x, y] = getRelativePositionOfTouchEvent(e);
-			const [line, offset] = this._getLineAndOffsetAtPosition(x, y);
+			const [line, , offset] = this._getLineRowAndOffsetAtPosition(x, y);
 
 			if (this._isTouchSelecting) {
 				this._session.extendLastSelection(new Point(line, offset));
@@ -341,7 +341,7 @@ export default class SelectionLayer extends EventEmitter<SelectionLayerEvents> {
 		}
 	}
 
-	private _getLineAndOffsetAtPosition(x: number, y: number): [number, number] {
+	private _getLineRowAndOffsetAtPosition(x: number, y: number): [number, number, number] {
 		const rowNumber = Math.floor(y / this._lineHeight) + this._firstVisibleLine;
 		let offset = 0;
 		let line = 0;
@@ -356,12 +356,12 @@ export default class SelectionLayer extends EventEmitter<SelectionLayerEvents> {
 		} catch (err: any) {
 			const lineContent = this._session.reader.getLastLine();
 			if (lineContent === null) {
-				return [0, 0];
+				return [0, 0, 0];
 			}
 			offset = columnToOffset(lineContent.rawText, Infinity);
 			line = this._session.reader.getTotalLinesCount() - 1;
 		}
 
-		return [line, offset];
+		return [line, rowNumber, offset];
 	}
 }

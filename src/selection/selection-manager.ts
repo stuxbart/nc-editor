@@ -321,7 +321,7 @@ export default class SelectionManager {
 		this._clearRectSelectionStart();
 	}
 	/**
-	 * point.offset for this function should be column in text
+	 * point.offset for this function should be column in row
 	 */
 	public extendRectangleSelection(point: Point): void {
 		if (this._document === null) {
@@ -329,31 +329,46 @@ export default class SelectionManager {
 		}
 		if (this._rectSelectionStart === null) {
 			const lastSelection = this._selections[this._selections.length - 1];
+			this._rectSelectionStart = new Point(0, 0);
 			if (lastSelection.type === SelectionType.L) {
-				this._rectSelectionStart = lastSelection.end;
+				this._rectSelectionStart.line = lastSelection.end.line;
+				this._rectSelectionStart.offset = lastSelection.end.offset;
 			} else {
-				this._rectSelectionStart = lastSelection.start;
+				this._rectSelectionStart.line = lastSelection.start.line;
+				this._rectSelectionStart.offset = lastSelection.start.offset;
 			}
-			const line = this._document.getLine(this._rectSelectionStart.line);
-			this._rectSelectionStart.offset = offsetToColumn(line, this._rectSelectionStart.offset);
+			const row = this._reader.getRowAtPosition(this._rectSelectionStart);
+			if (row === null) {
+				return;
+			}
+			this._rectSelectionStart.line = row.number;
+			this._rectSelectionStart.offset = offsetToColumn(
+				row.text,
+				this._rectSelectionStart.offset - row.offset,
+			);
 		}
-
 		this._selections = [];
-		const startLine = Math.min(point.line, this._rectSelectionStart.line);
-		const endLine = Math.max(point.line, this._rectSelectionStart.line);
+		const startRowNumber = Math.min(point.line, this._rectSelectionStart.line);
+		const endRowNumber = Math.max(point.line, this._rectSelectionStart.line);
 		const startColumn = Math.min(point.offset, this._rectSelectionStart.offset);
 		const endColumn = Math.max(point.offset, this._rectSelectionStart.offset);
 
-		for (let index = startLine; index < endLine + 1; index++) {
-			const line = this._document.getLine(index);
-			const lineColumns = offsetToColumn(line, line.length);
+		for (let index = startRowNumber; index < endRowNumber + 1; index++) {
+			const rows = this._reader.getRows(index, 1);
+			if (rows.length === 0) {
+				continue;
+			}
+			const row = rows[0];
+			const lineColumns = offsetToColumn(row.text, row.text.length);
 			if (startColumn > lineColumns) {
 				continue;
 			}
-			const startOffset = columnToOffset(line, startColumn);
+			const startOffset = columnToOffset(row.text, startColumn);
 			const endOffset =
-				endColumn < lineColumns ? columnToOffset(line, endColumn) : line.length;
-			this._selections.push(new Selection(index, startOffset, index, endOffset));
+				endColumn < lineColumns ? columnToOffset(row.text, endColumn) : row.text.length;
+			this._selections.push(
+				new Selection(row.line, startOffset + row.offset, row.line, endOffset + row.offset),
+			);
 		}
 		this._removeOverlappingSelections();
 	}
