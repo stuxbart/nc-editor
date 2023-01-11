@@ -96,25 +96,17 @@ export default class DocumentHistory {
 					const line = op.pos.line;
 					const offset = op.pos.offset;
 					this._documentSession.document.insert(op.text, line, offset);
-					this._documentSession.updateLinesTokens(line);
-					this._documentSession.emitLinesCountChanged(1);
-					this._documentSession.emitEditEvent();
+
 					break;
 				}
 				case HisotryOperations.Delete: {
 					this._documentSession.document.remove(
 						new Range(op.pos.line, op.pos.offset, op.endPos.line, op.endPos.offset),
 					);
-					this._documentSession.updateLinesTokens(op.pos.line);
-					this._documentSession.emitLinesCountChanged(1);
-					this._documentSession.emitEditEvent();
 					break;
 				}
 				case HisotryOperations.SwapLines: {
 					this._documentSession.document.swapLineWithNext(op.pos.line);
-					this._documentSession.updateLinesTokens(op.pos.line);
-					this._documentSession.emitLinesCountChanged(1);
-					this._documentSession.emitEditEvent();
 					break;
 				}
 				default:
@@ -122,5 +114,8 @@ export default class DocumentHistory {
 					break;
 			}
 		}
+		this._documentSession.tokenize();
+		this._documentSession.emitLinesCountChanged(1);
+		this._documentSession.emitEditEvent();
 	}
 }
