@@ -157,7 +157,7 @@ editorView.session
 ```
 + Get displayed document session:
 ```JavaScript
-editorView.session.docSession
+editorView.session.documentSession
 ```
 + Get document:
 ```JavaScript
