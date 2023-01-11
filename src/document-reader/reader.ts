@@ -2,6 +2,7 @@ import DocumentSession from '../document-session/document-session';
 import Document from '../document/document';
 import Line, { Row } from '../document/line';
 import EditSession from '../edit-session/edit-session';
+import { Point } from '../selection';
 
 export default abstract class Reader {
 	protected _documentSession: DocumentSession;
@@ -31,4 +32,6 @@ export default abstract class Reader {
 	public abstract getFirstRowForLine(lineNumber: number): number;
 
 	public abstract getSelectedText(): string;
+
+	public abstract getRowAtPosition(pos: Point): Row | null;
 }

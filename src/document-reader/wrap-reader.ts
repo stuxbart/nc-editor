@@ -1,5 +1,6 @@
 import Line, { Row } from '../document/line';
 import SearchResult from '../search/search-result';
+import { Point } from '../selection';
 import { Token } from '../tokenizer';
 import Reader from './reader';
 
@@ -220,5 +221,18 @@ export default class WrapReader extends Reader {
 			text += this._document.getText(sel);
 		}
 		return text;
+	}
+
+	public getRowAtPosition(pos: Point): Row | null {
+		let rowNumber = this._editSession.wrapData.getRowNumberAtPosition(pos);
+		if (rowNumber === -1) {
+			rowNumber = pos.line;
+		}
+		const rows = this.getRows(rowNumber, 1);
+		if (rows.length === 0) {
+			return null;
+		}
+		const row = rows[0];
+		return row;
 	}
 }

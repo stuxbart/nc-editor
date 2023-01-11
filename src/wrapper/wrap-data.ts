@@ -1,3 +1,4 @@
+import { Point } from '../selection';
 import WrapNode, { LineWrapData, RowWrapData } from './wrap-node';
 
 export const nodeHeight = (node: WrapNode | null): number => (node === null ? 0 : node.height);
@@ -113,6 +114,21 @@ export default class WrapData {
 	public getFirstRowForLine(linenumber: number): number {
 		const [row] = this._getNodeByLineNumber(this._rootNode, linenumber);
 		return row;
+	}
+
+	public getRowNumberAtPosition(pos: Point): number {
+		const [row, node] = this._getNodeByLineNumber(this._rootNode, pos.line);
+		if (node === null) {
+			return -1;
+		}
+		let i = 0;
+		for (; i < node.data.data.length; i++) {
+			const offset = node.data.data[i];
+			if (pos.offset < offset) {
+				break;
+			}
+		}
+		return row + i;
 	}
 
 	private _removeLine(
