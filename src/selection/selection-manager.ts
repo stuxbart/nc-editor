@@ -511,24 +511,30 @@ export default class SelectionManager {
 			return;
 		}
 		for (const sel of this._selections) {
-			let line: string = '';
+			let row;
 			let currentOffset: number = 0;
 			if (sel.type === SelectionType.L) {
-				line = this._document.getLine(sel.start.line);
+				row = this._reader.getRowAtPosition(sel.start);
+				if (row === null) {
+					continue;
+				}
 				sel.end.line = sel.start.line;
 				currentOffset = sel.start.offset;
 			} else {
-				line = this._document.getLine(sel.end.line);
+				row = this._reader.getRowAtPosition(sel.end);
+				if (row === null) {
+					continue;
+				}
 				sel.start.line = sel.end.line;
 				currentOffset = sel.end.offset;
 			}
-			const whiteSpaceLength = readWhiteSpaceAfter(line, 0);
-			if (currentOffset === whiteSpaceLength) {
-				sel.start.offset = 0;
-				sel.end.offset = 0;
+			const whiteSpaceLength = readWhiteSpaceAfter(row.text, 0);
+			if (currentOffset === whiteSpaceLength + row.offset) {
+				sel.start.offset = row.offset;
+				sel.end.offset = row.offset;
 			} else {
-				sel.start.offset = whiteSpaceLength;
-				sel.end.offset = whiteSpaceLength;
+				sel.start.offset = whiteSpaceLength + row.offset;
+				sel.end.offset = whiteSpaceLength + row.offset;
 			}
 		}
 		this._clearRectSelectionStart();
@@ -540,18 +546,22 @@ export default class SelectionManager {
 			return;
 		}
 		for (const sel of this._selections) {
-			let line: string = '';
+			let row;
 			if (sel.type === SelectionType.L) {
-				line = this._document.getLine(sel.start.line);
+				row = this._reader.getRowAtPosition(sel.start);
+				if (row === null) {
+					continue;
+				}
 				sel.end.line = sel.start.line;
 			} else {
-				line = this._document.getLine(sel.end.line);
+				row = this._reader.getRowAtPosition(sel.end);
+				if (row === null) {
+					continue;
+				}
 				sel.start.line = sel.end.line;
 			}
-			const lineLength = line.length;
-
-			sel.start.offset = lineLength;
-			sel.end.offset = lineLength;
+			sel.start.offset = row.text.length + row.offset;
+			sel.end.offset = row.text.length + row.offset;
 		}
 		this._clearRectSelectionStart();
 		this._removeOverlappingSelections();
