@@ -108,6 +108,7 @@ export default class WrapReader extends Reader {
 				const token = lineTokens[i];
 				if (token.startIndex < off) {
 					if (i + 1 === lineTokens.length) {
+						rowTokens.push({ startIndex: 0, type: token.type });
 						continue;
 					}
 					const nextToken = lineTokens[i + 1];
