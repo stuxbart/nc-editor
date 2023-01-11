@@ -13,6 +13,7 @@ export default class SelectionHistory {
 	public createSnapshot(): void {
 		const newSelections = this._copyCurrentSelections();
 		this._undo.push(newSelections);
+		this.clearRedo();
 	}
 
 	public undo(): void {
