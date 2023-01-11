@@ -341,7 +341,7 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
 			return activeRows;
 		}
 
-		const rows = this._wrapData.getRows(firstRow, rowCount);
+		const rows = this._reader.getRows(firstRow, rowCount);
 		if (rows.length === 0) {
 			return new Set<number>();
 		}
@@ -352,24 +352,18 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
 			.filter(({ line }) => firstLine <= line && line <= lastLine);
 
 		const activeRows = new Set<number>();
-		let off = -1;
-		let prevRowLine = -1;
-		for (let i = 0; i < rows.length; i++) {
-			const row = rows[i];
-			if (row.line !== prevRowLine) {
-				off = -1;
-			}
-			for (const cursor of cursors) {
+
+		for (const cursor of cursors) {
+			for (let i = rows.length - 1; i > -1; i--) {
+				const row = rows[i];
 				if (cursor.line !== row.line) {
 					continue;
 				}
-				if (off < cursor.offset && cursor.offset <= row.offset) {
+				if (row.offset <= cursor.offset && cursor.offset <= row.offset + row.text.length) {
 					activeRows.add(firstRow + i);
 					break;
 				}
 			}
-			off = row.offset;
-			prevRowLine = row.line;
 		}
 		return activeRows;
 	}
