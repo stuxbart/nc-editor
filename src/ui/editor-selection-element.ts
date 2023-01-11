@@ -45,12 +45,15 @@ export default class EditorSelectionElement {
 		let firstRowOffset = 0;
 
 		if (sel.start.line >= firstRow.line) {
-			for (let i = 0; i < rows.length; i++) {
+			for (let i = rows.length - 1; i > -1; i--) {
 				const row = rows[i];
 				if (row.line !== sel.start.line) {
 					continue;
 				}
-				if (row.offset + row.text.length >= sel.start.offset) {
+				if (
+					row.offset <= sel.start.offset &&
+					row.offset + row.text.length >= sel.start.offset
+				) {
 					firstRowNumber = i;
 					firstRowOffset = sel.start.offset - rows[i].offset;
 					break;

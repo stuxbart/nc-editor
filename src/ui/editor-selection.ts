@@ -197,8 +197,7 @@ export default class SelectionLayer extends EventEmitter<SelectionLayerEvents> {
 			}
 			let rowNumber = -1;
 			let rowOffset = -1;
-
-			for (rowNumber = 0; rowNumber < rows.length; rowNumber++) {
+			for (rowNumber = rows.length - 1; rowNumber > -1; rowNumber--) {
 				const row = rows[rowNumber];
 				if (row.line !== cursorPos.line) {
 					continue;
@@ -211,6 +210,7 @@ export default class SelectionLayer extends EventEmitter<SelectionLayerEvents> {
 					break;
 				}
 			}
+
 			if (rowNumber === rows.length) {
 				continue;
 			}
