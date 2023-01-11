@@ -102,14 +102,18 @@ export default class SelectionManager {
 
 	public clear(): void {
 		this._selections = [];
+		this._clearRectSelectionStart();
 	}
 
 	public setSelection(selection: Selection): void {
 		this._selections = [selection];
+		this._clearRectSelectionStart();
 	}
 
 	public setSelections(selection: Selection[]): void {
 		this._selections = selection;
+		this._clearRectSelectionStart();
+		this._removeOverlappingSelections();
 	}
 
 	public addSelection(selection: Selection): void {
