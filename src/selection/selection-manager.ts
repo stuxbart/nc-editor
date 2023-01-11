@@ -440,15 +440,26 @@ export default class SelectionManager {
 		}
 
 		for (const sel of this._selections) {
-			if (sel.start.line === 0) {
+			const row = this._reader.getRowAtPosition(sel.start);
+			if (row === null) {
+				continue;
+			}
+			if (row.number === 0) {
 				sel.start.offset = 0;
 				sel.end.offset = 0;
 				sel.end.line = 0;
 				continue;
 			}
-			const newLine = sel.start.line - 1;
-			const lineLength = this._document.getLine(newLine).length;
-			const newOffset = lineLength < sel.start.offset ? lineLength : sel.start.offset;
+			const prevRows = this._reader.getRows(row.number - 1, 1);
+			if (prevRows.length === 0) {
+				sel.start.offset = 0;
+				sel.end.offset = 0;
+				continue;
+			}
+			const prevRow = prevRows[0];
+			const newLine = prevRow.line;
+			const column = offsetToColumn(row.text, sel.start.offset - row.offset);
+			const newOffset = columnToOffset(prevRow.text, column) + prevRow.offset;
 			sel.start.offset = newOffset;
 			sel.end.offset = newOffset;
 			sel.start.line = newLine;
