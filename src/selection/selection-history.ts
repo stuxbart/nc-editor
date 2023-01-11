@@ -11,10 +11,7 @@ export default class SelectionHistory {
 	}
 
 	public createSnapshot(): void {
-		const selections = this._editSession.selections.getSelections();
-		const newSelections = selections.map(
-			(sel) => new Selection(sel.start.line, sel.start.offset, sel.end.line, sel.end.offset),
-		);
+		const newSelections = this._copyCurrentSelections();
 		this._undo.push(newSelections);
 	}
 
@@ -23,8 +20,9 @@ export default class SelectionHistory {
 		if (lastV === undefined) {
 			return;
 		}
+		const newSelections = this._copyCurrentSelections();
+		this._redo.push(newSelections);
 		this._applyChanges(lastV);
-		this._redo.push(lastV);
 	}
 
 	public redo(): void {
@@ -32,8 +30,9 @@ export default class SelectionHistory {
 		if (nextV === undefined) {
 			return;
 		}
+		const newSelections = this._copyCurrentSelections();
+		this._undo.push(newSelections);
 		this._applyChanges(nextV);
-		this._undo.push(nextV);
 	}
 
 	public clear(): void {
@@ -48,5 +47,13 @@ export default class SelectionHistory {
 	private _applyChanges(ops: Selection[]): void {
 		this._editSession.selections.setSelections(ops);
 		this._editSession.emitSelectionChangedEvent();
+	}
+
+	private _copyCurrentSelections(): Selection[] {
+		const selections = this._editSession.selections.getSelections();
+		const newSelections = selections.map(
+			(sel) => new Selection(sel.start.line, sel.start.offset, sel.end.line, sel.end.offset),
+		);
+		return newSelections;
 	}
 }
