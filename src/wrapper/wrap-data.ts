@@ -172,11 +172,7 @@ export default class WrapData {
 				const tmp: WrapNode | null = this._getFirstLine(node.right);
 				node.data = tmp?.data ?? { data: [] };
 
-				node.right = this._removeLine(
-					node.right,
-					tmp?.leftSubTreeSize ?? 0,
-					tmp?.leftSubTreeRows ?? 0,
-				);
+				node.right = this._removeLine(node.right, tmp?.leftSubTreeSize ?? 0, lineSize);
 			}
 		}
 
