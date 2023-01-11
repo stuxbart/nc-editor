@@ -112,11 +112,7 @@ export default class DocumentReader extends Reader {
 	}
 
 	public getRowAtPosition(pos: Point): Row | null {
-		let rowNumber = this._editSession.wrapData.getRowNumberAtPosition(pos);
-		if (rowNumber === -1) {
-			rowNumber = pos.line;
-		}
-		const rows = this.getRows(rowNumber, 1);
+		const rows = this.getRows(pos.line, 1);
 		if (rows.length === 0) {
 			return null;
 		}
