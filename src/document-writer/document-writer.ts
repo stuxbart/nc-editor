@@ -54,6 +54,7 @@ export default class DocumentWriter {
 				sel.start.offset,
 				-removedLines.length + 1,
 				-(sel.end.offset - sel.start.offset),
+				false,
 			);
 		}
 
@@ -69,8 +70,9 @@ export default class DocumentWriter {
 				editSession.updateNewLinesSearchResults(line + 1, insertedLines[0]);
 			}
 			editSession.updateLineSearchResults(line);
-			editSession.updateSelctions(line, offset, insertedLines[0], insertedLines[1]);
+			editSession.updateSelctions(line, offset, insertedLines[0], insertedLines[1], false);
 		}
+		editSession.emitSelectionChangedEvent();
 		docSession.history.closeTransaction();
 		docSession.emitLinesCountChanged(1);
 		docSession.emitEditEvent();
