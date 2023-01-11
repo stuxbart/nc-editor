@@ -125,10 +125,10 @@ export default class WrapData {
 		for (; i < node.data.data.length; i++) {
 			const offset = node.data.data[i];
 			if (pos.offset < offset) {
-				break;
+				return row + i;
 			}
 		}
-		return row + i;
+		return row + node.data.data.length - 1;
 	}
 
 	private _removeLine(
