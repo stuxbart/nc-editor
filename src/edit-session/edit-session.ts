@@ -396,6 +396,7 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
 		this._documentSession.undo();
 		this._wrapper.wrap();
 		this._selectionHistory.undo();
+		this.updateLinesSearchResults(0, this._document.linesCount);
 		this._documentSession.emitEditEvent();
 		this.emitSelectionChangedEvent();
 	}
@@ -404,6 +405,7 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
 		this._documentSession.redo();
 		this._wrapper.wrap();
 		this._selectionHistory.redo();
+		this.updateLinesSearchResults(0, this._document.linesCount);
 		this._documentSession.emitEditEvent();
 		this.emitSelectionChangedEvent();
 	}
