@@ -128,17 +128,19 @@ export default class DocumentWriter {
 				);
 			}
 			editSession.updateLineSearchResults(sel.start.line);
-			docSession.emitLinesCountChanged(sel.end.line - sel.start.line);
 			editSession.updateSelctions(
 				sel.start.line,
 				sel.start.offset,
 				-removedLines.length + 1,
 				-(sel.end.offset - sel.start.offset),
+				false,
 			);
 			text += removedText;
 		}
+		docSession.emitLinesCountChanged(1);
 		docSession.history.closeTransaction();
 		docSession.emitEditEvent();
+		editSession.emitSelectionChangedEvent();
 		return text;
 	}
 

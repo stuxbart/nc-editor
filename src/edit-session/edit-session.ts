@@ -188,9 +188,12 @@ export default class EditSession extends EventEmitter<EditSessionEvents> {
 		offset: number,
 		lineDiff: number,
 		offsetDiff: number,
+		emitEvent: boolean = true,
 	): void {
 		this._selectionManager.update(line, offset, lineDiff, offsetDiff);
-		this._emitSelectionChangedEvent();
+		if (emitEvent) {
+			this._emitSelectionChangedEvent();
+		}
 	}
 
 	public search(phrase: string): void {
