@@ -18,7 +18,6 @@ Already implemented features you can find in Features section.
 + Indent type change (spaces / tabs)
 
 ## ToDo
-+ use arrows to change cursor position (works without wrapping)
 + improve performance of undo / redo operations
 + generic tokenizer
 + replace in selected area
