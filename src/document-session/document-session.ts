@@ -118,6 +118,9 @@ export default class DocumentSession extends EventEmitter<DocumentSessionEvents>
 	}
 
 	public tokenize(): void {
+		if (!this._updateTokensAfterEdit) {
+			return;
+		}
 		const document = this._document;
 		this.mode.tokenizer.tokenize(document, this._tokenizerData);
 		this.emit(EvTokenizer.Finished, undefined);
